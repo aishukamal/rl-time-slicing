@@ -41,9 +41,19 @@ func (s *Server) getBackendType(backend pb.Backend) backends.BackendType {
 	switch backend {
 	case pb.Backend_BACKEND_CUDA:
 		return backends.BackendCuda
+	case pb.Backend_BACKEND_GCR:
+		return backends.BackendGCR
 	default:
 		return s.defaultBackend
 	}
+}
+
+func protoRegionsToBackend(regions []*pb.MemoryRegion) []backends.MemoryRegion {
+	result := make([]backends.MemoryRegion, len(regions))
+	for i, r := range regions {
+		result[i] = backends.MemoryRegion{Address: r.Address, Size: r.Size}
+	}
+	return result
 }
 
 // Snapshot triggers an asynchronous snapshot of the accelerator context for a job.
@@ -82,9 +92,22 @@ func (s *Server) Snapshot(ctx context.Context, req *pb.SnapshotRequest) (*pb.Sna
 			return fmt.Errorf("no GPU PIDs found for job %s", req.GetJobId())
 		}
 
-		err = backend.Snapshot(bgCtx, allPIDStrings)
-		if err != nil {
-			return fmt.Errorf("failed to snapshot job %s: %w", req.GetJobId(), err)
+		if regions := req.GetRegions(); len(regions) > 0 {
+			selectiveBackend, ok := backend.(backends.SelectiveBackend)
+			if !ok {
+				return fmt.Errorf("backend %s does not support selective snapshot", backendType)
+			}
+			backendRegions := protoRegionsToBackend(regions)
+			for _, pid := range allPIDStrings {
+				if err := selectiveBackend.SelectiveSnapshot(bgCtx, pid, backendRegions); err != nil {
+					return fmt.Errorf("failed selective snapshot for PID %s: %w", pid, err)
+				}
+			}
+		} else {
+			err = backend.Snapshot(bgCtx, allPIDStrings)
+			if err != nil {
+				return fmt.Errorf("failed to snapshot job %s: %w", req.GetJobId(), err)
+			}
 		}
 
 		s.state.UpdateJobPIDs(req.GetJobId(), allPIDs)
@@ -129,8 +152,21 @@ func (s *Server) Restore(ctx context.Context, req *pb.RestoreRequest) (*pb.Resto
 		}
 
 		slog.InfoContext(bgCtx, "Restoring PIDs", "pids", pidStrings, "backend", backendType)
-		if err := backend.Restore(bgCtx, pidStrings); err != nil {
-			return fmt.Errorf("failed to restore job %s: %w", req.GetJobId(), err)
+		if regions := req.GetRegions(); len(regions) > 0 {
+			selectiveBackend, ok := backend.(backends.SelectiveBackend)
+			if !ok {
+				return fmt.Errorf("backend %s does not support selective restore", backendType)
+			}
+			backendRegions := protoRegionsToBackend(regions)
+			for _, pid := range pidStrings {
+				if err := selectiveBackend.SelectiveRestore(bgCtx, pid, backendRegions); err != nil {
+					return fmt.Errorf("failed selective restore for PID %s: %w", pid, err)
+				}
+			}
+		} else {
+			if err := backend.Restore(bgCtx, pidStrings); err != nil {
+				return fmt.Errorf("failed to restore job %s: %w", req.GetJobId(), err)
+			}
 		}
 		return nil
 	})
