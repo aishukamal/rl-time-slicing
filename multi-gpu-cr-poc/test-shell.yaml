@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cr-test-shell
+  namespace: default
+spec:
+  nodeSelector:
+    cloud.google.com/gke-accelerator: nvidia-h100-80gb
+  restartPolicy: Never
+  initContainers:
+    - name: install-cuda-checkpoint
+      image: alpine:latest
+      command:
+        - sh
+        - -c
+        - |
+          apk add --no-cache wget
+          wget -qO /opt/bin/cuda-checkpoint https://raw.githubusercontent.com/NVIDIA/cuda-checkpoint/main/bin/x86_64_Linux/cuda-checkpoint
+          chmod +x /opt/bin/cuda-checkpoint
+      volumeMounts:
+        - name: bin-dir
+          mountPath: /opt/bin
+  containers:
+    - name: shell
+      image: vllm/vllm-openai:latest
+      command: ["sleep", "infinity"]
+      resources:
+        limits:
+          nvidia.com/gpu: "2"
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - name: bin-dir
+          mountPath: /opt/bin
+        - name: shm
+          mountPath: /dev/shm
+      env:
+        - name: NVIDIA_VISIBLE_DEVICES
+          value: "all"
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: "compute,utility"
+        - name: PATH
+          value: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bin"
+  volumes:
+    - name: bin-dir
+      emptyDir: {}
+    - name: shm
+      emptyDir:
+        medium: Memory
+        sizeLimit: 4Gi

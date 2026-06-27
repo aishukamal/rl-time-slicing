@@ -1,0 +1,118 @@
+---
+# Pod 1 of 2: Deploy on first H100 node with 2 GPUs
+# Usage: kubectl apply -f test-tp2-dp2.yaml
+# For TP=2 DP=2: each pod runs vLLM TP=2, forming DP=2 across nodes
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dp-node0
+  namespace: default
+spec:
+  nodeSelector:
+    cloud.google.com/gke-accelerator: nvidia-h100-80gb
+  hostPID: true
+  restartPolicy: Never
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app: cr-dp-test
+        topologyKey: kubernetes.io/hostname
+  initContainers:
+  - name: install-cuda-checkpoint
+    image: alpine:latest
+    command: ["sh", "-c"]
+    args:
+    - |
+      apk add --no-cache wget
+      wget -qO /opt/bin/cuda-checkpoint https://raw.githubusercontent.com/NVIDIA/cuda-checkpoint/main/bin/x86_64_Linux/cuda-checkpoint
+      chmod +x /opt/bin/cuda-checkpoint
+    volumeMounts:
+    - name: bin-dir
+      mountPath: /opt/bin
+  containers:
+  - name: shell
+    image: vllm/vllm-openai:latest
+    command: ["sleep", "infinity"]
+    securityContext:
+      privileged: true
+    resources:
+      limits:
+        nvidia.com/gpu: "2"
+    env:
+    - name: NVIDIA_VISIBLE_DEVICES
+      value: "all"
+    - name: NVIDIA_DRIVER_CAPABILITIES
+      value: "compute,utility"
+    volumeMounts:
+    - name: bin-dir
+      mountPath: /opt/bin
+    - name: shm
+      mountPath: /dev/shm
+  volumes:
+  - name: bin-dir
+    emptyDir: {}
+  - name: shm
+    emptyDir:
+      medium: Memory
+      sizeLimit: 4Gi
+---
+# Pod 2 of 2: Anti-affinity ensures it lands on a different node
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dp-node1
+  namespace: default
+  labels:
+    app: cr-dp-test
+spec:
+  nodeSelector:
+    cloud.google.com/gke-accelerator: nvidia-h100-80gb
+  hostPID: true
+  restartPolicy: Never
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app: cr-dp-test
+        topologyKey: kubernetes.io/hostname
+  initContainers:
+  - name: install-cuda-checkpoint
+    image: alpine:latest
+    command: ["sh", "-c"]
+    args:
+    - |
+      apk add --no-cache wget
+      wget -qO /opt/bin/cuda-checkpoint https://raw.githubusercontent.com/NVIDIA/cuda-checkpoint/main/bin/x86_64_Linux/cuda-checkpoint
+      chmod +x /opt/bin/cuda-checkpoint
+    volumeMounts:
+    - name: bin-dir
+      mountPath: /opt/bin
+  containers:
+  - name: shell
+    image: vllm/vllm-openai:latest
+    command: ["sleep", "infinity"]
+    securityContext:
+      privileged: true
+    resources:
+      limits:
+        nvidia.com/gpu: "2"
+    env:
+    - name: NVIDIA_VISIBLE_DEVICES
+      value: "all"
+    - name: NVIDIA_DRIVER_CAPABILITIES
+      value: "compute,utility"
+    volumeMounts:
+    - name: bin-dir
+      mountPath: /opt/bin
+    - name: shm
+      mountPath: /dev/shm
+  volumes:
+  - name: bin-dir
+    emptyDir: {}
+  - name: shm
+    emptyDir:
+      medium: Memory
+      sizeLimit: 4Gi
