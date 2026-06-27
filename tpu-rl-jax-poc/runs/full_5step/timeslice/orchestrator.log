@@ -1,0 +1,786 @@
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:9000 (Press CTRL+C to quit)
+INFO:     10.108.0.1:58754 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33912 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40002 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58980 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57952 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36958 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56766 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42632 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41444 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45468 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60886 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56184 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59116 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43620 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33694 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42916 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51470 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.137:54252 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 06:58:01,670 [orchestrator] INFO Registered job-a-trainer pool=trainer pids=[2090631] node=gke-tpu-4c1a4f78-gn8h
+2026-06-27 06:58:01,697 [orchestrator] INFO Discovered snapshot agent on gke-tpu-4c1a4f78-gn8h: 10.108.2.176:9001
+INFO:     10.108.0.137:54254 - "POST /register HTTP/1.1" 200 OK
+2026-06-27 06:58:01,718 [orchestrator] INFO Registered job-a-sampler pool=sampler pids=[1692650] node=gke-tpu-d19222db-j30v
+2026-06-27 06:58:01,766 [orchestrator] INFO Discovered snapshot agent on gke-tpu-d19222db-j30v: 10.108.1.45:9001
+INFO:     10.108.0.137:54262 - "POST /register HTTP/1.1" 200 OK
+2026-06-27 06:58:01,773 [orchestrator] INFO Acquiring job-a-sampler pool=sampler (holder=None)
+2026-06-27 06:58:01,773 [orchestrator] INFO Acquired job-a-sampler step=1 wait_ms=0 restore_ms=0
+INFO:     10.108.0.137:54264 - "POST /acquire HTTP/1.1" 200 OK
+INFO:     10.108.0.138:41058 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 06:58:02,131 [orchestrator] INFO Registered job-b-trainer pool=trainer pids=[2090725] node=gke-tpu-4c1a4f78-gn8h
+2026-06-27 06:58:02,148 [orchestrator] INFO Discovered snapshot agent on gke-tpu-4c1a4f78-gn8h: 10.108.2.176:9001
+INFO:     10.108.0.138:41070 - "POST /register HTTP/1.1" 200 OK
+2026-06-27 06:58:02,167 [orchestrator] INFO Registered job-b-sampler pool=sampler pids=[1692686] node=gke-tpu-d19222db-j30v
+2026-06-27 06:58:02,250 [orchestrator] INFO Discovered snapshot agent on gke-tpu-d19222db-j30v: 10.108.1.45:9001
+INFO:     10.108.0.138:41080 - "POST /register HTTP/1.1" 200 OK
+2026-06-27 06:58:02,254 [orchestrator] INFO Acquiring job-b-sampler pool=sampler (holder=job-a-sampler)
+INFO:     10.108.0.1:44184 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36978 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55662 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48440 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48730 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50036 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50172 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43210 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49870 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42472 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49952 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:53484 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44552 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43500 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44220 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40708 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56530 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51818 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39804 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36864 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56942 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39922 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55872 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45868 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59276 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42254 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50576 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55498 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41102 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42732 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37284 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40996 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45638 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:53656 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37688 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39394 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43676 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49978 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57526 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36382 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:04:39,806 [orchestrator] INFO Checkpointing job-a-sampler
+2026-06-27 07:04:39,806 [orchestrator] INFO Calling http://sampler-a-svc:8300/checkpoint for job-a-sampler
+2026-06-27 07:04:44,305 [orchestrator] INFO checkpoint via workload job-a-sampler: 4499ms result={'status': 'ok', 'elapsed_ms': 4493, 'socket': '/run/tpu_hal_1693449.sock'}
+2026-06-27 07:04:44,305 [orchestrator] INFO Yielded job-a-sampler checkpoint_ms=4499
+2026-06-27 07:04:44,306 [orchestrator] INFO Acquired job-b-sampler step=1 wait_ms=402052 restore_ms=0
+INFO:     10.108.0.137:55530 - "POST /yield HTTP/1.1" 200 OK
+INFO:     10.108.0.138:41092 - "POST /acquire HTTP/1.1" 200 OK
+2026-06-27 07:04:44,853 [orchestrator] INFO Acquiring job-a-trainer pool=trainer (holder=None)
+2026-06-27 07:04:44,853 [orchestrator] INFO Acquired job-a-trainer step=1 wait_ms=0 restore_ms=0
+INFO:     10.108.0.137:38836 - "POST /acquire HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34922 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40176 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51064 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36428 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42066 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59802 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45550 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52568 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49038 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36816 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58486 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39496 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33180 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48692 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49912 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42064 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43274 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41838 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57588 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35788 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58858 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34224 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35520 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40966 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:54082 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40812 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56334 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45150 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33104 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42762 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48654 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34722 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36082 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41466 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44942 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59680 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56658 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33966 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47954 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45558 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49768 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40570 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40682 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58386 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56230 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52590 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39120 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45730 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37172 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60862 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36508 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37214 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:13:16,096 [orchestrator] INFO Checkpointing job-a-trainer
+2026-06-27 07:13:16,096 [orchestrator] INFO Calling http://trainer-a-svc:8200/checkpoint for job-a-trainer
+2026-06-27 07:13:22,159 [orchestrator] INFO checkpoint via workload job-a-trainer: 6063ms result={'status': 'ok', 'elapsed_ms': 6042}
+2026-06-27 07:13:22,159 [orchestrator] INFO Yielded job-a-trainer checkpoint_ms=6063
+INFO:     10.108.0.137:49570 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 07:13:22,166 [orchestrator] INFO Acquiring job-a-sampler pool=sampler (holder=job-b-sampler)
+INFO:     10.108.0.1:42494 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40430 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39780 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34186 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:14:03,956 [orchestrator] INFO Checkpointing job-b-sampler
+2026-06-27 07:14:03,957 [orchestrator] INFO Calling http://sampler-b-svc:8301/checkpoint for job-b-sampler
+INFO:     10.108.0.1:39680 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:14:08,481 [orchestrator] INFO checkpoint via workload job-b-sampler: 4525ms result={'status': 'ok', 'elapsed_ms': 4520, 'socket': '/run/tpu_hal_1710594.sock'}
+2026-06-27 07:14:08,482 [orchestrator] INFO Yielded job-b-sampler checkpoint_ms=4525
+2026-06-27 07:14:08,482 [orchestrator] INFO Restoring job-a-sampler
+2026-06-27 07:14:08,482 [orchestrator] INFO Calling http://sampler-a-svc:8300/restore for job-a-sampler
+INFO:     10.108.0.138:34992 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 07:14:09,060 [orchestrator] INFO Acquiring job-b-trainer pool=trainer (holder=None)
+2026-06-27 07:14:09,060 [orchestrator] INFO Acquired job-b-trainer step=1 wait_ms=0 restore_ms=0
+INFO:     10.108.0.138:34994 - "POST /acquire HTTP/1.1" 200 OK
+2026-06-27 07:14:12,079 [orchestrator] INFO restore via workload job-a-sampler: 3596ms result={'status': 'ok', 'elapsed_ms': 3590, 'socket': '/run/tpu_hal_1693449.sock'}
+2026-06-27 07:14:12,079 [orchestrator] INFO Acquired job-a-sampler step=2 wait_ms=46316 restore_ms=3596
+INFO:     10.108.0.137:49574 - "POST /acquire HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56686 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47640 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33892 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40742 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33724 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50250 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52018 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57300 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:54358 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39274 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57136 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56468 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52674 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36500 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51996 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40986 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36078 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39916 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43544 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47672 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42120 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36244 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50520 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47186 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48000 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40448 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57014 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37662 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60086 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45404 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36414 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45928 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:54074 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:53998 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51204 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49000 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58008 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:38744 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42214 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34288 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:20:47,961 [orchestrator] INFO Checkpointing job-a-sampler
+2026-06-27 07:20:47,961 [orchestrator] INFO Calling http://sampler-a-svc:8300/checkpoint for job-a-sampler
+2026-06-27 07:20:52,100 [orchestrator] INFO checkpoint via workload job-a-sampler: 4139ms result={'status': 'ok', 'elapsed_ms': 4132, 'socket': '/run/tpu_hal_1693449.sock'}
+2026-06-27 07:20:52,100 [orchestrator] INFO Yielded job-a-sampler checkpoint_ms=4139
+INFO:     10.108.0.137:49044 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 07:20:52,640 [orchestrator] INFO Acquiring job-a-trainer pool=trainer (holder=job-b-trainer)
+INFO:     10.108.0.1:33022 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41730 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47136 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:54568 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44024 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48228 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57724 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:38072 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52772 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:53136 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34154 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:22:39,626 [orchestrator] INFO Checkpointing job-b-trainer
+2026-06-27 07:22:39,626 [orchestrator] INFO Calling http://trainer-b-svc:8201/checkpoint for job-b-trainer
+INFO:     10.108.0.1:40066 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:22:45,740 [orchestrator] INFO checkpoint via workload job-b-trainer: 6114ms result={'status': 'ok', 'elapsed_ms': 6095}
+2026-06-27 07:22:45,741 [orchestrator] INFO Yielded job-b-trainer checkpoint_ms=6114
+2026-06-27 07:22:45,741 [orchestrator] INFO Restoring job-a-trainer
+2026-06-27 07:22:45,741 [orchestrator] INFO Calling http://trainer-a-svc:8200/restore for job-a-trainer
+INFO:     10.108.0.138:57760 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 07:22:45,750 [orchestrator] INFO Acquiring job-b-sampler pool=sampler (holder=None)
+2026-06-27 07:22:45,750 [orchestrator] INFO Restoring job-b-sampler
+2026-06-27 07:22:45,750 [orchestrator] INFO Calling http://sampler-b-svc:8301/restore for job-b-sampler
+2026-06-27 07:22:49,408 [orchestrator] INFO restore via workload job-b-sampler: 3658ms result={'status': 'ok', 'elapsed_ms': 3653, 'socket': '/run/tpu_hal_1710594.sock'}
+2026-06-27 07:22:49,408 [orchestrator] INFO Acquired job-b-sampler step=2 wait_ms=0 restore_ms=3658
+INFO:     10.108.0.138:38670 - "POST /acquire HTTP/1.1" 200 OK
+2026-06-27 07:22:50,541 [orchestrator] INFO restore via workload job-a-trainer: 4800ms result={'status': 'ok', 'elapsed_ms': 4793}
+2026-06-27 07:22:50,542 [orchestrator] INFO Acquired job-a-trainer step=2 wait_ms=113101 restore_ms=4800
+INFO:     10.108.0.137:34816 - "POST /acquire HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52146 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59274 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36502 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43928 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47310 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:38516 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39368 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35276 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45668 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57182 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43252 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:53026 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59860 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39620 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44618 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33520 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43476 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55140 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47266 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48288 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42432 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41798 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45440 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44172 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60660 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42810 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51952 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47116 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42532 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59786 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:54878 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35914 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60524 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:54986 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35146 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51216 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58530 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42896 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58920 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:29:19,007 [orchestrator] INFO Checkpointing job-b-sampler
+2026-06-27 07:29:19,007 [orchestrator] INFO Calling http://sampler-b-svc:8301/checkpoint for job-b-sampler
+2026-06-27 07:29:23,202 [orchestrator] INFO checkpoint via workload job-b-sampler: 4195ms result={'status': 'ok', 'elapsed_ms': 4190, 'socket': '/run/tpu_hal_1710594.sock'}
+2026-06-27 07:29:23,202 [orchestrator] INFO Yielded job-b-sampler checkpoint_ms=4195
+INFO:     10.108.0.138:47580 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 07:29:23,771 [orchestrator] INFO Acquiring job-b-trainer pool=trainer (holder=job-a-trainer)
+INFO:     10.108.0.1:58162 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49770 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40274 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37708 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:53506 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42768 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42020 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37168 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47672 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:30:53,652 [orchestrator] INFO Checkpointing job-a-trainer
+2026-06-27 07:30:53,652 [orchestrator] INFO Calling http://trainer-a-svc:8200/checkpoint for job-a-trainer
+INFO:     10.108.0.1:45948 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:30:59,436 [orchestrator] INFO checkpoint via workload job-a-trainer: 5783ms result={'status': 'ok', 'elapsed_ms': 5778}
+2026-06-27 07:30:59,436 [orchestrator] INFO Yielded job-a-trainer checkpoint_ms=5783
+2026-06-27 07:30:59,436 [orchestrator] INFO Restoring job-b-trainer
+2026-06-27 07:30:59,436 [orchestrator] INFO Calling http://trainer-b-svc:8201/restore for job-b-trainer
+INFO:     10.108.0.137:48920 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 07:30:59,443 [orchestrator] INFO Acquiring job-a-sampler pool=sampler (holder=None)
+2026-06-27 07:30:59,443 [orchestrator] INFO Restoring job-a-sampler
+2026-06-27 07:30:59,444 [orchestrator] INFO Calling http://sampler-a-svc:8300/restore for job-a-sampler
+2026-06-27 07:31:03,049 [orchestrator] INFO restore via workload job-a-sampler: 3605ms result={'status': 'ok', 'elapsed_ms': 3600, 'socket': '/run/tpu_hal_1693449.sock'}
+2026-06-27 07:31:03,049 [orchestrator] INFO Acquired job-a-sampler step=3 wait_ms=0 restore_ms=3605
+INFO:     10.108.0.137:48932 - "POST /acquire HTTP/1.1" 200 OK
+2026-06-27 07:31:04,232 [orchestrator] INFO restore via workload job-b-trainer: 4796ms result={'status': 'ok', 'elapsed_ms': 4789}
+2026-06-27 07:31:04,233 [orchestrator] INFO Acquired job-b-trainer step=2 wait_ms=95665 restore_ms=4796
+INFO:     10.108.0.138:49114 - "POST /acquire HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44898 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36938 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:54556 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35892 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36234 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42110 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33580 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55330 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58816 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47696 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50866 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52624 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43342 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36762 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43918 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39304 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47592 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56460 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59854 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52666 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45572 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42870 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:53212 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52128 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43754 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41196 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:53866 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41364 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48976 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:38404 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50632 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58224 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59106 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42672 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42276 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58000 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37588 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45468 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59408 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35032 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:37:38,428 [orchestrator] INFO Checkpointing job-a-sampler
+2026-06-27 07:37:38,428 [orchestrator] INFO Calling http://sampler-a-svc:8300/checkpoint for job-a-sampler
+2026-06-27 07:37:42,585 [orchestrator] INFO checkpoint via workload job-a-sampler: 4157ms result={'status': 'ok', 'elapsed_ms': 4152, 'socket': '/run/tpu_hal_1693449.sock'}
+2026-06-27 07:37:42,585 [orchestrator] INFO Yielded job-a-sampler checkpoint_ms=4157
+INFO:     10.108.0.137:38854 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 07:37:43,154 [orchestrator] INFO Acquiring job-a-trainer pool=trainer (holder=job-b-trainer)
+INFO:     10.108.0.1:48184 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55676 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41952 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39312 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39192 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51222 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44858 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43638 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:39:02,557 [orchestrator] INFO Checkpointing job-b-trainer
+2026-06-27 07:39:02,557 [orchestrator] INFO Calling http://trainer-b-svc:8201/checkpoint for job-b-trainer
+INFO:     10.108.0.1:58036 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:39:08,243 [orchestrator] INFO checkpoint via workload job-b-trainer: 5686ms result={'status': 'ok', 'elapsed_ms': 5681}
+2026-06-27 07:39:08,244 [orchestrator] INFO Yielded job-b-trainer checkpoint_ms=5686
+2026-06-27 07:39:08,244 [orchestrator] INFO Restoring job-a-trainer
+2026-06-27 07:39:08,245 [orchestrator] INFO Calling http://trainer-a-svc:8200/restore for job-a-trainer
+INFO:     10.108.0.138:33430 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 07:39:08,250 [orchestrator] INFO Acquiring job-b-sampler pool=sampler (holder=None)
+2026-06-27 07:39:08,250 [orchestrator] INFO Restoring job-b-sampler
+2026-06-27 07:39:08,250 [orchestrator] INFO Calling http://sampler-b-svc:8301/restore for job-b-sampler
+2026-06-27 07:39:11,868 [orchestrator] INFO restore via workload job-b-sampler: 3617ms result={'status': 'ok', 'elapsed_ms': 3612, 'socket': '/run/tpu_hal_1710594.sock'}
+2026-06-27 07:39:11,868 [orchestrator] INFO Acquired job-b-sampler step=3 wait_ms=0 restore_ms=3617
+INFO:     10.108.0.138:47672 - "POST /acquire HTTP/1.1" 200 OK
+2026-06-27 07:39:13,076 [orchestrator] INFO restore via workload job-a-trainer: 4831ms result={'status': 'ok', 'elapsed_ms': 4821}
+2026-06-27 07:39:13,076 [orchestrator] INFO Acquired job-a-trainer step=3 wait_ms=85090 restore_ms=4831
+INFO:     10.108.0.137:43558 - "POST /acquire HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40588 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50986 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40680 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49492 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34558 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:38600 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40788 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:53044 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45808 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58122 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39556 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57266 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34440 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57572 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47012 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37732 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45426 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37590 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33536 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41828 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:46138 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60162 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35074 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55096 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37500 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47226 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41584 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52264 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40104 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44188 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55940 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58904 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49624 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33902 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:53314 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60922 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36722 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35262 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36056 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:45:37,847 [orchestrator] INFO Checkpointing job-b-sampler
+2026-06-27 07:45:37,847 [orchestrator] INFO Calling http://sampler-b-svc:8301/checkpoint for job-b-sampler
+2026-06-27 07:45:42,042 [orchestrator] INFO checkpoint via workload job-b-sampler: 4195ms result={'status': 'ok', 'elapsed_ms': 4190, 'socket': '/run/tpu_hal_1710594.sock'}
+2026-06-27 07:45:42,042 [orchestrator] INFO Yielded job-b-sampler checkpoint_ms=4195
+INFO:     10.108.0.138:43948 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 07:45:42,558 [orchestrator] INFO Acquiring job-b-trainer pool=trainer (holder=job-a-trainer)
+INFO:     10.108.0.1:34028 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34634 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52396 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49998 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59116 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39676 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42222 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36262 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:46644 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:46822 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:47:16,968 [orchestrator] INFO Checkpointing job-a-trainer
+2026-06-27 07:47:16,968 [orchestrator] INFO Calling http://trainer-a-svc:8200/checkpoint for job-a-trainer
+2026-06-27 07:47:22,756 [orchestrator] INFO checkpoint via workload job-a-trainer: 5789ms result={'status': 'ok', 'elapsed_ms': 5783}
+2026-06-27 07:47:22,757 [orchestrator] INFO Yielded job-a-trainer checkpoint_ms=5789
+2026-06-27 07:47:22,757 [orchestrator] INFO Restoring job-b-trainer
+2026-06-27 07:47:22,757 [orchestrator] INFO Calling http://trainer-b-svc:8201/restore for job-b-trainer
+INFO:     10.108.0.137:37852 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 07:47:22,764 [orchestrator] INFO Acquiring job-a-sampler pool=sampler (holder=None)
+2026-06-27 07:47:22,764 [orchestrator] INFO Restoring job-a-sampler
+2026-06-27 07:47:22,764 [orchestrator] INFO Calling http://sampler-a-svc:8300/restore for job-a-sampler
+INFO:     10.108.0.1:38044 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:47:26,393 [orchestrator] INFO restore via workload job-a-sampler: 3629ms result={'status': 'ok', 'elapsed_ms': 3623, 'socket': '/run/tpu_hal_1693449.sock'}
+2026-06-27 07:47:26,393 [orchestrator] INFO Acquired job-a-sampler step=4 wait_ms=0 restore_ms=3629
+INFO:     10.108.0.137:52492 - "POST /acquire HTTP/1.1" 200 OK
+2026-06-27 07:47:27,497 [orchestrator] INFO restore via workload job-b-trainer: 4740ms result={'status': 'ok', 'elapsed_ms': 4733}
+2026-06-27 07:47:27,497 [orchestrator] INFO Acquired job-b-trainer step=3 wait_ms=100199 restore_ms=4740
+INFO:     10.108.0.138:43964 - "POST /acquire HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35194 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:38450 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36326 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58898 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41636 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44264 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55490 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33374 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43224 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59142 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44054 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37560 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52218 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42048 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48834 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42614 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49250 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:46674 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44876 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57466 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55674 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:46678 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51754 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60770 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37714 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49760 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57070 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56600 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36048 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40236 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56818 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37458 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34816 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35088 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52212 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50364 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:38916 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56364 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45526 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:54:03,836 [orchestrator] INFO Checkpointing job-a-sampler
+2026-06-27 07:54:03,836 [orchestrator] INFO Calling http://sampler-a-svc:8300/checkpoint for job-a-sampler
+INFO:     10.108.0.1:39534 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:54:08,011 [orchestrator] INFO checkpoint via workload job-a-sampler: 4175ms result={'status': 'ok', 'elapsed_ms': 4169, 'socket': '/run/tpu_hal_1693449.sock'}
+2026-06-27 07:54:08,012 [orchestrator] INFO Yielded job-a-sampler checkpoint_ms=4175
+INFO:     10.108.0.137:44808 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 07:54:08,578 [orchestrator] INFO Acquiring job-a-trainer pool=trainer (holder=job-b-trainer)
+INFO:     10.108.0.1:50280 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45428 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:53338 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34694 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56764 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41168 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45200 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51878 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:55:32,822 [orchestrator] INFO Checkpointing job-b-trainer
+2026-06-27 07:55:32,822 [orchestrator] INFO Calling http://trainer-b-svc:8201/checkpoint for job-b-trainer
+INFO:     10.108.0.1:42024 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 07:55:38,589 [orchestrator] INFO checkpoint via workload job-b-trainer: 5767ms result={'status': 'ok', 'elapsed_ms': 5761}
+2026-06-27 07:55:38,589 [orchestrator] INFO Yielded job-b-trainer checkpoint_ms=5767
+2026-06-27 07:55:38,590 [orchestrator] INFO Restoring job-a-trainer
+2026-06-27 07:55:38,590 [orchestrator] INFO Calling http://trainer-a-svc:8200/restore for job-a-trainer
+INFO:     10.108.0.138:46288 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 07:55:38,597 [orchestrator] INFO Acquiring job-b-sampler pool=sampler (holder=None)
+2026-06-27 07:55:38,597 [orchestrator] INFO Restoring job-b-sampler
+2026-06-27 07:55:38,597 [orchestrator] INFO Calling http://sampler-b-svc:8301/restore for job-b-sampler
+2026-06-27 07:55:42,259 [orchestrator] INFO restore via workload job-b-sampler: 3662ms result={'status': 'ok', 'elapsed_ms': 3656, 'socket': '/run/tpu_hal_1710594.sock'}
+2026-06-27 07:55:42,260 [orchestrator] INFO Acquired job-b-sampler step=4 wait_ms=0 restore_ms=3662
+INFO:     10.108.0.138:46292 - "POST /acquire HTTP/1.1" 200 OK
+2026-06-27 07:55:43,369 [orchestrator] INFO restore via workload job-a-trainer: 4779ms result={'status': 'ok', 'elapsed_ms': 4773}
+2026-06-27 07:55:43,369 [orchestrator] INFO Acquired job-a-trainer step=4 wait_ms=90012 restore_ms=4779
+INFO:     10.108.0.137:44818 - "POST /acquire HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58128 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37952 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:53134 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55422 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56088 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57048 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47070 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59144 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41576 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42762 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49720 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41554 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50200 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34958 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55296 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43536 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35506 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39652 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50666 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45580 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36866 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55334 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42560 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33548 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60236 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55276 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52154 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:54592 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60412 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:54510 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36544 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42020 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52990 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55324 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48194 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39700 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:54290 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51838 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56826 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 08:02:09,447 [orchestrator] INFO Checkpointing job-b-sampler
+2026-06-27 08:02:09,447 [orchestrator] INFO Calling http://sampler-b-svc:8301/checkpoint for job-b-sampler
+2026-06-27 08:02:13,642 [orchestrator] INFO checkpoint via workload job-b-sampler: 4195ms result={'status': 'ok', 'elapsed_ms': 4190, 'socket': '/run/tpu_hal_1710594.sock'}
+2026-06-27 08:02:13,642 [orchestrator] INFO Yielded job-b-sampler checkpoint_ms=4195
+INFO:     10.108.0.138:38936 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 08:02:14,168 [orchestrator] INFO Acquiring job-b-trainer pool=trainer (holder=job-a-trainer)
+INFO:     10.108.0.1:47888 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59332 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:38040 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60688 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56724 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41440 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56290 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51324 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55236 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 08:03:43,530 [orchestrator] INFO Checkpointing job-a-trainer
+2026-06-27 08:03:43,530 [orchestrator] INFO Calling http://trainer-a-svc:8200/checkpoint for job-a-trainer
+INFO:     10.108.0.1:49528 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 08:03:49,292 [orchestrator] INFO checkpoint via workload job-a-trainer: 5762ms result={'status': 'ok', 'elapsed_ms': 5757}
+2026-06-27 08:03:49,293 [orchestrator] INFO Yielded job-a-trainer checkpoint_ms=5762
+2026-06-27 08:03:49,293 [orchestrator] INFO Restoring job-b-trainer
+2026-06-27 08:03:49,293 [orchestrator] INFO Calling http://trainer-b-svc:8201/restore for job-b-trainer
+INFO:     10.108.0.137:37292 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 08:03:49,299 [orchestrator] INFO Acquiring job-a-sampler pool=sampler (holder=None)
+2026-06-27 08:03:49,299 [orchestrator] INFO Restoring job-a-sampler
+2026-06-27 08:03:49,299 [orchestrator] INFO Calling http://sampler-a-svc:8300/restore for job-a-sampler
+2026-06-27 08:03:52,936 [orchestrator] INFO restore via workload job-a-sampler: 3636ms result={'status': 'ok', 'elapsed_ms': 3631, 'socket': '/run/tpu_hal_1693449.sock'}
+2026-06-27 08:03:52,936 [orchestrator] INFO Acquired job-a-sampler step=5 wait_ms=0 restore_ms=3636
+INFO:     10.108.0.137:37302 - "POST /acquire HTTP/1.1" 200 OK
+2026-06-27 08:03:54,073 [orchestrator] INFO restore via workload job-b-trainer: 4780ms result={'status': 'ok', 'elapsed_ms': 4774}
+2026-06-27 08:03:54,073 [orchestrator] INFO Acquired job-b-trainer step=4 wait_ms=95125 restore_ms=4780
+INFO:     10.108.0.138:57338 - "POST /acquire HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44326 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49128 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60626 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58706 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41918 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44696 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58974 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35134 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58784 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55636 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58024 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36190 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49972 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49792 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42616 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45306 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57110 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43872 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52010 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59072 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51570 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34528 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39838 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:32774 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44894 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34144 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44820 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41892 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44848 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:38356 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33232 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58052 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48084 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56490 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:46664 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35976 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60764 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37122 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48044 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:38230 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 08:10:27,736 [orchestrator] INFO Checkpointing job-a-sampler
+2026-06-27 08:10:27,736 [orchestrator] INFO Calling http://sampler-a-svc:8300/checkpoint for job-a-sampler
+2026-06-27 08:10:31,893 [orchestrator] INFO checkpoint via workload job-a-sampler: 4157ms result={'status': 'ok', 'elapsed_ms': 4152, 'socket': '/run/tpu_hal_1693449.sock'}
+2026-06-27 08:10:31,893 [orchestrator] INFO Yielded job-a-sampler checkpoint_ms=4157
+INFO:     10.108.0.137:39778 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 08:10:32,464 [orchestrator] INFO Acquiring job-a-trainer pool=trainer (holder=job-b-trainer)
+INFO:     10.108.0.1:34352 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40278 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41002 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41638 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51026 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52844 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59010 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42598 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 08:11:51,156 [orchestrator] INFO Checkpointing job-b-trainer
+2026-06-27 08:11:51,156 [orchestrator] INFO Calling http://trainer-b-svc:8201/checkpoint for job-b-trainer
+INFO:     10.108.0.1:47452 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 08:11:56,916 [orchestrator] INFO checkpoint via workload job-b-trainer: 5759ms result={'status': 'ok', 'elapsed_ms': 5753}
+2026-06-27 08:11:56,916 [orchestrator] INFO Yielded job-b-trainer checkpoint_ms=5759
+2026-06-27 08:11:56,916 [orchestrator] INFO Restoring job-a-trainer
+2026-06-27 08:11:56,917 [orchestrator] INFO Calling http://trainer-a-svc:8200/restore for job-a-trainer
+INFO:     10.108.0.138:47982 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 08:11:56,923 [orchestrator] INFO Acquiring job-b-sampler pool=sampler (holder=None)
+2026-06-27 08:11:56,924 [orchestrator] INFO Restoring job-b-sampler
+2026-06-27 08:11:56,924 [orchestrator] INFO Calling http://sampler-b-svc:8301/restore for job-b-sampler
+2026-06-27 08:12:00,553 [orchestrator] INFO restore via workload job-b-sampler: 3629ms result={'status': 'ok', 'elapsed_ms': 3622, 'socket': '/run/tpu_hal_1710594.sock'}
+2026-06-27 08:12:00,553 [orchestrator] INFO Acquired job-b-sampler step=5 wait_ms=0 restore_ms=3629
+INFO:     10.108.0.138:37018 - "POST /acquire HTTP/1.1" 200 OK
+2026-06-27 08:12:01,693 [orchestrator] INFO restore via workload job-a-trainer: 4776ms result={'status': 'ok', 'elapsed_ms': 4767}
+2026-06-27 08:12:01,693 [orchestrator] INFO Acquired job-a-trainer step=5 wait_ms=84453 restore_ms=4776
+INFO:     10.108.0.137:39788 - "POST /acquire HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59576 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:54928 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34856 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:54370 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43746 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55982 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42508 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:38240 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42174 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43672 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55048 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57982 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:38350 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51020 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55628 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52980 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48616 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:32866 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56292 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39976 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43248 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55942 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49028 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58994 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40738 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:54996 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37796 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45564 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36888 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34964 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50292 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37776 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36090 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58292 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:53782 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:46054 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51724 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39434 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60192 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 08:18:26,079 [orchestrator] INFO Checkpointing job-b-sampler
+2026-06-27 08:18:26,079 [orchestrator] INFO Calling http://sampler-b-svc:8301/checkpoint for job-b-sampler
+2026-06-27 08:18:30,283 [orchestrator] INFO checkpoint via workload job-b-sampler: 4204ms result={'status': 'ok', 'elapsed_ms': 4198, 'socket': '/run/tpu_hal_1710594.sock'}
+2026-06-27 08:18:30,283 [orchestrator] INFO Yielded job-b-sampler checkpoint_ms=4204
+INFO:     10.108.0.138:49016 - "POST /yield HTTP/1.1" 200 OK
+2026-06-27 08:18:30,855 [orchestrator] INFO Acquiring job-b-trainer pool=trainer (holder=job-a-trainer)
+INFO:     10.108.0.1:40276 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33516 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42166 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:36202 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:44640 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47180 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60506 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34234 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52746 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 08:19:59,647 [orchestrator] INFO Checkpointing job-a-trainer
+2026-06-27 08:19:59,647 [orchestrator] INFO Calling http://trainer-a-svc:8200/checkpoint for job-a-trainer
+2026-06-27 08:20:05,380 [orchestrator] INFO checkpoint via workload job-a-trainer: 5733ms result={'status': 'ok', 'elapsed_ms': 5727}
+2026-06-27 08:20:05,380 [orchestrator] INFO Yielded job-a-trainer checkpoint_ms=5733
+2026-06-27 08:20:05,381 [orchestrator] INFO Restoring job-b-trainer
+2026-06-27 08:20:05,381 [orchestrator] INFO Calling http://trainer-b-svc:8201/restore for job-b-trainer
+INFO:     10.108.0.137:58640 - "POST /yield HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55208 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 08:20:10,179 [orchestrator] INFO restore via workload job-b-trainer: 4798ms result={'status': 'ok', 'elapsed_ms': 4792}
+2026-06-27 08:20:10,179 [orchestrator] INFO Acquired job-b-trainer step=5 wait_ms=94525 restore_ms=4798
+INFO:     10.108.0.138:49022 - "POST /acquire HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60590 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55344 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57566 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49280 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:39500 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50584 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:33160 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59870 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37054 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:40262 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:41722 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52984 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35828 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50530 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51638 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57744 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:59808 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:38762 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57498 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43396 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48354 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50642 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:57640 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35426 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:35388 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56388 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50494 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:49406 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45136 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:55530 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48420 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:53418 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:42018 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:38132 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:60088 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:45476 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:48090 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:58724 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:37378 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43516 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34314 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43990 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:56988 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:43298 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:52578 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:32872 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:47294 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:50410 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.1:34420 - "GET /health HTTP/1.1" 200 OK
+2026-06-27 08:28:15,873 [orchestrator] INFO Checkpointing job-b-trainer
+2026-06-27 08:28:15,873 [orchestrator] INFO Calling http://trainer-b-svc:8201/checkpoint for job-b-trainer
+2026-06-27 08:28:21,687 [orchestrator] INFO checkpoint via workload job-b-trainer: 5814ms result={'status': 'ok', 'elapsed_ms': 5809}
+2026-06-27 08:28:21,687 [orchestrator] INFO Yielded job-b-trainer checkpoint_ms=5814
+INFO:     10.108.0.138:42612 - "POST /yield HTTP/1.1" 200 OK
+INFO:     10.108.0.1:51650 - "GET /health HTTP/1.1" 200 OK

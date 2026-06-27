@@ -1,0 +1,44 @@
+{"type": "register", "workload_id": "job-a-trainer", "pool": "trainer", "pids": [2090631], "ts": 1782543481.6706696}
+{"type": "register", "workload_id": "job-a-sampler", "pool": "sampler", "pids": [1692650], "ts": 1782543481.7183893}
+{"type": "acquire", "workload_id": "job-a-sampler", "pool": "sampler", "step": 1, "mode": "snapshot", "wait_ms": 0, "restore_ms": 0, "ts": 1782543481.7738757}
+{"type": "register", "workload_id": "job-b-trainer", "pool": "trainer", "pids": [2090725], "ts": 1782543482.1312335}
+{"type": "register", "workload_id": "job-b-sampler", "pool": "sampler", "pids": [1692686], "ts": 1782543482.1674292}
+{"type": "acquire", "workload_id": "job-b-sampler", "pool": "sampler", "step": 1, "mode": "snapshot", "wait_ms": 402052, "restore_ms": 0, "ts": 1782543884.3064907}
+{"type": "yield", "workload_id": "job-a-sampler", "pool": "sampler", "mode": "snapshot", "evict_ms": 4499, "ts": 1782543884.3060434}
+{"type": "acquire", "workload_id": "job-a-trainer", "pool": "trainer", "step": 1, "mode": "snapshot", "wait_ms": 0, "restore_ms": 0, "ts": 1782543884.853386}
+{"type": "yield", "workload_id": "job-a-trainer", "pool": "trainer", "mode": "snapshot", "evict_ms": 6063, "ts": 1782544402.1597106}
+{"type": "yield", "workload_id": "job-b-sampler", "pool": "sampler", "mode": "snapshot", "evict_ms": 4525, "ts": 1782544448.4822595}
+{"type": "acquire", "workload_id": "job-b-trainer", "pool": "trainer", "step": 1, "mode": "snapshot", "wait_ms": 0, "restore_ms": 0, "ts": 1782544449.0605178}
+{"type": "acquire", "workload_id": "job-a-sampler", "pool": "sampler", "step": 2, "mode": "snapshot", "wait_ms": 46316, "restore_ms": 3596, "ts": 1782544452.0793724}
+{"type": "yield", "workload_id": "job-a-sampler", "pool": "sampler", "mode": "snapshot", "evict_ms": 4139, "ts": 1782544852.100705}
+{"type": "yield", "workload_id": "job-b-trainer", "pool": "trainer", "mode": "snapshot", "evict_ms": 6114, "ts": 1782544965.7414534}
+{"type": "acquire", "workload_id": "job-b-sampler", "pool": "sampler", "step": 2, "mode": "snapshot", "wait_ms": 0, "restore_ms": 3658, "ts": 1782544969.4088628}
+{"type": "acquire", "workload_id": "job-a-trainer", "pool": "trainer", "step": 2, "mode": "snapshot", "wait_ms": 113101, "restore_ms": 4800, "ts": 1782544970.5420432}
+{"type": "yield", "workload_id": "job-b-sampler", "pool": "sampler", "mode": "snapshot", "evict_ms": 4195, "ts": 1782545363.2026289}
+{"type": "yield", "workload_id": "job-a-trainer", "pool": "trainer", "mode": "snapshot", "evict_ms": 5783, "ts": 1782545459.436337}
+{"type": "acquire", "workload_id": "job-a-sampler", "pool": "sampler", "step": 3, "mode": "snapshot", "wait_ms": 0, "restore_ms": 3605, "ts": 1782545463.0498495}
+{"type": "acquire", "workload_id": "job-b-trainer", "pool": "trainer", "step": 2, "mode": "snapshot", "wait_ms": 95665, "restore_ms": 4796, "ts": 1782545464.2331223}
+{"type": "yield", "workload_id": "job-a-sampler", "pool": "sampler", "mode": "snapshot", "evict_ms": 4157, "ts": 1782545862.585537}
+{"type": "yield", "workload_id": "job-b-trainer", "pool": "trainer", "mode": "snapshot", "evict_ms": 5686, "ts": 1782545948.244333}
+{"type": "acquire", "workload_id": "job-b-sampler", "pool": "sampler", "step": 3, "mode": "snapshot", "wait_ms": 0, "restore_ms": 3617, "ts": 1782545951.8687265}
+{"type": "acquire", "workload_id": "job-a-trainer", "pool": "trainer", "step": 3, "mode": "snapshot", "wait_ms": 85090, "restore_ms": 4831, "ts": 1782545953.076826}
+{"type": "yield", "workload_id": "job-b-sampler", "pool": "sampler", "mode": "snapshot", "evict_ms": 4195, "ts": 1782546342.042352}
+{"type": "yield", "workload_id": "job-a-trainer", "pool": "trainer", "mode": "snapshot", "evict_ms": 5789, "ts": 1782546442.757233}
+{"type": "acquire", "workload_id": "job-a-sampler", "pool": "sampler", "step": 4, "mode": "snapshot", "wait_ms": 0, "restore_ms": 3629, "ts": 1782546446.3939536}
+{"type": "acquire", "workload_id": "job-b-trainer", "pool": "trainer", "step": 3, "mode": "snapshot", "wait_ms": 100199, "restore_ms": 4740, "ts": 1782546447.4979682}
+{"type": "yield", "workload_id": "job-a-sampler", "pool": "sampler", "mode": "snapshot", "evict_ms": 4175, "ts": 1782546848.0124447}
+{"type": "yield", "workload_id": "job-b-trainer", "pool": "trainer", "mode": "snapshot", "evict_ms": 5767, "ts": 1782546938.5900276}
+{"type": "acquire", "workload_id": "job-b-sampler", "pool": "sampler", "step": 4, "mode": "snapshot", "wait_ms": 0, "restore_ms": 3662, "ts": 1782546942.2603436}
+{"type": "acquire", "workload_id": "job-a-trainer", "pool": "trainer", "step": 4, "mode": "snapshot", "wait_ms": 90012, "restore_ms": 4779, "ts": 1782546943.369917}
+{"type": "yield", "workload_id": "job-b-sampler", "pool": "sampler", "mode": "snapshot", "evict_ms": 4195, "ts": 1782547333.6427433}
+{"type": "yield", "workload_id": "job-a-trainer", "pool": "trainer", "mode": "snapshot", "evict_ms": 5762, "ts": 1782547429.2936356}
+{"type": "acquire", "workload_id": "job-a-sampler", "pool": "sampler", "step": 5, "mode": "snapshot", "wait_ms": 0, "restore_ms": 3636, "ts": 1782547432.9364855}
+{"type": "acquire", "workload_id": "job-b-trainer", "pool": "trainer", "step": 4, "mode": "snapshot", "wait_ms": 95125, "restore_ms": 4780, "ts": 1782547434.0737767}
+{"type": "yield", "workload_id": "job-a-sampler", "pool": "sampler", "mode": "snapshot", "evict_ms": 4157, "ts": 1782547831.8937948}
+{"type": "yield", "workload_id": "job-b-trainer", "pool": "trainer", "mode": "snapshot", "evict_ms": 5759, "ts": 1782547916.91664}
+{"type": "acquire", "workload_id": "job-b-sampler", "pool": "sampler", "step": 5, "mode": "snapshot", "wait_ms": 0, "restore_ms": 3629, "ts": 1782547920.5534587}
+{"type": "acquire", "workload_id": "job-a-trainer", "pool": "trainer", "step": 5, "mode": "snapshot", "wait_ms": 84453, "restore_ms": 4776, "ts": 1782547921.6936035}
+{"type": "yield", "workload_id": "job-b-sampler", "pool": "sampler", "mode": "snapshot", "evict_ms": 4204, "ts": 1782548310.2839873}
+{"type": "yield", "workload_id": "job-a-trainer", "pool": "trainer", "mode": "snapshot", "evict_ms": 5733, "ts": 1782548405.3809211}
+{"type": "acquire", "workload_id": "job-b-trainer", "pool": "trainer", "step": 5, "mode": "snapshot", "wait_ms": 94525, "restore_ms": 4798, "ts": 1782548410.1800256}
+{"type": "yield", "workload_id": "job-b-trainer", "pool": "trainer", "mode": "snapshot", "evict_ms": 5814, "ts": 1782548901.6875172}

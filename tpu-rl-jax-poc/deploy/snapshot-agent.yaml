@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: snapshot-agent
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: snapshot-agent
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: snapshot-agent
+subjects:
+  - kind: ServiceAccount
+    name: snapshot-agent
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: snapshot-agent
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: snapshot-agent
+  labels:
+    app: snapshot-agent
+spec:
+  selector:
+    matchLabels:
+      app: snapshot-agent
+  template:
+    metadata:
+      labels:
+        app: snapshot-agent
+    spec:
+      tolerations:
+        - key: google.com/tpu
+          operator: Exists
+          effect: NoSchedule
+        - key: sandbox.gke.io/runtime
+          operator: Exists
+          effect: NoSchedule
+      nodeSelector:
+        cloud.google.com/gke-tpu-accelerator: tpu-v5-lite-podslice
+      serviceAccountName: snapshot-agent
+      hostPID: true
+      containers:
+        - name: snapshot-agent
+          image: us-west1-docker.pkg.dev/aishuk-test/tpu-poc-repo/snapshot-agent:latest
+          imagePullPolicy: Always
+          args: ["--port=9001"]
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          ports:
+            - containerPort: 9001
+              name: grpc
+          volumeMounts:
+            - name: run
+              mountPath: /run
+          securityContext:
+            privileged: true
+      volumes:
+        - name: run
+          hostPath:
+            path: /run
+---
+# Per-node services for the orchestrator to reach snapshot agents.
+# The orchestrator addresses them by pool name.
+apiVersion: v1
+kind: Service
+metadata:
+  name: snapshot-agent-trainer
+spec:
+  selector:
+    app: snapshot-agent
+  ports:
+    - port: 9001
+      targetPort: 9001
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: snapshot-agent-sampler
+spec:
+  selector:
+    app: snapshot-agent
+  ports:
+    - port: 9001
+      targetPort: 9001
+      protocol: TCP

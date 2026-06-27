@@ -1,0 +1,10 @@
+{
+    "run_id": "full_5step",
+    "mode": "timeslice",
+    "n_rl_steps": 5,
+    "prompts_per_step": 330,
+    "group_size": 8,
+    "max_new_tokens": 1024,
+    "weight_sync_interval": 0,
+    "gen_batch_size": 3
+}

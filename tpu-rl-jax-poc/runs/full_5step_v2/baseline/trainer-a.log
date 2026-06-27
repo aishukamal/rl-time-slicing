@@ -1,0 +1,28 @@
+INFO:     Started server process [2209024]
+INFO:     Waiting for application startup.
+2026-06-27 08:30:44,777 [trainer] INFO Trainer starting -- model will load on first /train call
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8200 (Press CTRL+C to quit)
+INFO:     10.108.0.140:57190 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.140:57196 - "GET /get_pids HTTP/1.1" 200 OK
+2026-06-27 08:40:06,651 [trainer] INFO First /train call -- loading model
+2026-06-27 08:40:07,754 [trainer] INFO Loading model from gpt2
+TensorFlow and JAX classes are deprecated and will be removed in Transformers v5. We recommend migrating to PyTorch classes or pinning your version of Transformers.
+2026-06-27 08:40:25,663 [trainer] INFO JAX devices: 8 -- ['TPU_0(process=0,(0,0,0,0))', 'TPU_1(process=0,(1,0,0,0))', 'TPU_2(process=0,(0,1,0,0))', 'TPU_3(process=0,(1,1,0,0))', 'TPU_4(process=0,(0,2,0,0))', 'TPU_5(process=0,(1,2,0,0))', 'TPU_6(process=0,(0,3,0,0))', 'TPU_7(process=0,(1,3,0,0))']
+2026-06-27 08:40:26,682 [trainer] INFO Model loaded in 18.9s. Params: 124,439,808 (0.25 GB in bf16). Mesh: Mesh('dp': 8, axis_types=(Auto,))
+2026-06-27 08:40:26,682 [trainer] INFO train request: prompts=2640 completions=2640 advantages=2640
+Token indices sequence length is longer than the specified maximum sequence length for this model (1025 > 1024). Running this sequence through the model will result in indexing errors
+2026-06-27 08:48:40,503 [trainer] INFO step=1 loss=-0.0000 kl=0.0121 grad_norm=0.212 truncated=24/2640 493820ms
+INFO:     10.108.0.140:59416 - "POST /train HTTP/1.1" 200 OK
+2026-06-27 08:55:12,601 [trainer] INFO train request: prompts=2640 completions=2640 advantages=2640
+2026-06-27 09:03:12,838 [trainer] INFO step=2 loss=-0.0006 kl=0.0209 grad_norm=0.217 truncated=33/2640 480232ms
+INFO:     10.108.0.140:47698 - "POST /train HTTP/1.1" 200 OK
+2026-06-27 09:09:41,535 [trainer] INFO train request: prompts=2640 completions=2640 advantages=2640
+2026-06-27 09:17:37,111 [trainer] INFO step=3 loss=-0.0007 kl=0.0213 grad_norm=0.207 truncated=44/2640 475572ms
+INFO:     10.108.0.140:45346 - "POST /train HTTP/1.1" 200 OK
+2026-06-27 09:24:05,872 [trainer] INFO train request: prompts=2640 completions=2640 advantages=2640
+2026-06-27 09:32:01,717 [trainer] INFO step=4 loss=-0.0010 kl=0.0222 grad_norm=0.232 truncated=35/2640 475843ms
+INFO:     10.108.0.140:41186 - "POST /train HTTP/1.1" 200 OK
+2026-06-27 09:38:28,781 [trainer] INFO train request: prompts=2640 completions=2640 advantages=2640
+2026-06-27 09:46:23,865 [trainer] INFO step=5 loss=-0.0013 kl=0.0229 grad_norm=0.249 truncated=26/2640 475080ms
+INFO:     10.108.0.140:43336 - "POST /train HTTP/1.1" 200 OK

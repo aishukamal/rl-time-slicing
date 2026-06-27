@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rl-loop-a
+  labels:
+    app: rl-loop
+    job-id: job-a
+spec:
+  serviceAccountName: snapshot-agent
+  containers:
+    - name: loop
+      image: python:3.11-slim
+      command: ["python", "/app/rl_loop.py"]
+      env:
+        - name: JOB_ID
+          value: "job-a"
+        - name: TRAINER_URL
+          value: "http://trainer-a-svc:8200"
+        - name: SAMPLER_URL
+          value: "http://sampler-a-svc:8300"
+        - name: ORCHESTRATOR_URL
+          value: "http://tpu-orchestrator-svc:9000"
+        - name: N_RL_STEPS
+          value: "5"
+        - name: PROMPTS_PER_STEP
+          value: "330"
+        - name: GROUP_SIZE
+          value: "8"
+        - name: MAX_NEW_TOKENS
+          value: "1024"
+        - name: WEIGHT_SYNC_INTERVAL
+          value: "0"
+        - name: GEN_BATCH_SIZE
+          value: "3"
+        - name: TRAINER_POD_NAME
+          value: "tpu-trainers"
+        - name: SAMPLER_POD_NAME
+          value: "tpu-samplers"
+      volumeMounts:
+        - name: app-code
+          mountPath: /app
+  volumes:
+    - name: app-code
+      configMap:
+        name: rl-loop-code
+  restartPolicy: Never

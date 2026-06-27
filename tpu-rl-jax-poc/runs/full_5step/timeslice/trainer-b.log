@@ -1,0 +1,46 @@
+INFO:     Started server process [2090725]
+INFO:     Waiting for application startup.
+2026-06-27 06:55:11,389 [trainer] INFO Trainer starting -- model will load on first /train call
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8201 (Press CTRL+C to quit)
+INFO:     10.108.0.138:40264 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.138:40280 - "GET /get_pids HTTP/1.1" 200 OK
+2026-06-27 07:14:09,176 [trainer] INFO First /train call -- loading model
+2026-06-27 07:14:10,266 [trainer] INFO Loading model from gpt2
+TensorFlow and JAX classes are deprecated and will be removed in Transformers v5. We recommend migrating to PyTorch classes or pinning your version of Transformers.
+2026-06-27 07:14:28,870 [trainer] INFO JAX devices: 8 -- ['TPU_0(process=0,(0,0,0,0))', 'TPU_1(process=0,(1,0,0,0))', 'TPU_2(process=0,(0,1,0,0))', 'TPU_3(process=0,(1,1,0,0))', 'TPU_4(process=0,(0,2,0,0))', 'TPU_5(process=0,(1,2,0,0))', 'TPU_6(process=0,(0,3,0,0))', 'TPU_7(process=0,(1,3,0,0))']
+2026-06-27 07:14:29,920 [trainer] INFO Model loaded in 19.7s. Params: 124,439,808 (0.25 GB in bf16). Mesh: Mesh('dp': 8, axis_types=(Auto,))
+2026-06-27 07:14:29,921 [trainer] INFO train request: prompts=2640 completions=2640 advantages=2640
+Token indices sequence length is longer than the specified maximum sequence length for this model (1029 > 1024). Running this sequence through the model will result in indexing errors
+2026-06-27 07:22:39,580 [trainer] INFO step=1 loss=0.0002 kl=0.0117 grad_norm=0.220 truncated=26/2640 489659ms
+INFO:     10.108.0.138:35912 - "POST /train HTTP/1.1" 200 OK
+2026-06-27 07:22:45,739 [trainer] INFO Checkpoint complete: 6095ms
+INFO:     10.108.0.136:56118 - "POST /checkpoint HTTP/1.1" 200 OK
+2026-06-27 07:31:04,231 [trainer] INFO Restore complete: 4789ms
+INFO:     10.108.0.136:34506 - "POST /restore HTTP/1.1" 200 OK
+2026-06-27 07:31:04,352 [trainer] INFO train request: prompts=2640 completions=2640 advantages=2640
+2026-06-27 07:39:02,517 [trainer] INFO step=2 loss=-0.0007 kl=0.0214 grad_norm=0.216 truncated=28/2640 478164ms
+INFO:     10.108.0.138:55720 - "POST /train HTTP/1.1" 200 OK
+INFO:     10.108.0.136:47174 - "POST /checkpoint HTTP/1.1" 200 OK
+2026-06-27 07:39:08,241 [trainer] INFO Checkpoint complete: 5681ms
+2026-06-27 07:47:27,496 [trainer] INFO Restore complete: 4733ms
+INFO:     10.108.0.136:54570 - "POST /restore HTTP/1.1" 200 OK
+2026-06-27 07:47:27,615 [trainer] INFO train request: prompts=2640 completions=2640 advantages=2640
+2026-06-27 07:55:32,772 [trainer] INFO step=3 loss=-0.0010 kl=0.0218 grad_norm=0.250 truncated=37/2639 485156ms
+INFO:     10.108.0.138:36222 - "POST /train HTTP/1.1" 200 OK
+2026-06-27 07:55:38,587 [trainer] INFO Checkpoint complete: 5761ms
+INFO:     10.108.0.136:58816 - "POST /checkpoint HTTP/1.1" 200 OK
+2026-06-27 08:03:54,071 [trainer] INFO Restore complete: 4774ms
+INFO:     10.108.0.136:47130 - "POST /restore HTTP/1.1" 200 OK
+2026-06-27 08:03:54,193 [trainer] INFO train request: prompts=2640 completions=2640 advantages=2640
+2026-06-27 08:11:51,123 [trainer] INFO step=4 loss=-0.0013 kl=0.0223 grad_norm=0.262 truncated=39/2640 476928ms
+INFO:     10.108.0.138:58714 - "POST /train HTTP/1.1" 200 OK
+2026-06-27 08:11:56,914 [trainer] INFO Checkpoint complete: 5753ms
+INFO:     10.108.0.136:41650 - "POST /checkpoint HTTP/1.1" 200 OK
+2026-06-27 08:20:10,178 [trainer] INFO Restore complete: 4792ms
+INFO:     10.108.0.136:60480 - "POST /restore HTTP/1.1" 200 OK
+2026-06-27 08:20:10,306 [trainer] INFO train request: prompts=2640 completions=2640 advantages=2640
+2026-06-27 08:28:15,839 [trainer] INFO step=5 loss=-0.0011 kl=0.0234 grad_norm=0.179 truncated=31/2640 485532ms
+INFO:     10.108.0.138:57210 - "POST /train HTTP/1.1" 200 OK
+2026-06-27 08:28:21,685 [trainer] INFO Checkpoint complete: 5809ms
+INFO:     10.108.0.136:33316 - "POST /checkpoint HTTP/1.1" 200 OK

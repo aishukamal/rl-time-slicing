@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: trainer-a-svc
+spec:
+  selector:
+    app: tpu-trainers
+  ports:
+    - port: 8200
+      targetPort: 8200
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trainer-b-svc
+spec:
+  selector:
+    app: tpu-trainers
+  ports:
+    - port: 8201
+      targetPort: 8201
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sampler-a-svc
+spec:
+  selector:
+    app: tpu-samplers
+  ports:
+    - port: 8300
+      targetPort: 8300
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sampler-b-svc
+spec:
+  selector:
+    app: tpu-samplers
+  ports:
+    - port: 8301
+      targetPort: 8301
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tpu-orchestrator-svc
+spec:
+  selector:
+    app: tpu-orchestrator
+  ports:
+    - port: 9000
+      targetPort: 9000
