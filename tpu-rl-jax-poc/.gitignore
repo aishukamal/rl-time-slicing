@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 .DS_Store
 bin/
+TPU_TIME_SLICING_POC_WRITEUP.md
