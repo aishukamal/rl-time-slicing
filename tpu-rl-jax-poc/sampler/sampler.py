@@ -214,59 +214,46 @@ def generate(req: GenerateReq):
 def _reload_weights_on_worker(worker, weights_path: str):
     """Called inside the EngineCore subprocess via collective_rpc.
 
-    Loads safetensors from disk, converts to JAX arrays, and replaces
-    matching entries in the runner's state dict + state_leaves.
+    Uses param.data.copy_() on the actual PyTorch model parameters,
+    matching the GPU worker's approach. Requires torchax.default_env()
+    because the parameters are torchax tensors.
     """
-    import jax
-    import jax.numpy as jnp
-    import numpy as np
+    import torch
+    import torchax
     from safetensors.numpy import load_file
 
     runner = worker.model_runner
+    model = runner.model.model.vllm_model
     tensors = load_file(weights_path)
-    state = runner.state
+
+    param_dict = dict(model.named_parameters())
 
     n_updated = 0
     n_skipped = 0
 
-    if isinstance(state, dict):
-        # Build update mapping: pt_name -> jax array with correct shape/dtype/sharding
-        updates = {}
-        for pt_name, np_arr in tensors.items():
-            vllm_key = "vllm_model." + pt_name
-            if vllm_key in state:
-                old = state[vllm_key]
-                new = jnp.array(np_arr)
-                if old.shape != new.shape:
-                    if new.ndim == 2 and old.shape == new.T.shape:
-                        new = new.T
-                    else:
-                        n_skipped += 1
-                        continue
-                if old.dtype != new.dtype:
-                    new = new.astype(old.dtype)
-                sharding = getattr(old, 'sharding', None)
-                if sharding is not None:
-                    new = jax.device_put(new, sharding)
-                updates[vllm_key] = new
-                n_updated += 1
-            else:
+    with torchax.default_env():
+        for name, np_arr in tensors.items():
+            matched = False
+            for prefix in ["", "vllm_model."]:
+                full_name = prefix + name
+                if full_name in param_dict:
+                    param = param_dict[full_name]
+                    new_data = torch.from_numpy(np_arr)
+                    if param.shape != new_data.shape:
+                        if new_data.ndim == 2 and param.shape == new_data.T.shape:
+                            new_data = new_data.T
+                        else:
+                            n_skipped += 1
+                            matched = True
+                            break
+                    if param.dtype != new_data.dtype:
+                        new_data = new_data.to(param.dtype)
+                    param.data.copy_(new_data)
+                    n_updated += 1
+                    matched = True
+                    break
+            if not matched:
                 n_skipped += 1
-
-        # GPT-2 ties lm_head.weight to wte.weight
-        wte_key = "vllm_model.transformer.wte.weight"
-        lm_head_key = "vllm_model.lm_head.weight"
-        if wte_key in updates and lm_head_key in state:
-            updates[lm_head_key] = updates[wte_key]
-
-        # Build new state dict preserving keys not in the update
-        new_state = {}
-        for k, v in state.items():
-            new_state[k] = updates.get(k, v)
-        runner.state = new_state
-        runner.state_leaves = new_state
-    else:
-        return {"error": f"unsupported state type: {type(state).__name__}"}
 
     return {"n_updated": n_updated, "n_skipped": n_skipped, "n_tensors": len(tensors)}
 

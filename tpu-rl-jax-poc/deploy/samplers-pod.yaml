@@ -22,6 +22,7 @@ spec:
     - name: sampler-a
       image: us-west1-docker.pkg.dev/aishuk-test/tpu-poc-repo/tpu-rl-sampler:latest
       imagePullPolicy: Always
+      command: ["python3", "/app-code/sampler.py"]
       ports:
         - containerPort: 8300
       env:
@@ -55,6 +56,8 @@ spec:
           mountPath: /run
         - name: shm
           mountPath: /dev/shm
+        - name: sampler-code
+          mountPath: /app-code
       readinessProbe:
         httpGet:
           path: /health
@@ -72,6 +75,7 @@ spec:
     - name: sampler-b
       image: us-west1-docker.pkg.dev/aishuk-test/tpu-poc-repo/tpu-rl-sampler:latest
       imagePullPolicy: Always
+      command: ["python3", "/app-code/sampler.py"]
       ports:
         - containerPort: 8301
       env:
@@ -120,6 +124,8 @@ spec:
           mountPath: /dev/shm
         - name: host-dev-vfio
           mountPath: /dev/vfio
+        - name: sampler-code
+          mountPath: /app-code
       readinessProbe:
         httpGet:
           path: /health
@@ -139,4 +145,7 @@ spec:
     - name: host-dev-vfio
       hostPath:
         path: /dev/vfio
+    - name: sampler-code
+      configMap:
+        name: sampler-code
   restartPolicy: Never

@@ -1,0 +1,71 @@
+INFO:     Started server process [184241]
+INFO:     Waiting for application startup.
+2026-06-28 18:20:24,405 [trainer] INFO Trainer starting -- model will load on first /train call
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8200 (Press CTRL+C to quit)
+INFO:     10.108.0.178:47096 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.108.0.178:47100 - "GET /get_pids HTTP/1.1" 200 OK
+2026-06-28 18:29:52,564 [trainer] INFO First /train call -- loading model
+2026-06-28 18:29:53,666 [trainer] INFO Loading model from gpt2
+TensorFlow and JAX classes are deprecated and will be removed in Transformers v5. We recommend migrating to PyTorch classes or pinning your version of Transformers.
+2026-06-28 18:30:10,699 [trainer] INFO JAX devices: 1 -- ['TPU_0(process=0,(0,0,0,0))']
+2026-06-28 18:30:11,469 [trainer] INFO Model loaded in 17.8s. Params: 124,439,808 (0.25 GB in bf16). Mesh: Mesh('dp': 1, axis_types=(Auto,))
+2026-06-28 18:30:11,470 [trainer] INFO train request: prompts=12000 completions=12000 advantages=12000
+Token indices sequence length is longer than the specified maximum sequence length for this model (1027 > 1024). Running this sequence through the model will result in indexing errors
+2026-06-28 18:38:04,249 [trainer] INFO step=1 loss=0.0001 kl=0.0115 grad_norm=0.174 truncated=122/12000 472777ms
+INFO:     10.108.0.178:48250 - "POST /train HTTP/1.1" 200 OK
+2026-06-28 18:39:12,606 [trainer] INFO Exported 148 tensors (497.8 MB) to /tmp/exported_weights
+2026-06-28 18:39:12,607 [trainer] INFO Weights exported in 0.5s
+INFO:     10.108.1.105:41294 - "POST /export_weights HTTP/1.1" 200 OK
+INFO:     10.108.1.105:41304 - "GET /weights/model.safetensors HTTP/1.1" 200 OK
+INFO:     10.108.1.105:41314 - "GET /weights/config.json HTTP/1.1" 200 OK
+2026-06-28 18:39:15,482 [trainer] INFO Checkpoint complete: 860ms
+INFO:     10.108.0.177:56454 - "POST /checkpoint HTTP/1.1" 200 OK
+2026-06-28 18:47:56,133 [trainer] INFO Restore complete: 662ms
+INFO:     10.108.0.177:36500 - "POST /restore HTTP/1.1" 200 OK
+2026-06-28 18:47:56,647 [trainer] INFO train request: prompts=12000 completions=12000 advantages=12000
+2026-06-28 18:55:32,877 [trainer] INFO step=2 loss=-0.0007 kl=0.0214 grad_norm=0.183 truncated=120/12000 456227ms
+INFO:     10.108.0.178:48190 - "POST /train HTTP/1.1" 200 OK
+2026-06-28 18:55:39,718 [trainer] INFO Exported 148 tensors (497.8 MB) to /tmp/exported_weights
+2026-06-28 18:55:39,719 [trainer] INFO Weights exported in 3.1s
+INFO:     10.108.1.105:34888 - "POST /export_weights HTTP/1.1" 200 OK
+INFO:     10.108.1.105:38440 - "GET /weights/model.safetensors HTTP/1.1" 200 OK
+INFO:     10.108.1.105:38452 - "GET /weights/config.json HTTP/1.1" 200 OK
+2026-06-28 18:55:44,624 [trainer] INFO Checkpoint complete: 808ms
+INFO:     10.108.0.177:39202 - "POST /checkpoint HTTP/1.1" 200 OK
+2026-06-28 19:03:53,310 [trainer] INFO Restore complete: 643ms
+INFO:     10.108.0.177:49714 - "POST /restore HTTP/1.1" 200 OK
+2026-06-28 19:03:53,899 [trainer] INFO train request: prompts=12000 completions=12000 advantages=12000
+2026-06-28 19:11:35,580 [trainer] INFO step=3 loss=-0.0011 kl=0.0219 grad_norm=0.210 truncated=135/11999 461679ms
+INFO:     10.108.0.178:48888 - "POST /train HTTP/1.1" 200 OK
+2026-06-28 19:11:42,309 [trainer] INFO Exported 148 tensors (497.8 MB) to /tmp/exported_weights
+2026-06-28 19:11:42,310 [trainer] INFO Weights exported in 3.0s
+INFO:     10.108.1.105:42434 - "POST /export_weights HTTP/1.1" 200 OK
+INFO:     10.108.1.105:42438 - "GET /weights/model.safetensors HTTP/1.1" 200 OK
+INFO:     10.108.1.105:42444 - "GET /weights/config.json HTTP/1.1" 200 OK
+2026-06-28 19:11:47,112 [trainer] INFO Checkpoint complete: 810ms
+INFO:     10.108.0.177:57572 - "POST /checkpoint HTTP/1.1" 200 OK
+2026-06-28 19:19:55,375 [trainer] INFO Restore complete: 639ms
+INFO:     10.108.0.177:53930 - "POST /restore HTTP/1.1" 200 OK
+2026-06-28 19:19:55,948 [trainer] INFO train request: prompts=12000 completions=12000 advantages=12000
+2026-06-28 19:27:43,225 [trainer] INFO step=4 loss=-0.0013 kl=0.0225 grad_norm=0.227 truncated=143/12000 467273ms
+INFO:     10.108.0.178:55496 - "POST /train HTTP/1.1" 200 OK
+2026-06-28 19:27:50,143 [trainer] INFO Exported 148 tensors (497.8 MB) to /tmp/exported_weights
+2026-06-28 19:27:50,144 [trainer] INFO Weights exported in 3.2s
+INFO:     10.108.1.105:40952 - "POST /export_weights HTTP/1.1" 200 OK
+INFO:     10.108.1.105:44754 - "GET /weights/model.safetensors HTTP/1.1" 200 OK
+INFO:     10.108.1.105:44756 - "GET /weights/config.json HTTP/1.1" 200 OK
+2026-06-28 19:27:54,721 [trainer] INFO Checkpoint complete: 807ms
+INFO:     10.108.0.177:47758 - "POST /checkpoint HTTP/1.1" 200 OK
+2026-06-28 19:36:05,583 [trainer] INFO Restore complete: 640ms
+INFO:     10.108.0.177:55324 - "POST /restore HTTP/1.1" 200 OK
+2026-06-28 19:36:06,331 [trainer] INFO train request: prompts=12000 completions=12000 advantages=12000
+2026-06-28 19:43:54,843 [trainer] INFO step=5 loss=-0.0016 kl=0.0228 grad_norm=0.215 truncated=126/12000 468509ms
+INFO:     10.108.0.178:49642 - "POST /train HTTP/1.1" 200 OK
+2026-06-28 19:44:01,573 [trainer] INFO Exported 148 tensors (497.8 MB) to /tmp/exported_weights
+2026-06-28 19:44:01,574 [trainer] INFO Weights exported in 3.0s
+INFO:     10.108.1.105:40372 - "POST /export_weights HTTP/1.1" 200 OK
+INFO:     10.108.1.105:40384 - "GET /weights/model.safetensors HTTP/1.1" 200 OK
+INFO:     10.108.1.105:40396 - "GET /weights/config.json HTTP/1.1" 200 OK
+2026-06-28 19:44:06,233 [trainer] INFO Checkpoint complete: 809ms
+INFO:     10.108.0.177:60220 - "POST /checkpoint HTTP/1.1" 200 OK

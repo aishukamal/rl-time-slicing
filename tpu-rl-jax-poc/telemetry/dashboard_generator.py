@@ -663,7 +663,7 @@ def plot_scraper_duty_cycle(baseline_dir, timeslice_dir):
             ax.set_title(f'{label} — {role} Duty Cycle')
             ax.set_ylabel('Duty Cycle (%)')
             ax.set_xlabel('Elapsed (minutes)')
-            ax.set_ylim(-2, 55)
+            ax.set_ylim(-2, 105)
             ax.grid(True, alpha=0.3)
             ax.legend(fontsize=7, loc='upper right')
 
@@ -722,6 +722,7 @@ def extract_scraper_summary(log_dir):
         non_zero = [d for d in all_duty if d > 0]
         container = f'{role}_a'
         result[container] = {
+            'avg_duty': np.mean(all_duty) if all_duty else 0,
             'active_pct': 100 * len(non_zero) / len(all_duty) if all_duty else 0,
             'avg_duty_active': np.mean(non_zero) if non_zero else 0,
             'avg_mem_gib': np.mean(all_mem) / 1024 if all_mem else 0,
@@ -862,14 +863,14 @@ def main():
             <td colspan="3" style="padding: 10px; font-weight: bold; color: #7f8c8d;">TPU Duty Cycle ({metrics_source})</td>
         </tr>
         <tr style="border-bottom: 1px solid #ecf0f1;">
-            <td style="padding: 10px; padding-left: 20px;">Sampler Duty Cycle (% time active)</td>
-            <td style="padding: 10px; font-weight: bold;">{"%.1f%%" % cloud_bs.get('sampler_a', {}).get('active_pct', 0) if cloud_bs.get('sampler_a') else "N/A"}</td>
-            <td style="padding: 10px; font-weight: bold;">{"%.1f%%" % cloud_ts.get('sampler_a', {}).get('active_pct', 0) if cloud_ts.get('sampler_a') else "N/A"}</td>
+            <td style="padding: 10px; padding-left: 20px;">Sampler Avg Duty Cycle</td>
+            <td style="padding: 10px; font-weight: bold;">{"%.1f%%" % cloud_bs.get('sampler_a', {}).get('avg_duty', cloud_bs.get('sampler_a', {}).get('avg_duty_active', 0)) if cloud_bs.get('sampler_a') else "N/A"}</td>
+            <td style="padding: 10px; font-weight: bold;">{"%.1f%%" % cloud_ts.get('sampler_a', {}).get('avg_duty', cloud_ts.get('sampler_a', {}).get('avg_duty_active', 0)) if cloud_ts.get('sampler_a') else "N/A"}</td>
         </tr>
         <tr style="border-bottom: 1px solid #ecf0f1;">
-            <td style="padding: 10px; padding-left: 20px;">Trainer Duty Cycle (% time active)</td>
-            <td style="padding: 10px; font-weight: bold;">{"%.1f%%" % cloud_bs.get('trainer_a', {}).get('active_pct', 0) if cloud_bs.get('trainer_a') else "N/A"}</td>
-            <td style="padding: 10px; font-weight: bold;">{"%.1f%%" % cloud_ts.get('trainer_a', {}).get('active_pct', 0) if cloud_ts.get('trainer_a') else "N/A"}</td>
+            <td style="padding: 10px; padding-left: 20px;">Trainer Avg Duty Cycle</td>
+            <td style="padding: 10px; font-weight: bold;">{"%.1f%%" % cloud_bs.get('trainer_a', {}).get('avg_duty', cloud_bs.get('trainer_a', {}).get('avg_duty_active', 0)) if cloud_bs.get('trainer_a') else "N/A"}</td>
+            <td style="padding: 10px; font-weight: bold;">{"%.1f%%" % cloud_ts.get('trainer_a', {}).get('avg_duty', cloud_ts.get('trainer_a', {}).get('avg_duty_active', 0)) if cloud_ts.get('trainer_a') else "N/A"}</td>
         </tr>
         <tr style="border-bottom: 1px solid #ecf0f1; background-color: #fcfcfc;">
             <td colspan="3" style="padding: 10px; font-weight: bold; color: #7f8c8d;">TPU HBM Usage ({metrics_source})</td>

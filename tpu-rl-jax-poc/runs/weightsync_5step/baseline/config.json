@@ -1,0 +1,10 @@
+{
+    "run_id": "weightsync_5step",
+    "mode": "baseline",
+    "n_rl_steps": 5,
+    "prompts_per_step": 330,
+    "group_size": 8,
+    "max_new_tokens": 1024,
+    "weight_sync_interval": 1,
+    "gen_batch_size": 3
+}

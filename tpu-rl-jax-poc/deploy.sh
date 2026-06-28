@@ -87,8 +87,20 @@ ORCH_MODE="snapshot"
 if [ "$MODE" = "baseline" ]; then ORCH_MODE="baseline"; fi
 sed "s/value: \"snapshot\"/value: \"${ORCH_MODE}\"/" "${SCRIPT_DIR}/orchestrator/pod.yaml" | $KUBECTL apply -f -
 
+# Sampler code ConfigMap (mounts updated sampler.py over the Docker image's copy)
+$KUBECTL delete configmap sampler-code --ignore-not-found=true 2>/dev/null || true
+$KUBECTL create configmap sampler-code \
+    --from-file=sampler.py="${SCRIPT_DIR}/sampler/sampler.py"
+
 echo "  Deploying trainers + samplers..."
-$KUBECTL apply -f "${SCRIPT_DIR}/deploy/trainers-pod.yaml"
+TRAINER_CHIPS="${TRAINER_CHIPS:-}"
+if [ -n "$TRAINER_CHIPS" ]; then
+    echo "  Pinning trainers to TPU_VISIBLE_CHIPS=${TRAINER_CHIPS}"
+    sed "s/name: TPU_LIBRARY_PATH/name: TPU_VISIBLE_CHIPS\n          value: \"${TRAINER_CHIPS}\"\n        - name: TPU_LIBRARY_PATH/" \
+        "${SCRIPT_DIR}/deploy/trainers-pod.yaml" | $KUBECTL apply -f -
+else
+    $KUBECTL apply -f "${SCRIPT_DIR}/deploy/trainers-pod.yaml"
+fi
 $KUBECTL apply -f "${SCRIPT_DIR}/deploy/samplers-pod.yaml"
 
 $KUBECTL wait --for=condition=Ready pod/tpu-orchestrator --timeout=60s

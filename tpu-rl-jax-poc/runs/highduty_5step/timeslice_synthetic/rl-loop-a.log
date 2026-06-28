@@ -1,0 +1,128 @@
+2026-06-28 18:23:13,960 [rl-loop] INFO ============================================================
+2026-06-28 18:23:13,960 [rl-loop] INFO TPU GRPO RL Loop | job-a
+2026-06-28 18:23:13,960 [rl-loop] INFO   Trainer:      http://trainer-a-svc:8200
+2026-06-28 18:23:13,960 [rl-loop] INFO   Sampler:      http://sampler-a-svc:8300
+2026-06-28 18:23:13,961 [rl-loop] INFO   Orchestrator: http://tpu-orchestrator-svc:9000
+2026-06-28 18:23:13,961 [rl-loop] INFO   Steps: 5, Prompts/step: 1500, G=8, max_tokens=1024, gen_batch=30
+2026-06-28 18:23:13,961 [rl-loop] INFO   Weight sync: every 1 steps
+2026-06-28 18:23:13,961 [rl-loop] INFO   Total completions/step: 12000
+2026-06-28 18:23:13,961 [rl-loop] INFO ============================================================
+2026-06-28 18:23:13,961 [rl-loop] INFO Downloading GSM8K dataset...
+2026-06-28 18:23:14,514 [rl-loop] INFO Saved 7473 prompts to /tmp/gsm8k_prompts.json
+2026-06-28 18:23:14,548 [rl-loop] INFO Loaded 7473 GSM8K prompts
+2026-06-28 18:23:14,548 [rl-loop] INFO Waiting for Orchestrator at http://tpu-orchestrator-svc:9000...
+2026-06-28 18:23:14,553 [rl-loop] INFO Orchestrator is ready: {'status': 'ok', 'mode': 'snapshot', 'workloads': {}}
+2026-06-28 18:23:14,554 [rl-loop] INFO Waiting for Sampler at http://sampler-a-svc:8300...
+2026-06-28 18:23:14,559 [rl-loop] INFO Sampler is ready: {'status': 'ok', 'vllm_started': True, 'loading': False, 'model': 'gpt2', 'backend': 'tpu'}
+2026-06-28 18:23:14,559 [rl-loop] INFO Waiting for Trainer at http://trainer-a-svc:8200...
+2026-06-28 18:23:14,568 [rl-loop] INFO Trainer is ready: {'status': 'ok', 'model_loaded': False, 'step': 0}
+2026-06-28 18:23:14,593 [rl-loop] INFO Registering job-a-trainer pool=trainer pids=[184241] node=gke-tpu-4c1a4f78-gn8h
+2026-06-28 18:23:14,646 [rl-loop] INFO Registering job-a-sampler pool=sampler pids=[2776356] node=gke-tpu-d19222db-j30v
+2026-06-28 18:23:14,726 [rl-loop] INFO 
+--- Step 1/5 ---
+2026-06-28 18:23:14,733 [rl-loop] INFO Acquired job-a-sampler: restore_ms=0 wait_ms=0 total=6ms
+2026-06-28 18:23:14,752 [rl-loop] INFO Generating 1500x8 rollouts in 50 batches of 30...
+2026-06-28 18:24:33,650 [rl-loop] INFO     batch 10/50: 2400 completions so far
+2026-06-28 18:25:51,394 [rl-loop] INFO     batch 20/50: 4800 completions so far
+2026-06-28 18:27:09,510 [rl-loop] INFO     batch 30/50: 7200 completions so far
+2026-06-28 18:28:27,128 [rl-loop] INFO     batch 40/50: 9600 completions so far
+2026-06-28 18:29:44,844 [rl-loop] INFO     batch 50/50: 12000 completions so far
+2026-06-28 18:29:44,844 [rl-loop] INFO   12000 completions in 390091ms (50 batches)
+2026-06-28 18:29:49,350 [rl-loop] INFO Yielded job-a-sampler: checkpoint_ms=4496 total=4506ms
+2026-06-28 18:29:51,845 [rl-loop] INFO   reward=0.129  correct=0.67%  format=23.28%  truncated=40.82%
+2026-06-28 18:29:51,851 [rl-loop] INFO Acquired job-a-trainer: restore_ms=0 wait_ms=0 total=6ms
+2026-06-28 18:29:51,853 [rl-loop] INFO Training on 12000 samples...
+2026-06-28 18:38:04,272 [rl-loop] INFO   loss=0.0001  kl=0.0115  492419ms
+2026-06-28 18:39:12,092 [rl-loop] INFO Acquired job-a-sampler: restore_ms=3661 wait_ms=64148 total=67819ms
+2026-06-28 18:39:12,092 [rl-loop] INFO Syncing weights (both TPUs held)...
+2026-06-28 18:39:14,600 [rl-loop] INFO   weights synced in 2508ms
+2026-06-28 18:39:15,486 [rl-loop] INFO Yielded job-a-trainer: checkpoint_ms=880 total=886ms
+2026-06-28 18:39:15,487 [rl-loop] INFO   Step 1 done in 960760ms
+2026-06-28 18:39:15,488 [rl-loop] INFO 
+--- Step 2/5 ---
+2026-06-28 18:39:15,506 [rl-loop] INFO Generating 1500x8 rollouts in 50 batches of 30...
+2026-06-28 18:40:32,500 [rl-loop] INFO     batch 10/50: 2400 completions so far
+2026-06-28 18:41:49,964 [rl-loop] INFO     batch 20/50: 4800 completions so far
+2026-06-28 18:43:06,872 [rl-loop] INFO     batch 30/50: 7200 completions so far
+2026-06-28 18:44:23,384 [rl-loop] INFO     batch 40/50: 9600 completions so far
+2026-06-28 18:45:41,527 [rl-loop] INFO     batch 50/50: 12000 completions so far
+2026-06-28 18:45:41,527 [rl-loop] INFO   12000 completions in 386021ms (50 batches)
+2026-06-28 18:45:45,720 [rl-loop] INFO Yielded job-a-sampler: checkpoint_ms=4182 total=4193ms
+2026-06-28 18:45:48,290 [rl-loop] INFO   reward=0.123  correct=0.67%  format=22.26%  truncated=41.96%
+2026-06-28 18:47:56,137 [rl-loop] INFO Acquired job-a-trainer: restore_ms=667 wait_ms=127173 total=127847ms
+2026-06-28 18:47:56,142 [rl-loop] INFO Training on 12000 samples...
+2026-06-28 18:55:32,898 [rl-loop] INFO   loss=-0.0007  kl=0.0214  456756ms
+2026-06-28 18:55:36,564 [rl-loop] INFO Acquired job-a-sampler: restore_ms=3657 wait_ms=0 total=3665ms
+2026-06-28 18:55:36,564 [rl-loop] INFO Syncing weights (both TPUs held)...
+2026-06-28 18:55:43,807 [rl-loop] INFO   weights synced in 7243ms
+2026-06-28 18:55:44,630 [rl-loop] INFO Yielded job-a-trainer: checkpoint_ms=815 total=823ms
+2026-06-28 18:55:44,630 [rl-loop] INFO   Step 2 done in 989142ms
+2026-06-28 18:55:44,632 [rl-loop] INFO 
+--- Step 3/5 ---
+2026-06-28 18:55:44,689 [rl-loop] INFO Generating 1500x8 rollouts in 50 batches of 30...
+2026-06-28 18:57:02,330 [rl-loop] INFO     batch 10/50: 2400 completions so far
+2026-06-28 18:58:20,148 [rl-loop] INFO     batch 20/50: 4800 completions so far
+2026-06-28 18:59:37,962 [rl-loop] INFO     batch 30/50: 7200 completions so far
+2026-06-28 19:00:56,186 [rl-loop] INFO     batch 40/50: 9600 completions so far
+2026-06-28 19:02:14,010 [rl-loop] INFO     batch 50/50: 12000 completions so far
+2026-06-28 19:02:14,010 [rl-loop] INFO   12000 completions in 389321ms (50 batches)
+2026-06-28 19:02:18,246 [rl-loop] INFO Yielded job-a-sampler: checkpoint_ms=4228 total=4236ms
+2026-06-28 19:02:20,651 [rl-loop] INFO   reward=0.131  correct=0.72%  format=23.53%  truncated=41.47%
+2026-06-28 19:03:53,314 [rl-loop] INFO Acquired job-a-trainer: restore_ms=653 wait_ms=92004 total=92663ms
+2026-06-28 19:03:53,317 [rl-loop] INFO Training on 12000 samples...
+2026-06-28 19:11:35,607 [rl-loop] INFO   loss=-0.0011  kl=0.0219  462289ms
+2026-06-28 19:11:39,253 [rl-loop] INFO Acquired job-a-sampler: restore_ms=3633 wait_ms=0 total=3645ms
+2026-06-28 19:11:39,253 [rl-loop] INFO Syncing weights (both TPUs held)...
+2026-06-28 19:11:46,294 [rl-loop] INFO   weights synced in 7041ms
+2026-06-28 19:11:47,117 [rl-loop] INFO Yielded job-a-trainer: checkpoint_ms=816 total=823ms
+2026-06-28 19:11:47,117 [rl-loop] INFO   Step 3 done in 962485ms
+2026-06-28 19:11:47,118 [rl-loop] INFO 
+--- Step 4/5 ---
+2026-06-28 19:11:47,145 [rl-loop] INFO Generating 1500x8 rollouts in 50 batches of 30...
+2026-06-28 19:13:04,839 [rl-loop] INFO     batch 10/50: 2400 completions so far
+2026-06-28 19:14:22,426 [rl-loop] INFO     batch 20/50: 4800 completions so far
+2026-06-28 19:15:39,542 [rl-loop] INFO     batch 30/50: 7200 completions so far
+2026-06-28 19:16:57,130 [rl-loop] INFO     batch 40/50: 9600 completions so far
+2026-06-28 19:18:14,833 [rl-loop] INFO     batch 50/50: 12000 completions so far
+2026-06-28 19:18:14,833 [rl-loop] INFO   12000 completions in 387687ms (50 batches)
+2026-06-28 19:18:19,045 [rl-loop] INFO Yielded job-a-sampler: checkpoint_ms=4205 total=4212ms
+2026-06-28 19:18:21,452 [rl-loop] INFO   reward=0.124  correct=0.65%  format=22.62%  truncated=41.88%
+2026-06-28 19:19:55,379 [rl-loop] INFO Acquired job-a-trainer: restore_ms=644 wait_ms=93277 total=93927ms
+2026-06-28 19:19:55,382 [rl-loop] INFO Training on 12000 samples...
+2026-06-28 19:27:43,263 [rl-loop] INFO   loss=-0.0013  kl=0.0225  467881ms
+2026-06-28 19:27:46,926 [rl-loop] INFO Acquired job-a-sampler: restore_ms=3655 wait_ms=0 total=3663ms
+2026-06-28 19:27:46,927 [rl-loop] INFO Syncing weights (both TPUs held)...
+2026-06-28 19:27:53,906 [rl-loop] INFO   weights synced in 6979ms
+2026-06-28 19:27:54,726 [rl-loop] INFO Yielded job-a-trainer: checkpoint_ms=814 total=820ms
+2026-06-28 19:27:54,726 [rl-loop] INFO   Step 4 done in 967608ms
+2026-06-28 19:27:54,728 [rl-loop] INFO 
+--- Step 5/5 ---
+2026-06-28 19:27:54,778 [rl-loop] INFO Generating 1500x8 rollouts in 50 batches of 30...
+2026-06-28 19:29:12,389 [rl-loop] INFO     batch 10/50: 2400 completions so far
+2026-06-28 19:30:30,114 [rl-loop] INFO     batch 20/50: 4800 completions so far
+2026-06-28 19:31:47,972 [rl-loop] INFO     batch 30/50: 7200 completions so far
+2026-06-28 19:33:05,638 [rl-loop] INFO     batch 40/50: 9600 completions so far
+2026-06-28 19:34:23,064 [rl-loop] INFO     batch 50/50: 12000 completions so far
+2026-06-28 19:34:23,065 [rl-loop] INFO   12000 completions in 388286ms (50 batches)
+2026-06-28 19:34:27,244 [rl-loop] INFO Yielded job-a-sampler: checkpoint_ms=4171 total=4179ms
+2026-06-28 19:34:29,767 [rl-loop] INFO   reward=0.127  correct=0.73%  format=22.73%  truncated=41.51%
+2026-06-28 19:36:05,587 [rl-loop] INFO Acquired job-a-trainer: restore_ms=646 wait_ms=95168 total=95820ms
+2026-06-28 19:36:05,592 [rl-loop] INFO Training on 12000 samples...
+2026-06-28 19:43:54,867 [rl-loop] INFO   loss=-0.0016  kl=0.0228  469274ms
+2026-06-28 19:43:58,523 [rl-loop] INFO Acquired job-a-sampler: restore_ms=3647 wait_ms=0 total=3656ms
+2026-06-28 19:43:58,523 [rl-loop] INFO Syncing weights (both TPUs held)...
+2026-06-28 19:44:05,416 [rl-loop] INFO   weights synced in 6893ms
+2026-06-28 19:44:06,238 [rl-loop] INFO Yielded job-a-trainer: checkpoint_ms=816 total=822ms
+2026-06-28 19:44:06,238 [rl-loop] INFO   Step 5 done in 971511ms
+2026-06-28 19:44:10,421 [rl-loop] INFO Yielded job-a-sampler: checkpoint_ms=4176 total=4181ms
+2026-06-28 19:44:10,421 [rl-loop] INFO ============================================================
+2026-06-28 19:44:10,421 [rl-loop] INFO job-a COMPLETE — 5 steps
+2026-06-28 19:44:10,422 [rl-loop] INFO   avg reward:  0.127
+2026-06-28 19:44:10,422 [rl-loop] INFO   avg correct: 0.69%
+2026-06-28 19:44:10,422 [rl-loop] INFO   avg format:  22.88%
+2026-06-28 19:44:10,422 [rl-loop] INFO   avg loss:    -0.0009
+2026-06-28 19:44:10,422 [rl-loop] INFO   avg gen:     388281ms
+2026-06-28 19:44:10,422 [rl-loop] INFO   avg train:   469724ms
+2026-06-28 19:44:10,422 [rl-loop] INFO ============================================================
+2026-06-28 19:44:10,469 [rl-loop] INFO === [RL_JOB_COMPLETED] ===
+2026-06-28 19:44:10,470 [rl-loop] INFO Sleeping until metrics are collected...

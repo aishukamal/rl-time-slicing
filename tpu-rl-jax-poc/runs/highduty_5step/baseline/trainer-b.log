@@ -1,0 +1,5 @@
+INFO:     Started server process [3792016]
+INFO:     Waiting for application startup.
+2026-06-28 10:25:43,686 [trainer] INFO Trainer starting -- model will load on first /train call
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8201 (Press CTRL+C to quit)
