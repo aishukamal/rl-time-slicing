@@ -118,8 +118,15 @@ All config is passed via environment variables to `deploy.sh`:
 | `MAX_NEW_TOKENS` | `1024` | Max tokens per completion |
 | `GEN_BATCH_SIZE` | `3` | Prompts per generate batch (controls gen phase duration) |
 | `WEIGHT_SYNC_INTERVAL` | `0` | Sync weights every N steps (0 = disabled) |
+| `TRAINER_CHIPS` | _(all)_ | Pin trainer to specific TPU chips (e.g. `0` for 1-chip mode) |
 
 Phase durations with default config: ~6.5 min generate, ~8 min train per step.
+
+**High duty cycle recipe** (used for `highduty_5step` runs):
+```bash
+PROMPTS_PER_STEP=1500 GEN_BATCH_SIZE=30 TRAINER_CHIPS=0 WEIGHT_SYNC_INTERVAL=1
+```
+This achieves ~99.8% peak sampler duty and ~79% peak trainer duty by using larger generation batches and pinning the trainer to a single TPU chip.
 
 ## What deploy.sh Does
 
