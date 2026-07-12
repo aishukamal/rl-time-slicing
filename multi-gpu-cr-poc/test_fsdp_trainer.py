@@ -46,7 +46,20 @@ def main():
     step = 0
     print(f"[rank {local_rank}] Training started (world_size={world_size})", flush=True)
 
+    # Quiesce flag: when /tmp/fsdp_pause exists, the trainer parks between
+    # steps (GPU idle, no collectives in flight). This mirrors the
+    # time-slicing acquire/yield contract — C/R happens only on quiesced
+    # workloads.
+    pause_file = os.environ.get("PAUSE_FILE", "/tmp/fsdp_pause")
+
     while True:
+        while os.path.exists(pause_file):
+            if not getattr(main, "_paused_logged", False):
+                print(f"[rank {local_rank}] paused (quiesced) at step={step}", flush=True)
+                main._paused_logged = True
+            time.sleep(0.2)
+        main._paused_logged = False
+
         x = torch.randn(64, 1024, device=device)
         target = torch.randn(64, 1024, device=device)
 
@@ -55,6 +68,7 @@ def main():
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
+        torch.cuda.synchronize()
 
         step += 1
         if step % 10 == 0:

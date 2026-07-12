@@ -323,6 +323,44 @@ for POD in dp-node0 dp-node1; do
 done
 ```
 
+## GPU-CR Combo (experimental)
+
+[GPU-CR](https://github.com/gpu-os/GPU-CR) (v0.2.1) provides a faster data plane: multi-threaded pinned memcpy to hugepages dumps GPU memory at ~12.4 GB/s before cuda-checkpoint runs, so freeze/restore handles only metadata.
+
+Combined with our ncclCommSuspend shim (4 patches to upstream GPU-CR), inference workloads see ~2.7x faster C/R:
+
+| Test | Pure shim ckpt | Pure shim rst | Combo ckpt | Combo rst |
+|------|---------------|---------------|-----------|----------|
+| vLLM TP=2 | 15.8s | 5.4s | **5.7s** | **1.9s** |
+| SGLang TP=2 | 32.7s | 11.9s | **7.7s** | **1.9s** |
+| FSDP DP=2 (quiesced) | 5.6s | 3.8s | FAIL | — |
+
+### Patches applied to upstream GPU-CR
+
+1. **RT signals**: `CR_CKPT_SIGNAL`/`CR_RESTORE_SIGNAL` changed from SIGUSR1/2 to SIGRTMAX-4/-5 (vLLM 0.25 API server overrides SIGUSR1)
+2. **ncclCommSuspend re-enabled**: upstream removed suspend ("NO LONGER used"); re-implemented in `nccl_hooks.cpp` using `find_real_nccl_sym`
+3. **Suspend wired into ckpt handler**: called in `vGPU.cpp` after data dump + P2P disable, before cuda-checkpoint freeze; resume in IPC import handler
+4. **Sequential freeze**: `multi_cr_client.cpp` changed from `cuda_ckpt_all_parallel` to `cuda_ckpt_all` (sequential)
+
+### Why FSDP combo fails
+
+Phase 2 (Data Dump) hangs at `releasePhysicalMemory` on NCCL's local cuMem allocations (created by `NCCL_CUMEM_ENABLE=1`). GPU-CR's IPC teardown handles IPC-exported cuMem allocations but not local ones. vLLM/SGLang pass because their NCCL creates IPC exports (TP all-reduce buffers) which teardown properly frees. FSDP's NCCL creates local-only cuMem allocations (DP all-reduce) — teardown skips them, dump tries to release them, hangs. Under investigation.
+
+### Additional requirements (beyond pure shim)
+
+- **Hugepages**: 40GB+ hugetlbfs mount at `/mnt/huge-ckpt`; pod cgroup `hugetlb.2MB.max` and `hugetlb.2MB.rsvd.max` set to `max`
+- **Env vars**: `NCCL_CUMEM_ENABLE=1`, `NCCL_CUMEM_HOST_ENABLE=1` (in addition to TCP transport vars)
+- **GPU-CR build**: `vGPU-NVIDIA.so` + `multi_cr_client` (cmake, ~2MB)
+- **Warm-up inference**: required for SGLang before first checkpoint (NCCL comm creation is lazy)
+- **Quiesced workloads**: training must pause between steps before checkpoint
+
+### Why upstream GPU-CR multi-GPU fails on modern vLLM
+
+Upstream claims multi-GPU support for PP=2 on vLLM 0.14.1 + A100. On vLLM 0.25+ with TP=2, it fails at three layers:
+1. SIGUSR1 conflict (vLLM API server overrides it)
+2. No ncclCommSuspend (removed from upstream, NCCL proxy threads block cuda-checkpoint drain)
+3. Parallel freeze (deadlocks with active NCCL)
+
 ## Known Limitations
 
 1. **NCCL transport permanently degraded.** TCP loopback is set at pod launch. Cannot switch to NVLink mid-run. NVIDIA needs to fix `ncclCommSuspend` to fully tear down SHM/P2P state.
