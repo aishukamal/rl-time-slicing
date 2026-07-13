@@ -325,15 +325,29 @@ done
 
 ## GPU-CR Combo (experimental)
 
-[GPU-CR](https://github.com/gpu-os/GPU-CR) (v0.2.1) provides a faster data plane: multi-threaded pinned memcpy to hugepages dumps GPU memory at ~12.4 GB/s before cuda-checkpoint runs, so freeze/restore handles only metadata.
+[GPU-CR](https://github.com/gpu-os/GPU-CR) (v0.2.1) provides a faster data plane: hugepage-backed staging buffers dump GPU memory at ~12.4 GB/s before cuda-checkpoint runs, so freeze/restore handles only metadata.
 
-Combined with our ncclCommSuspend shim (4 patches to upstream GPU-CR), inference workloads see ~2.7x faster C/R:
+Combined with our ncclCommSuspend shim (4 patches to upstream GPU-CR), inference workloads see ~2.7x faster C/R.
 
-| Test | Pure shim ckpt | Pure shim rst | Combo ckpt | Combo rst |
-|------|---------------|---------------|-----------|----------|
-| vLLM TP=2 | 15.8s | 5.4s | **5.7s** | **1.9s** |
-| SGLang TP=2 | 32.7s | 11.9s | **7.7s** | **1.9s** |
-| FSDP DP=2 (quiesced) | 5.6s | 3.8s | FAIL | — |
+### Complete GPU-CR Combo Test Matrix
+
+| # | Test | Topology | Combo ckpt | Combo rst | Status |
+|---|------|----------|-----------|----------|--------|
+| 1 | vLLM TP=1 | 1 GPU | 2.4s | 0.6s | **PASS** |
+| 2 | vLLM TP=2 | 2 GPU, 1 pod | 5.7s | 1.9s | **PASS** |
+| 3 | SGLang TP=1 | 1 GPU | 2.3s | 0.5s | **PASS** |
+| 4 | SGLang TP=2 | 2 GPU, 1 pod | 7.7s | 1.9s | **PASS** |
+| 5 | FSDP single GPU | 1 GPU | OK | OK | **PASS** |
+| 6 | FSDP DP=2 | 2 GPU, 1 pod | SIGSEGV | — | **FAIL** |
+
+All tests on 2xH100 80GB, opt-1.3b, gpu_util=0.15, driver 580.126.20.
+
+### Speedup vs Pure Shim
+
+| Test | Pure shim ckpt | Pure shim rst | Combo ckpt | Combo rst | Speedup |
+|------|---------------|---------------|-----------|----------|---------|
+| vLLM TP=2 | 15.8s | 5.4s | **5.7s** | **1.9s** | **2.8x** |
+| SGLang TP=2 | 32.7s | 11.9s | **7.7s** | **1.9s** | **4.7x** |
 
 ### Patches applied to upstream GPU-CR
 
@@ -341,15 +355,35 @@ Combined with our ncclCommSuspend shim (4 patches to upstream GPU-CR), inference
 2. **ncclCommSuspend re-enabled**: upstream removed suspend ("NO LONGER used"); re-implemented in `nccl_hooks.cpp` using `find_real_nccl_sym`
 3. **Suspend wired into ckpt handler**: called in `vGPU.cpp` after data dump + P2P disable, before cuda-checkpoint freeze; resume in IPC import handler
 4. **Sequential freeze**: `multi_cr_client.cpp` changed from `cuda_ckpt_all_parallel` to `cuda_ckpt_all` (sequential)
+5. **SGLang compatibility**: `--disable-custom-all-reduce` required (GPU-CR's cuMemMap hook breaks legacy cudaIpcGetMemHandle)
 
-### Why FSDP combo fails
+### Why FSDP combo fails (root cause with evidence)
 
-Phase 2 (Data Dump) hangs at `releasePhysicalMemory` on NCCL's local cuMem allocations (created by `NCCL_CUMEM_ENABLE=1`). GPU-CR's IPC teardown handles IPC-exported cuMem allocations but not local ones. vLLM/SGLang pass because their NCCL creates IPC exports (TP all-reduce buffers) which teardown properly frees. FSDP's NCCL creates local-only cuMem allocations (DP all-reduce) — teardown skips them, dump tries to release them, hangs. Under investigation.
+GPU-CR hooks ALL `cudaMalloc` calls via `cuGetProcAddress` interception and redirects them through cuMem VMM (Virtual Memory Management). This includes NCCL's own internal `cudaMalloc` calls (e.g., 16MB at `0x402000000`, 34MB at `0x404000000`).
+
+During `ckpt()`, GPU-CR:
+1. Copies data from all tracked allocations to hugepage staging buffers (succeeds)
+2. Calls `cuMemUnmap + cuMemRelease` on all tracked allocations via `releasePhysicalMemory` (crashes)
+
+The crash is a SIGSEGV (signal 11) at `cuMemUnmap(0x402000000)`. Even after `ncclCommSuspend`, NCCL retains internal references to these VMM allocations. GPU-CR's `cuMemUnmap` invalidates the address space while NCCL's internal state still points to it.
+
+**Why inference (vLLM/SGLang TP=2) passes:** Their NCCL creates IPC-exported cuMem allocations (for TP all-reduce). GPU-CR's IPC teardown (Phase 1) handles these via `ipc_teardown_all_imports`, which releases them cleanly before `ckpt()` runs. The remaining allocations are all PyTorch model weights and KV cache.
+
+**Why FSDP DP=2 fails:** FSDP's NCCL creates local (non-IPC) cuMem allocations for DP all-reduce. IPC teardown reports `imports=0, exports=0` — no IPC state to tear down. When `ckpt()` reaches `releasePhysicalMemory`, it tries to cuMemUnmap NCCL's allocations → crash.
+
+**Evidence:**
+- Worker logs show `ckpt 14 ptrs` with first 4 ptrs at 0x402-0x408 (NCCL's cudaMalloc, hooked to VMM)
+- `exitcode: -11` (SIGSEGV) for both workers
+- Reordering ncclCommSuspend before ckpt() also fails (data copy reads freed memory → silent corruption)
+- Single-GPU FSDP (no NCCL) passes — confirms NCCL allocations are the root cause
+
+**Fix requires:** GPU-CR filtering NCCL allocations from its tracking, or NCCL providing an API to release cuMem handles during suspend.
 
 ### Additional requirements (beyond pure shim)
 
-- **Hugepages**: 40GB+ hugetlbfs mount at `/mnt/huge-ckpt`; pod cgroup `hugetlb.2MB.max` and `hugetlb.2MB.rsvd.max` set to `max`
+- **Hugepages**: 40GB+ hugetlbfs mount at `/mnt/huge-ckpt`; pod cgroup `hugetlb.2MB.max` and `hugetlb.2MB.rsvd.max` set to `max` at every cgroup level
 - **Env vars**: `NCCL_CUMEM_ENABLE=1`, `NCCL_CUMEM_HOST_ENABLE=1` (in addition to TCP transport vars)
+- **Build**: `SHM_SIZE_GB=15` for opt-1.3b at 0.15 util (default 25GB per worker is too large)
 - **GPU-CR build**: `vGPU-NVIDIA.so` + `multi_cr_client` (cmake, ~2MB)
 - **Warm-up inference**: required for SGLang before first checkpoint (NCCL comm creation is lazy)
 - **Quiesced workloads**: training must pause between steps before checkpoint
@@ -360,6 +394,8 @@ Upstream claims multi-GPU support for PP=2 on vLLM 0.14.1 + A100. On vLLM 0.25+ 
 1. SIGUSR1 conflict (vLLM API server overrides it)
 2. No ncclCommSuspend (removed from upstream, NCCL proxy threads block cuda-checkpoint drain)
 3. Parallel freeze (deadlocks with active NCCL)
+
+**Note:** Upstream's PP=2 claim was NOT independently tested by us. Their benchmark configuration (vLLM 0.14.1, PP=2, A100) differs significantly from our test environment.
 
 ## Known Limitations
 
