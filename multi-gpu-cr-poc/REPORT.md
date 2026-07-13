@@ -338,9 +338,11 @@ Combined with our ncclCommSuspend shim (4 patches to upstream GPU-CR), inference
 | 3 | SGLang TP=1 | 1 GPU | 2.3s | 0.5s | **PASS** |
 | 4 | SGLang TP=2 | 2 GPU, 1 pod | 7.7s | 1.9s | **PASS** |
 | 5 | FSDP single GPU | 1 GPU | OK | OK | **PASS** |
-| 6 | FSDP DP=2 | 2 GPU, 1 pod | SIGSEGV | — | **FAIL** |
+| 6 | FSDP DP=2 | 2 GPU, 1 pod | 4.8s | 0.9s | **PASS** |
 
 All tests on 2xH100 80GB, opt-1.3b, gpu_util=0.15, driver 580.126.20.
+
+**6/6 PASS. All with post-restore inference/training verification.**
 
 ### Speedup vs Pure Shim
 
@@ -357,34 +359,20 @@ All tests on 2xH100 80GB, opt-1.3b, gpu_util=0.15, driver 580.126.20.
 4. **Sequential freeze**: `multi_cr_client.cpp` changed from `cuda_ckpt_all_parallel` to `cuda_ckpt_all` (sequential)
 5. **SGLang compatibility**: `--disable-custom-all-reduce` required (GPU-CR's cuMemMap hook breaks legacy cudaIpcGetMemHandle)
 
-### Why FSDP combo fails (root cause with evidence)
+### FSDP combo: the NCCL allocation problem and fix
 
-GPU-CR hooks ALL `cudaMalloc` calls via `cuGetProcAddress` interception and redirects them through cuMem VMM (Virtual Memory Management). This includes NCCL's own internal `cudaMalloc` calls (e.g., 16MB at `0x402000000`, 34MB at `0x404000000`).
+GPU-CR hooks ALL `cudaMalloc` calls via `cuGetProcAddress` interception and redirects them through cuMem VMM. This includes NCCL's internal `cudaMalloc` calls (16MB at `0x402000000`, etc.). When `ckpt()` calls `cuMemUnmap` on these NCCL-owned VMM allocations, the driver crashes (SIGSEGV) because NCCL retains internal references even after `ncclCommSuspend`.
 
-During `ckpt()`, GPU-CR:
-1. Copies data from all tracked allocations to hugepage staging buffers (succeeds)
-2. Calls `cuMemUnmap + cuMemRelease` on all tracked allocations via `releasePhysicalMemory` (crashes)
+vLLM/SGLang TP=2 avoids this because their NCCL creates IPC-exported allocations — GPU-CR's IPC teardown (Phase 1) handles them cleanly. FSDP's NCCL creates local-only allocations (no IPC), so teardown is a no-op.
 
-The crash is a SIGSEGV (signal 11) at `cuMemUnmap(0x402000000)`. Even after `ncclCommSuspend`, NCCL retains internal references to these VMM allocations. GPU-CR's `cuMemUnmap` invalidates the address space while NCCL's internal state still points to it.
+**Fix (3 changes to GPU-CR):**
+1. `vGPU.cpp ckpt()`: When NCCL comms are present, skip `releasePhysicalMemory` entirely. The data dump to hugepages still runs (copies GPU data at ~12 GB/s). `cuda-checkpoint` freeze releases ALL GPU memory at the kernel level — VRAM is fully freed.
+2. `vGPU.cpp restore_ptr_and_content()`: When NCCL comms are present, skip `remapPhysicalMemory` and data restore. `cuda-checkpoint` restore already brings back all memory contents.
+3. `vGPU.cpp RESTORE_MSG handler`: Add `nccl_resume_all_comms()` after P2P re-enable, so NCCL resume happens even when `-n` flag skips IPC rebuild.
 
-**Why inference (vLLM/SGLang TP=2) passes:** Their NCCL creates IPC-exported cuMem allocations (for TP all-reduce). GPU-CR's IPC teardown (Phase 1) handles these via `ipc_teardown_all_imports`, which releases them cleanly before `ckpt()` runs. The remaining allocations are all PyTorch model weights and KV cache.
+Use `multi_cr_client -n` for FSDP (no IPC to tear down/rebuild).
 
-**Why FSDP DP=2 fails:** FSDP's NCCL creates local (non-IPC) cuMem allocations for DP all-reduce. IPC teardown reports `imports=0, exports=0` — no IPC state to tear down. When `ckpt()` reaches `releasePhysicalMemory`, it tries to cuMemUnmap NCCL's allocations → crash.
-
-**Evidence:**
-- Worker logs show `ckpt 14 ptrs` with first 4 ptrs at 0x402-0x408 (NCCL's cudaMalloc, hooked to VMM)
-- `exitcode: -11` (SIGSEGV) for both workers
-- Reordering ncclCommSuspend before ckpt() also fails (data copy reads freed memory → silent corruption)
-- Single-GPU FSDP (no NCCL) passes — confirms NCCL allocations are the root cause
-
-**Investigated fixes:**
-- **NCCL bypass during init**: Set thread-local flag during `ncclCommInitRank` to route NCCL's cudaMalloc to real cudaMalloc (bypass VMM). Doesn't work because NCCL allocations happen BEFORE `ncclCommInitRank` (during `dist.init_process_group` PyTorch-side setup).
-- **Handle validity check**: Check `cuMemGetAllocationPropertiesFromHandle` before cuMemUnmap. Handle is valid but cuMemUnmap still crashes — NCCL has layered its own cuMem mappings on top.
-- **Reorder suspend before ckpt**: Causes data corruption for vLLM (suspend invalidates NCCL buffers, ckpt() copies stale data).
-
-**Path to fix:** Register GPU-CR's cudaMalloc-hooked VMM allocations with the IPC hooks' local alloc tracking (`g_local_allocs`). Then `ipc_save_and_teardown_local_allocs()` in Phase 1 would properly save and release these allocations (including NCCL's) before `ckpt()` runs. This is a targeted change to GPU-CR's `nv.cpp` — add each hooked allocation to the IPC local alloc registry so teardown handles it the same way it handles explicit cuMem allocations.
-
-**Note:** Pure shim approach works for all FSDP cases. GPU-CR combo is primarily valuable for large-model inference where hugepage dump speed matters.
+**Trade-off:** For FSDP DP=2 with NCCL comms, the GPU-CR data plane (hugepage dump/restore) is bypassed — the speedup comes only from the multi_cr_client orchestration and `--action` mode cuda-checkpoint. For inference workloads (vLLM/SGLang TP=2), full GPU-CR data plane is active and provides 2.8-4.7x speedup.
 
 ### Additional requirements (beyond pure shim)
 
