@@ -372,7 +372,14 @@ vLLM/SGLang TP=2 avoids this because their NCCL creates IPC-exported allocations
 
 Use `multi_cr_client -n` for FSDP (no IPC to tear down/rebuild).
 
-**Trade-off:** For FSDP DP=2 with NCCL comms, the GPU-CR data plane (hugepage dump/restore) is bypassed — the speedup comes only from the multi_cr_client orchestration and `--action` mode cuda-checkpoint. For inference workloads (vLLM/SGLang TP=2), full GPU-CR data plane is active and provides 2.8-4.7x speedup.
+**Also attempted (did not work):**
+- **ncclCommDestroy before ckpt():** Destroy properly frees NCCL allocations via cudaFree hook (GPU-CR VMM cleanup works). But `ncclCommInitRank` after restore fails with `ncclUnhandledCudaError` (rc=6) — NCCL's bootstrap TCP sockets are stale after cuda-checkpoint restore, so the rendezvous can't re-establish.
+- **Track NCCL allocs via IPC local alloc system:** Removed the `requestedHandleTypes != 0` filter in `hook_cuMemCreate` so `g_created_allocs` tracks ALL cuMem allocations. `ipc_save_and_teardown_local_allocs` then finds 278MB of local allocs — but it calls the same `cuMemUnmap` that crashes (SIGSEGV).
+- **NCCL bypass during cudaMalloc:** Thread-local flag during `ncclCommInitRank` to route NCCL's cudaMalloc to real cudaMalloc. Doesn't work — NCCL allocations happen before `ncclCommInitRank` (during `dist.init_process_group`).
+
+**Root cause:** GPU-CR's cudaMalloc→VMM hook and NCCL both operate on the cuMem VMM layer. After `ncclCommSuspend`, NCCL retains internal VMM state (mappings, handles) that makes `cuMemUnmap` from GPU-CR crash. Fixing this requires either NCCL exposing a "release cuMem handles" API in suspend, or GPU-CR detecting and excluding NCCL's allocations from its tracking at cudaMalloc time (needs reliable caller identification beyond thread-local flags).
+
+**Trade-off:** For FSDP DP=2 with NCCL comms, the GPU-CR data plane (hugepage dump/restore) is bypassed — no speedup over pure shim. For inference workloads (vLLM/SGLang TP=2), full GPU-CR data plane is active and provides 2.8-4.7x speedup.
 
 ### Additional requirements (beyond pure shim)
 
