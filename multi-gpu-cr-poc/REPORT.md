@@ -377,7 +377,14 @@ The crash is a SIGSEGV (signal 11) at `cuMemUnmap(0x402000000)`. Even after `ncc
 - Reordering ncclCommSuspend before ckpt() also fails (data copy reads freed memory → silent corruption)
 - Single-GPU FSDP (no NCCL) passes — confirms NCCL allocations are the root cause
 
-**Fix requires:** GPU-CR filtering NCCL allocations from its tracking, or NCCL providing an API to release cuMem handles during suspend.
+**Investigated fixes:**
+- **NCCL bypass during init**: Set thread-local flag during `ncclCommInitRank` to route NCCL's cudaMalloc to real cudaMalloc (bypass VMM). Doesn't work because NCCL allocations happen BEFORE `ncclCommInitRank` (during `dist.init_process_group` PyTorch-side setup).
+- **Handle validity check**: Check `cuMemGetAllocationPropertiesFromHandle` before cuMemUnmap. Handle is valid but cuMemUnmap still crashes — NCCL has layered its own cuMem mappings on top.
+- **Reorder suspend before ckpt**: Causes data corruption for vLLM (suspend invalidates NCCL buffers, ckpt() copies stale data).
+
+**Path to fix:** Register GPU-CR's cudaMalloc-hooked VMM allocations with the IPC hooks' local alloc tracking (`g_local_allocs`). Then `ipc_save_and_teardown_local_allocs()` in Phase 1 would properly save and release these allocations (including NCCL's) before `ckpt()` runs. This is a targeted change to GPU-CR's `nv.cpp` — add each hooked allocation to the IPC local alloc registry so teardown handles it the same way it handles explicit cuMem allocations.
+
+**Note:** Pure shim approach works for all FSDP cases. GPU-CR combo is primarily valuable for large-model inference where hugepage dump speed matters.
 
 ### Additional requirements (beyond pure shim)
 
