@@ -150,6 +150,11 @@ int nv::registerHostMemory(void* ptr, size_t size) {
     if (err != cudaSuccess) {
         fprintf(stderr, "[NVIDIA] cudaHostRegister failed: %s\n", cudaGetErrorString(err));
         fprintf(stderr, "[NVIDIA] This is expected for hugepage-backed memory, continuing without pinned memory\n");
+        // Clear the sticky per-thread CUDA error. This runs inside a signal
+        // handler ON THE HOST APP'S THREAD; if left set, the app's next
+        // cudaGetLastError() check (e.g. PyTorch's kernel-launch check) sees
+        // "invalid argument" and throws even though its own launch was fine.
+        cudaGetLastError();
         return -1;  // Return error but don't exit - non-pinned memory will still work
     }
     return 0;

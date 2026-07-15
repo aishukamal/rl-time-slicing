@@ -1,0 +1,82 @@
+diff --git a/src/GPUs/NVIDIA/nv.cpp b/src/GPUs/NVIDIA/nv.cpp
+index 4bd12fb..2daa8f4 100644
+--- a/src/GPUs/NVIDIA/nv.cpp
++++ b/src/GPUs/NVIDIA/nv.cpp
+@@ -151,6 +151,11 @@ int nv::registerHostMemory(void* ptr, size_t size) {
+     if (err != cudaSuccess) {
+         fprintf(stderr, "[NVIDIA] cudaHostRegister failed: %s\n", cudaGetErrorString(err));
+         fprintf(stderr, "[NVIDIA] This is expected for hugepage-backed memory, continuing without pinned memory\n");
++        // Clear the sticky per-thread CUDA error. This runs inside a signal
++        // handler ON THE HOST APP'S THREAD; if left set, the app's next
++        // cudaGetLastError() check (e.g. PyTorch's kernel-launch check) sees
++        // "invalid argument" and throws even though its own launch was fine.
++        cudaGetLastError();
+         return -1;  // Return error but don't exit - non-pinned memory will still work
+     }
+     return 0;
+diff --git a/src/vGPU.cpp b/src/vGPU.cpp
+index 4a43eb7..01b6491 100644
+--- a/src/vGPU.cpp
++++ b/src/vGPU.cpp
+@@ -27,6 +27,14 @@
+ // UDS fd exchange for cross-process CUDA handle transfer (defined in ipc_fd_exchange.cpp)
+ #include "ipc_fd_exchange.h"
+ 
++#if !defined(__HIP_PLATFORM_AMD__)
++#include <cuda_runtime_api.h>
++#define GCR_CLEAR_LAST_ERROR() (void)cudaGetLastError()
++#else
++#include <hip/hip_runtime_api.h>
++#define GCR_CLEAR_LAST_ERROR() (void)hipGetLastError()
++#endif
++
+ // Buffer for saving IPC export GPU data between teardown and rebuild phases
+ static void*  g_ipc_export_data_buf  = nullptr;
+ static size_t g_ipc_export_data_size = 0;
+@@ -264,11 +272,22 @@ double ckpt_selective(const selective_cr_request* req) {
+             continue;
+         }
+ 
+-        uint64_t size = ROUND_UP_2MB(orig_size);
++        // Save the FULL allocation, not just the caller-requested bytes.
++        // releasePhysicalMemory() unmaps the entire allocation (it can only
++        // release whole cuMemMap ranges), so the saved size and the restore
++        // remap size must both cover the full allocation or the VA range
++        // beyond the saved region is left permanently unmapped after restore.
++        uint64_t alloc_size = it->second;
++        if (orig_size != alloc_size) {
++            fprintf(stderr, "[vGPU-SELECTIVE-CKPT] NOTE: region %u requested size %lu differs from "
++                    "allocation size %lu at %p; using full allocation size\n",
++                    ri, orig_size, alloc_size, d);
++        }
++        uint64_t size = ROUND_UP_2MB(alloc_size);
+         tot_size += size;
+ 
+         fprintf(stderr, "[vGPU-SELECTIVE-CKPT] Region %u: ptr=%p size=%lu (aligned=%lu)\n",
+-                ri, d, orig_size, size);
++                ri, d, alloc_size, size);
+ 
+         fs->files[fs->file_num].ptr = d;
+         fs->files[fs->file_num].start_offset = fs->current_offset;
+@@ -699,6 +718,10 @@ void cr_signal_handler(int signum) {
+         } else {
+             fprintf(stderr, "[vGPU] CR already initialized, skipping\n");
+         }
++        // Clear any sticky per-thread CUDA error left by init work (e.g. a
++        // tolerated cudaHostRegister failure) so the interrupted host thread
++        // doesn't observe it in its own error checks.
++        GCR_CLEAR_LAST_ERROR();
+         comm->send_msg(FINISH_MSG);
+         fprintf(stderr, "[vGPU] FINISH_MSG sent, returning from signal handler\n");
+         fflush(stderr);
+@@ -774,6 +797,10 @@ void cr_signal_handler(int signum) {
+         fprintf(stderr, "finish restore\n");
+     }
+     gpu->popContext();
++    // Clear any sticky per-thread CUDA error accumulated during C/R work —
++    // this handler runs on one of the host app's threads, and a leftover
++    // error would surface in the app's next cudaGetLastError() check.
++    GCR_CLEAR_LAST_ERROR();
+     comm->send_msg(FINISH_MSG);
+ }
+ 
