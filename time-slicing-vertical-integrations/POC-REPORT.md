@@ -55,4 +55,68 @@ File the four platform bugs upstream with this evidence → land fixes (1–2 ar
 
 ## Evidence
 
-`poc-evidence/` (this directory): `EVIDENCE-SUMMARY.md` (experiment agent's full writeup), `timeline-run3.txt` (merged per-event timeline), `analyze.py` (turn/switch accounting), `full-evidence.tar.gz` (complete 43 MB set: orchestrator/agent logs with per-op durations, 2 s lock-state + nvidia-smi traces, all pod logs incl. solo baseline, manifests). Platform remains deployed on the west cluster; the workload image recipe, package source, and manifests are retained alongside this report (see `verl/`).
+`poc-evidence/` (this directory): `EVIDENCE-SUMMARY.md` (experiment agent's full writeup), `timeline-run3.txt` (merged per-event timeline), `analyze.py` (turn/switch accounting), `full-evidence.tar.gz` (complete 43 MB set: orchestrator/agent logs with per-op durations, 2 s lock-state + nvidia-smi traces, all pod logs incl. solo baseline, manifests). Platform remains deployed on the west cluster; the workload image recipe, package source, and manifests are published at github.com/aishukamal/rl-time-slicing/tree/main/time-slicing-vertical-integrations/verl.
+
+---
+
+## Appendix: Integration design in detail (as built, and what remains)
+
+### Components to build
+
+**1. `timeslice.phases` — framework-agnostic core (in the existing `timeslice` Python client).**
+- `PhaseObserver`: consumes `(phase_name, roles, event)` and drives `OrchestratorClient` locks. Rules, encoded once: map role → group lock from config; acquire all roles of a phase in a fixed global order (trainer before sampler); on phase end, release only locks the next phase doesn't need; at a data-wait event, conditionally release the trainer lock if the data isn't ready and re-acquire after (yield-on-starvation).
+- `MockOrchestrator`: in-process fake that records the acquire/release trace during a dry run and asserts the invariants (global ordering respected, both locks held across any `roles=[trainer,sampler]` span, no lock leaked at exit, no acquire-while-holding in wrong order). This is the CI gate for every framework binding and for hand-rolled integrations.
+- Estimated size: ~300–500 lines + tests.
+- *PoC status:* the colocated single-group mode needed only a much simpler `PhaseLocks` helper (idempotent `ensure()`/`drop_all()`, env-driven, atexit safety net, ~100 lines) — the full roles-based `PhaseObserver` is required once the multi-pool modes (`separate_async`) land. `MockOrchestrator` remains to-build; the PoC substituted build-time registration/config gates plus the live run.
+
+**2. `timeslice-verl` — the binding package.**
+- Registers trainer modes via veRL's registry, one per stock mode we cover:
+  - `sync_timesliced` extends `PPOTrainerSync` (colocated → roles collapse to one group, single lock).
+  - `separate_async_timesliced` extends `PPOTrainerSeparateAsync` (disaggregated → two groups; the flagship).
+  - `colocate_async_timesliced` extends `PPOTrainerColocateAsync`.
+- Each subclass overrides the v1 lifecycle hooks in `verl/trainer/ppo/v1/trainer_base.py`, wraps them with lock calls, and delegates via `super()` so veRL's own logic (engine sleep/wake, weight sync, checkpoint engine) runs unchanged. Three implementation facts learned at verl `6a6242f3` (v0.9.0.dev), now required knowledge:
+  1. **Register via a `verl.plugins` entry point**, not just `VERL_USE_EXTERNAL_MODULES` — the v1 trainer runs inside a separate Ray actor process (`TaskRunnerV1`), and the entry point guarantees registration there regardless of env propagation.
+  2. **`trainer_base` branches on the literal string `trainer_mode != "sync"`** (gen-batch sizing, TransferQueue paths); a mode named `sync_timesliced` takes the async paths — the subclass must set `self.trainer_mode = "sync"` immediately after `super().__init__()` to inherit exact sync semantics.
+  3. **`on_train_end` is not called on the natural last-step exit** (`fit()` returns early) — final release must not depend on it; pair the last `on_step_end` release with an `atexit` safety net.
+
+  | veRL hook | Phase emitted | Roles | Lock action |
+  |---|---|---|---|
+  | `__init__`/`on_init_end` | `init` | both | acquire all at startup, release per first phase |
+  | `on_sample_begin` | `generate` start | sampler | acquire sampler |
+  | `on_sample_end` | `generate` end | sampler→trainer | acquire trainer, release sampler (veRL sleeps replicas here — engines quiesce exactly where we release) |
+  | *(between)* | `train` (all sub-phases: `old_log_prob`, `ref`, `values`, `adv`, `update_critic`, `update_actor`, `save_checkpoint`) | trainer | held throughout — sub-phases are contiguous, no transitions needed |
+  | `on_step_end` | `weight_sync` | **both** | acquire sampler before `super()` (its `update_weights` needs both), release trainer after |
+  | `on_validate_begin/end` | `eval` | sampler | acquire/release sampler |
+  | `on_train_end` | shutdown | — | release all, close client — *unreliable: skipped on natural last-step exit; atexit net is the real backstop* |
+
+- Config plumbing: env-first (`TIMESLICE_JOB_ID/ORCH_ADDR/GROUP`, set by the manifests — one source of truth with the pod labels); hydra keys optional sugar later. Package is import-safe without the env (no-op with a warning).
+- Async data-wait: in the async modes the wait *is* the sample span (`replay_buffer.sample` runs between `on_sample_begin/end`), so yield-on-starvation lands on existing hooks.
+- Estimated size: ~200–300 lines — matched reality (the PoC package is ~200 lines, built and validated in under a day via Cloud Build gates: trainer-mode registration resolvable with the env var cleared, plus full hydra config composition at the pinned schema).
+- Acquire timing, validated: acquire before `super().__init__()` holds the lock through `trainer.init()` (worker groups, model load, initial weight sync) — note the actual GPU work starts in `init()`, not `__init__` (which is CPU-only).
+
+**3. Recipes + guide**: a `guides/rl-frameworks/verl/` entry mirroring the slime guide structure (main README = the delta spec; `examples/async/` = minimal runnable two-job example) using our already-validated H100 recipes (`dapo_7b_*` from the async idle study).
+
+### Optional fourth mode (experimental, phase 1.5): `sync_disagg_timesliced`
+
+The trainer registry also lets us add a mode veRL itself doesn't have: **synchronous training on disaggregated pools** — the topology our original PoC used (job A trains while job B generates, pipelined across two pools). `separate_async` proves the prerequisites exist (disjoint placement, cross-pool weight transfer); the mode is roughly the sync loop minus the colocation-specific replica sleeping. It reaches beyond the documented hook surface (placement validation, transfer-path selection), so it ships as explicitly experimental with a defined exit criterion: benchmark **colocated turn-taking vs. disaggregated pipelining** for two tenants on the same recipe — promote it if pipelining wins, delete it if not. No veRL approval needed either way.
+
+### Known gaps and workarounds
+
+- **Two platform-side gaps currently require in-pod workarounds** (both are filed platform bugs, not integration design; drop the workarounds when fixed): (a) the orchestrator only grants a lock once the node agent sees the job's GPU PIDs — but a correct integration acquires *before* touching the GPU, which deadlocks; interim: a small CUDA keepalive process per pod. (b) Snapshotting a job whose training already exited faults the whole group; interim: a stay-alive wrapper after training completes. A third platform issue (cuda-checkpoint lock flake ~1/20 ops with no rollback) is a robustness risk for unattended runs but needs no integration-side change.
+- **`fully_async_policy` sits outside the v1 registry** (experimental tree, own loop). Interim: a wrapper around its `MessageQueueClient.get_sample()` for the data-wait yield — a readiness probe already exists (`get_queue_size()`, and every `get_sample` returns `queue_len`). This is the one component we must maintain against veRL internals until an upstream emit lands.
+- **No sub-phase hooks** (`old_log_prob` … `update_actor` have timer names only). Costs nothing for correctness — all trainer sub-phases occupy one role contiguously — but mid-step yields (finer-grained preemption) wait for the upstream RFC. We deliberately do *not* wrap veRL's private `_compute_*` methods (no stability contract).
+- **The single-slot problem**: `trainer.v1.trainer_mode` takes one value, and our integration occupies it. Users who already run their *own* custom trainer mode — often exactly the users who want time-slicing — can't compose the two without hand-merging subclasses, and other hook consumers (metrics, profilers) can't stack either. Related: subclassing scales per-mode — every trainer mode veRL adds needs a matching variant from us. Both are structural limits of the out-of-tree attachment, and both are what the upstream RFC's registered-callback-list design eliminates (any mode emits, any number of consumers listen).
+
+### Validation plan
+
+1. `MockOrchestrator` trace tests per mode (seconds, in CI — no cluster). *(Still to build.)*
+2. Two-job e2e on the H100 cluster. *(Done for `sync_timesliced`, 2026-07-20: 22 clean handoffs, rewards tracking solo baseline, ~14.6 s switch — this report. The `separate_async_timesliced` variant with the measured `dapo_7b` recipes remains.)*
+3. Clean-room run of the shipped example files only, with real outputs pasted into the guide (the standard we set on the slime PR).
+4. Build-time gates proved their worth and are now part of the spec: registration resolvable via entry point (env cleared), full config composition against the pinned verl schema, and dependency smoke-imports (caught a protobuf gencode/runtime clash — image needed protobuf ≥7.35).
+
+### Compatibility and the upstream follow-up
+
+- The package depends only on the *documented* extension surface: the nine hooks, the trainer registry, `trainer.v1.trainer_mode`, and the plugin loader. Pin `verl>=0.8,<0.10` and publish a compat matrix; veRL's own trainer variants are built on the same nine hooks, which makes that surface sticky. Upgrades within the supported range are automatic — the subclass copies no loop code, so everything we don't override comes from the installed veRL at runtime.
+- **Drift detection is part of the package, not a hope**: startup assertions verify every overridden hook still exists on the base class (a renamed hook would otherwise fail *silently* — our override just stops firing), and CI runs the trace test against both the pinned range and veRL `main`, so an interface change upstream fails our CI the day it lands, not the day a user's job misbehaves.
+- **No veRL approval is needed for any of v1**: the plugin loader, registry, and subclassing are public, user-side mechanisms; nothing changes for users who don't install the package. Maintainer involvement is distribution upside only (a verl-recipe listing, a docs mention) — and the RFC deliberately comes *after* v1, negotiated from "working integration + users + data" rather than "please add hooks."
+- Upstream RFC (after the package proves the pattern): convert the `on_*` template methods into a config-registered callback list with fan-out, add role metadata, emit begin/end at the existing `marked_timer` sites (which already carry the right names), and add the data-wait emit to `fully_async`. ~150–250 lines in one file, pitched with metrics/profiling/scheduling as co-equal consumers. What it buys, in order: composability (kills the single-slot problem), any-mode coverage without per-mode subclasses, a versioned contract instead of de-facto stability, mid-step yield points, and default distribution in every veRL install.
