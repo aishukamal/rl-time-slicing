@@ -55,4 +55,4 @@ File the four platform bugs upstream with this evidence → land fixes (1–2 ar
 
 ## Evidence
 
-`poc-evidence/` (this directory): `EVIDENCE-SUMMARY.md` (experiment agent's full writeup), `timeline-run3.txt` (merged per-event timeline), `analyze.py` (turn/switch accounting), `full-evidence.tar.gz` (complete 43 MB set: orchestrator/agent logs with per-op durations, 2 s lock-state + nvidia-smi traces, all pod logs incl. solo baseline, manifests). Platform remains deployed on the west cluster; workload image and package source retained per PLAN.md.
+`poc-evidence/` (this directory): `EVIDENCE-SUMMARY.md` (experiment agent's full writeup), `timeline-run3.txt` (merged per-event timeline), `analyze.py` (turn/switch accounting), `full-evidence.tar.gz` (complete 43 MB set: orchestrator/agent logs with per-op durations, 2 s lock-state + nvidia-smi traces, all pod logs incl. solo baseline, manifests). Platform remains deployed on the west cluster; the workload image recipe, package source, and manifests are retained alongside this report (see `verl/`).

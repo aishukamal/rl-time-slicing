@@ -3,8 +3,7 @@
 Two real, unmodified veRL GRPO workloads time-slicing one physical H100 (22 automatic
 cuda-checkpoint handoffs, both jobs learning across ~12 suspensions each) with **zero
 veRL source changes** — the integration is a pip package + env vars + one config value
-+ pod labels. Full results: [`../POC-REPORT.md`](../POC-REPORT.md); strategy:
-[`../ONE-PAGER.md`](../ONE-PAGER.md).
++ pod labels. Full results: [`../POC-REPORT.md`](../POC-REPORT.md).
 
 ## Layout
 
