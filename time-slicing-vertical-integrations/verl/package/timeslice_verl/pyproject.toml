@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "timeslice-verl"
+version = "0.1.0"
+description = "verl <-> llm-d-rl-time-slicing integration: whole-step turn-taking PPO/GRPO trainer"
+requires-python = ">=3.10"
+# Intentionally no dependencies: verl and timeslice are provided by the image.
+# Declaring them here would let pip resolve a different verl from PyPI.
+dependencies = []
+
+# Auto-loaded by verl's `verl.plugins` entry-point discovery (VERL_USE_EXTERNAL_PLUGINS=auto,
+# the default). This makes the trainer registration work in every process that imports verl
+# (Ray actors included) even if VERL_USE_EXTERNAL_MODULES is not propagated.
+[project.entry-points."verl.plugins"]
+timeslice_verl = "timeslice_verl"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["timeslice_verl", "timeslice_verl.*"]

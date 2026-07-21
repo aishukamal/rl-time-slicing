@@ -1,0 +1,263 @@
+2026-07-20T23:27:22.654722  ORC  verl-job-a2   Yield called
+2026-07-20T23:27:47.338870  AGT  verl-job-b3   Snapshot called
+2026-07-20T23:27:47.379793  AGT  verl-job-b3   Snapshotting PIDs ['151904']
+2026-07-20T23:27:49.947050  AGT  verl-job-b3   snapshot cuda-checkpoint done (2.6s)
+2026-07-20T23:27:50.343566  AGT  verl-job-a3   Snapshot called
+2026-07-20T23:27:50.383597  AGT  verl-job-a3   Snapshotting PIDs ['151900']
+2026-07-20T23:27:52.982905  AGT  verl-job-a3   snapshot cuda-checkpoint done (2.6s)
+2026-07-20T23:28:26.141332  ORC  verl-job-a3   Acquire called
+2026-07-20T23:28:26.172520  AGT  verl-job-a3   Restore called
+2026-07-20T23:28:26.172635  AGT  verl-job-a3   Restoring PIDs ['151900']
+2026-07-20T23:28:26.172648  AGT  verl-job-a3   Restoring PIDs ['151900']
+2026-07-20T23:28:26.386479  ORC  verl-job-b3   Acquire called
+2026-07-20T23:28:26.701840  AGT  verl-job-a3   restore cuda-checkpoint done (0.5s) pids=['151900']
+2026-07-20T23:28:28.142667  ORC  verl-job-a3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:30:32.022777  ORC  verl-job-a3   Yield called
+2026-07-20T23:30:32.080345  AGT  verl-job-a3   Snapshot called
+2026-07-20T23:30:32.106787  ORC  verl-job-a3   Acquire called
+2026-07-20T23:30:32.134448  AGT  verl-job-a3   Snapshotting PIDs ['151900', '162803', '164247']
+2026-07-20T23:30:41.864340  AGT  verl-job-a3   snapshot cuda-checkpoint done (9.7s)
+2026-07-20T23:30:42.084436  AGT  verl-job-b3   Restore called
+2026-07-20T23:30:42.084584  AGT  verl-job-b3   Restoring PIDs ['151904']
+2026-07-20T23:30:42.084596  AGT  verl-job-b3   Restoring PIDs ['151904']
+2026-07-20T23:30:42.597423  AGT  verl-job-b3   restore cuda-checkpoint done (0.5s) pids=['151904']
+2026-07-20T23:30:43.386896  ORC  verl-job-b3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:32:50.484077  ORC  verl-job-b3   Yield called
+2026-07-20T23:32:50.535977  AGT  verl-job-b3   Snapshot called
+2026-07-20T23:32:50.560985  ORC  verl-job-b3   Acquire called
+2026-07-20T23:32:50.576089  AGT  verl-job-b3   Snapshotting PIDs ['151904', '169157', '170741']
+2026-07-20T23:33:00.344147  AGT  verl-job-b3   snapshot cuda-checkpoint done (9.8s)
+2026-07-20T23:33:00.540036  AGT  verl-job-a3   Restore called
+2026-07-20T23:33:00.540110  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:33:00.540122  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:33:03.611930  AGT  verl-job-a3   restore cuda-checkpoint done (3.1s) pids=['151900', '162803', '164247']
+2026-07-20T23:33:05.107941  ORC  verl-job-a3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:33:25.214734  ORC  verl-job-a3   Yield called
+2026-07-20T23:33:25.275880  AGT  verl-job-a3   Snapshot called
+2026-07-20T23:33:25.301671  ORC  verl-job-a3   Acquire called
+2026-07-20T23:33:25.328247  AGT  verl-job-a3   Snapshotting PIDs ['151900', '162803', '164247']
+2026-07-20T23:33:35.135280  AGT  verl-job-a3   snapshot cuda-checkpoint done (9.8s)
+2026-07-20T23:33:35.280383  AGT  verl-job-b3   Restore called
+2026-07-20T23:33:35.280472  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:33:35.280482  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:33:38.376130  AGT  verl-job-b3   restore cuda-checkpoint done (3.1s) pids=['151904', '169157', '170741']
+2026-07-20T23:33:39.561407  ORC  verl-job-b3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:33:59.668834  ORC  verl-job-b3   Yield called
+2026-07-20T23:33:59.721599  AGT  verl-job-b3   Snapshot called
+2026-07-20T23:33:59.741857  ORC  verl-job-b3   Acquire called
+2026-07-20T23:33:59.767326  AGT  verl-job-b3   Snapshotting PIDs ['151904', '169157', '170741']
+2026-07-20T23:34:09.568938  AGT  verl-job-b3   snapshot cuda-checkpoint done (9.8s)
+2026-07-20T23:34:09.725238  AGT  verl-job-a3   Restore called
+2026-07-20T23:34:09.725314  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:34:09.725324  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:34:12.829084  AGT  verl-job-a3   restore cuda-checkpoint done (3.1s) pids=['151900', '162803', '164247']
+2026-07-20T23:34:14.302019  ORC  verl-job-a3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:34:34.028711  ORC  verl-job-a3   Yield called
+2026-07-20T23:34:34.076058  AGT  verl-job-a3   Snapshot called
+2026-07-20T23:34:34.101042  ORC  verl-job-a3   Acquire called
+2026-07-20T23:34:34.119303  AGT  verl-job-a3   Snapshotting PIDs ['151900', '162803', '164247']
+2026-07-20T23:34:43.945921  AGT  verl-job-a3   snapshot cuda-checkpoint done (9.8s)
+2026-07-20T23:34:44.079497  AGT  verl-job-b3   Restore called
+2026-07-20T23:34:44.079637  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:34:44.079650  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:34:47.134010  AGT  verl-job-b3   restore cuda-checkpoint done (3.1s) pids=['151904', '169157', '170741']
+2026-07-20T23:34:48.742907  ORC  verl-job-b3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:35:08.872178  ORC  verl-job-b3   Yield called
+2026-07-20T23:35:08.925411  AGT  verl-job-b3   Snapshot called
+2026-07-20T23:35:08.992094  AGT  verl-job-b3   Snapshotting PIDs ['151904', '169157', '170741']
+2026-07-20T23:35:09.427483  ORC  verl-job-b3   Acquire called
+2026-07-20T23:35:18.726362  AGT  verl-job-b3   snapshot cuda-checkpoint done (9.7s)
+2026-07-20T23:35:18.930629  AGT  verl-job-a3   Restore called
+2026-07-20T23:35:18.930720  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:35:18.930734  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:35:21.997878  AGT  verl-job-a3   restore cuda-checkpoint done (3.1s) pids=['151900', '162803', '164247']
+2026-07-20T23:35:23.102190  ORC  verl-job-a3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:35:43.562977  ORC  verl-job-a3   Yield called
+2026-07-20T23:35:43.611854  AGT  verl-job-a3   Snapshot called
+2026-07-20T23:35:43.633953  ORC  verl-job-a3   Acquire called
+2026-07-20T23:35:43.654967  AGT  verl-job-a3   Snapshotting PIDs ['151900', '162803', '164247']
+2026-07-20T23:35:43.732074  JOB  verl-job-a3   step 1 done reward_mean=0.015625 loss=-0.004333757795393467
+2026-07-20T23:35:43.732127  JOB  verl-job-a3   step 2 done reward_mean=0.0078125 loss=0.004320864100009203
+2026-07-20T23:35:43.732139  JOB  verl-job-a3   step 3 done reward_mean=0.015625 loss=0.004896235652267933
+2026-07-20T23:35:53.392910  AGT  verl-job-a3   snapshot cuda-checkpoint done (9.7s)
+2026-07-20T23:35:53.616626  AGT  verl-job-b3   Restore called
+2026-07-20T23:35:53.616730  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:35:53.616743  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:35:56.707130  AGT  verl-job-b3   restore cuda-checkpoint done (3.1s) pids=['151904', '169157', '170741']
+2026-07-20T23:35:58.428189  ORC  verl-job-b3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:36:18.407646  ORC  verl-job-b3   Yield called
+2026-07-20T23:36:18.451202  AGT  verl-job-b3   Snapshot called
+2026-07-20T23:36:18.478822  ORC  verl-job-b3   Acquire called
+2026-07-20T23:36:18.498214  AGT  verl-job-b3   Snapshotting PIDs ['151904', '169157', '170741']
+2026-07-20T23:36:18.543889  JOB  verl-job-b3   step 1 done reward_mean=0.0078125 loss=-0.0025346854235976934
+2026-07-20T23:36:18.543928  JOB  verl-job-b3   step 2 done reward_mean=0.015625 loss=0.0012394636869430542
+2026-07-20T23:36:18.543995  JOB  verl-job-b3   step 3 done reward_mean=0.046875 loss=-0.004395758733153343
+2026-07-20T23:36:28.229122  AGT  verl-job-b3   snapshot cuda-checkpoint done (9.7s)
+2026-07-20T23:36:28.454686  AGT  verl-job-a3   Restore called
+2026-07-20T23:36:28.454780  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:36:28.454792  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:36:31.529622  AGT  verl-job-a3   restore cuda-checkpoint done (3.1s) pids=['151900', '162803', '164247']
+2026-07-20T23:36:32.634498  ORC  verl-job-a3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:36:52.435469  ORC  verl-job-a3   Yield called
+2026-07-20T23:36:52.482752  AGT  verl-job-a3   Snapshot called
+2026-07-20T23:36:52.508847  ORC  verl-job-a3   Acquire called
+2026-07-20T23:36:52.528144  AGT  verl-job-a3   Snapshotting PIDs ['151900', '162803', '164247']
+2026-07-20T23:37:02.315642  AGT  verl-job-a3   snapshot cuda-checkpoint done (9.8s)
+2026-07-20T23:37:02.487169  AGT  verl-job-b3   Restore called
+2026-07-20T23:37:02.487270  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:37:02.487284  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:37:05.549693  AGT  verl-job-b3   restore cuda-checkpoint done (3.1s) pids=['151904', '169157', '170741']
+2026-07-20T23:37:07.479822  ORC  verl-job-b3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:37:27.505380  ORC  verl-job-b3   Yield called
+2026-07-20T23:37:27.564251  AGT  verl-job-b3   Snapshot called
+2026-07-20T23:37:27.583973  ORC  verl-job-b3   Acquire called
+2026-07-20T23:37:27.603667  AGT  verl-job-b3   Snapshotting PIDs ['151904', '169157', '170741']
+2026-07-20T23:37:37.370248  AGT  verl-job-b3   snapshot cuda-checkpoint done (9.8s)
+2026-07-20T23:37:37.568457  AGT  verl-job-a3   Restore called
+2026-07-20T23:37:37.568522  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:37:37.568553  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:37:40.646083  AGT  verl-job-a3   restore cuda-checkpoint done (3.1s) pids=['151900', '162803', '164247']
+2026-07-20T23:37:42.509632  ORC  verl-job-a3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:38:02.234652  ORC  verl-job-a3   Yield called
+2026-07-20T23:38:02.292384  AGT  verl-job-a3   Snapshot called
+2026-07-20T23:38:02.315689  ORC  verl-job-a3   Acquire called
+2026-07-20T23:38:02.336504  AGT  verl-job-a3   Snapshotting PIDs ['151900', '162803', '164247']
+2026-07-20T23:38:12.123700  AGT  verl-job-a3   snapshot cuda-checkpoint done (9.8s)
+2026-07-20T23:38:12.295984  AGT  verl-job-b3   Restore called
+2026-07-20T23:38:12.296048  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:38:12.296058  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:38:15.370081  AGT  verl-job-b3   restore cuda-checkpoint done (3.1s) pids=['151904', '169157', '170741']
+2026-07-20T23:38:16.585246  ORC  verl-job-b3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:38:36.463920  ORC  verl-job-b3   Yield called
+2026-07-20T23:38:36.519439  AGT  verl-job-b3   Snapshot called
+2026-07-20T23:38:36.545016  ORC  verl-job-b3   Acquire called
+2026-07-20T23:38:36.558857  AGT  verl-job-b3   Snapshotting PIDs ['151904', '169157', '170741']
+2026-07-20T23:38:46.300779  AGT  verl-job-b3   snapshot cuda-checkpoint done (9.7s)
+2026-07-20T23:38:46.524675  AGT  verl-job-a3   Restore called
+2026-07-20T23:38:46.524785  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:38:46.524798  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:38:49.588537  AGT  verl-job-a3   restore cuda-checkpoint done (3.1s) pids=['151900', '162803', '164247']
+2026-07-20T23:38:51.316216  ORC  verl-job-a3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:39:11.136071  ORC  verl-job-a3   Yield called
+2026-07-20T23:39:11.179071  AGT  verl-job-a3   Snapshot called
+2026-07-20T23:39:11.208103  ORC  verl-job-a3   Acquire called
+2026-07-20T23:39:11.227770  AGT  verl-job-a3   Snapshotting PIDs ['151900', '162803', '164247']
+2026-07-20T23:39:11.275285  JOB  verl-job-a3   step 4 done reward_mean=0.015625 loss=0.003338403766974807
+2026-07-20T23:39:11.275325  JOB  verl-job-a3   step 5 done reward_mean=0.0390625 loss=-0.001909579150378704
+2026-07-20T23:39:11.275349  JOB  verl-job-a3   step 6 done reward_mean=0.0625 loss=0.011676330119371414
+2026-07-20T23:39:20.990407  AGT  verl-job-a3   snapshot cuda-checkpoint done (9.8s)
+2026-07-20T23:39:21.182832  AGT  verl-job-b3   Restore called
+2026-07-20T23:39:21.182926  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:39:21.182940  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:39:24.283660  AGT  verl-job-b3   restore cuda-checkpoint done (3.1s) pids=['151904', '169157', '170741']
+2026-07-20T23:39:25.545368  ORC  verl-job-b3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:39:45.593544  ORC  verl-job-b3   Yield called
+2026-07-20T23:39:45.642808  AGT  verl-job-b3   Snapshot called
+2026-07-20T23:39:45.665369  ORC  verl-job-b3   Acquire called
+2026-07-20T23:39:45.694079  AGT  verl-job-b3   Snapshotting PIDs ['151904', '169157', '170741']
+2026-07-20T23:39:45.733153  JOB  verl-job-b3   step 4 done reward_mean=0.015625 loss=-0.001146442722529173
+2026-07-20T23:39:45.733188  JOB  verl-job-b3   step 5 done reward_mean=0.0234375 loss=-0.006190316751599312
+2026-07-20T23:39:45.733226  JOB  verl-job-b3   step 6 done reward_mean=0.015625 loss=-0.00047570327296853065
+2026-07-20T23:39:55.539285  AGT  verl-job-b3   snapshot cuda-checkpoint done (9.8s)
+2026-07-20T23:39:55.646378  AGT  verl-job-a3   Restore called
+2026-07-20T23:39:55.646439  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:39:55.646449  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:39:58.691240  AGT  verl-job-a3   restore cuda-checkpoint done (3.0s) pids=['151900', '162803', '164247']
+2026-07-20T23:40:00.208500  ORC  verl-job-a3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:40:20.118440  ORC  verl-job-a3   Yield called
+2026-07-20T23:40:20.164272  AGT  verl-job-a3   Snapshot called
+2026-07-20T23:40:20.190463  ORC  verl-job-a3   Acquire called
+2026-07-20T23:40:20.208023  AGT  verl-job-a3   Snapshotting PIDs ['151900', '162803', '164247']
+2026-07-20T23:40:29.964815  AGT  verl-job-a3   snapshot cuda-checkpoint done (9.8s)
+2026-07-20T23:40:30.169172  AGT  verl-job-b3   Restore called
+2026-07-20T23:40:30.169272  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:40:30.169283  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:40:33.323106  AGT  verl-job-b3   restore cuda-checkpoint done (3.2s) pids=['151904', '169157', '170741']
+2026-07-20T23:40:34.666292  ORC  verl-job-b3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:40:54.688489  ORC  verl-job-b3   Yield called
+2026-07-20T23:40:54.749738  AGT  verl-job-b3   Snapshot called
+2026-07-20T23:40:54.776274  ORC  verl-job-b3   Acquire called
+2026-07-20T23:40:54.790314  AGT  verl-job-b3   Snapshotting PIDs ['151904', '169157', '170741']
+2026-07-20T23:41:04.554086  AGT  verl-job-b3   snapshot cuda-checkpoint done (9.8s)
+2026-07-20T23:41:04.754505  AGT  verl-job-a3   Restore called
+2026-07-20T23:41:04.754635  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:41:04.754647  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:41:07.875675  AGT  verl-job-a3   restore cuda-checkpoint done (3.1s) pids=['151900', '162803', '164247']
+2026-07-20T23:41:09.190840  ORC  verl-job-a3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:41:29.004302  ORC  verl-job-a3   Yield called
+2026-07-20T23:41:29.057470  AGT  verl-job-a3   Snapshot called
+2026-07-20T23:41:29.081785  ORC  verl-job-a3   Acquire called
+2026-07-20T23:41:29.103958  AGT  verl-job-a3   Snapshotting PIDs ['151900', '162803', '164247']
+2026-07-20T23:41:38.879412  AGT  verl-job-a3   snapshot cuda-checkpoint done (9.8s)
+2026-07-20T23:41:39.061748  AGT  verl-job-b3   Restore called
+2026-07-20T23:41:39.061840  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:41:39.061851  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:41:42.122408  AGT  verl-job-b3   restore cuda-checkpoint done (3.1s) pids=['151904', '169157', '170741']
+2026-07-20T23:41:43.776828  ORC  verl-job-b3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:42:03.760869  ORC  verl-job-b3   Yield called
+2026-07-20T23:42:03.809221  AGT  verl-job-b3   Snapshot called
+2026-07-20T23:42:03.836413  ORC  verl-job-b3   Acquire called
+2026-07-20T23:42:03.850113  AGT  verl-job-b3   Snapshotting PIDs ['151904', '169157', '170741']
+2026-07-20T23:42:13.533159  AGT  verl-job-b3   snapshot cuda-checkpoint done (9.7s)
+2026-07-20T23:42:13.813216  AGT  verl-job-a3   Restore called
+2026-07-20T23:42:13.813304  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:42:13.813317  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:42:16.939437  AGT  verl-job-a3   restore cuda-checkpoint done (3.1s) pids=['151900', '162803', '164247']
+2026-07-20T23:42:18.082230  ORC  verl-job-a3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:42:37.895496  ORC  verl-job-a3   Yield called
+2026-07-20T23:42:37.958778  AGT  verl-job-a3   Snapshot called
+2026-07-20T23:42:37.971199  ORC  verl-job-a3   Acquire called
+2026-07-20T23:42:38.008857  AGT  verl-job-a3   Snapshotting PIDs ['151900', '162803', '164247']
+2026-07-20T23:42:38.008965  JOB  verl-job-a3   step 7 done reward_mean=0.0390625 loss=0.00547640398144722
+2026-07-20T23:42:38.008999  JOB  verl-job-a3   step 8 done reward_mean=0.0546875 loss=-0.00133114168420434
+2026-07-20T23:42:38.009015  JOB  verl-job-a3   step 9 done reward_mean=0.0390625 loss=-0.01354173757135868
+2026-07-20T23:42:47.795847  AGT  verl-job-a3   snapshot cuda-checkpoint done (9.8s)
+2026-07-20T23:42:47.964300  AGT  verl-job-b3   Restore called
+2026-07-20T23:42:47.964444  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:42:47.964459  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:42:51.057799  AGT  verl-job-b3   restore cuda-checkpoint done (3.1s) pids=['151904', '169157', '170741']
+2026-07-20T23:42:52.837276  ORC  verl-job-b3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:43:12.776783  ORC  verl-job-b3   Yield called
+2026-07-20T23:43:12.830393  AGT  verl-job-b3   Snapshot called
+2026-07-20T23:43:12.850445  ORC  verl-job-b3   Acquire called
+2026-07-20T23:43:12.875885  AGT  verl-job-b3   Snapshotting PIDs ['151904', '169157', '170741']
+2026-07-20T23:43:12.929021  JOB  verl-job-b3   step 7 done reward_mean=0.0625 loss=0.00495319627225399
+2026-07-20T23:43:12.929065  JOB  verl-job-b3   step 8 done reward_mean=0.1015625 loss=0.006586451083421707
+2026-07-20T23:43:12.929079  JOB  verl-job-b3   step 9 done reward_mean=0.0625 loss=0.005390867590904236
+2026-07-20T23:43:22.589409  AGT  verl-job-b3   snapshot cuda-checkpoint done (9.7s)
+2026-07-20T23:43:22.835115  AGT  verl-job-a3   Restore called
+2026-07-20T23:43:22.835223  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:43:22.835237  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:43:25.889818  AGT  verl-job-a3   restore cuda-checkpoint done (3.1s) pids=['151900', '162803', '164247']
+2026-07-20T23:43:26.971562  ORC  verl-job-a3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:43:46.790437  ORC  verl-job-a3   Yield called
+2026-07-20T23:43:46.831992  AGT  verl-job-a3   Snapshot called
+2026-07-20T23:43:46.861773  ORC  verl-job-a3   Acquire called
+2026-07-20T23:43:46.924449  AGT  verl-job-a3   Snapshotting PIDs ['151900', '162803', '164247']
+2026-07-20T23:43:56.615042  AGT  verl-job-a3   snapshot cuda-checkpoint done (9.7s)
+2026-07-20T23:43:56.836053  AGT  verl-job-b3   Restore called
+2026-07-20T23:43:56.836148  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:43:56.836158  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:43:59.919820  AGT  verl-job-b3   restore cuda-checkpoint done (3.1s) pids=['151904', '169157', '170741']
+2026-07-20T23:44:00.851272  ORC  verl-job-b3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:44:20.851310  ORC  verl-job-b3   Yield called
+2026-07-20T23:44:20.899303  AGT  verl-job-b3   Snapshot called
+2026-07-20T23:44:20.924812  ORC  verl-job-b3   Acquire called
+2026-07-20T23:44:20.941790  AGT  verl-job-b3   Snapshotting PIDs ['151904', '169157', '170741']
+2026-07-20T23:44:30.749353  AGT  verl-job-b3   snapshot cuda-checkpoint done (9.8s)
+2026-07-20T23:44:30.906191  AGT  verl-job-a3   Restore called
+2026-07-20T23:44:30.906291  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:44:30.906305  AGT  verl-job-a3   Restoring PIDs ['151900', '162803', '164247']
+2026-07-20T23:44:33.992157  AGT  verl-job-a3   restore cuda-checkpoint done (3.1s) pids=['151900', '162803', '164247']
+2026-07-20T23:44:35.862987  ORC  verl-job-a3   Acquire succeeded, job loaded and lock held
+2026-07-20T23:44:55.771860  ORC  verl-job-a3   Yield called
+2026-07-20T23:44:55.820505  AGT  verl-job-a3   Snapshot called
+2026-07-20T23:44:55.850629  JOB  verl-job-a3   step 10 done reward_mean=0.09375 loss=-0.005991676822304726
+2026-07-20T23:44:55.850970  JOB  verl-job-a3   step 11 done reward_mean=0.0703125 loss=-0.004761854186654091
+2026-07-20T23:44:55.865996  AGT  verl-job-a3   Snapshotting PIDs ['151900', '162803', '164247']
+2026-07-20T23:44:56.831395  AGT  verl-job-b3   Restore called
+2026-07-20T23:44:56.831503  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:44:56.831516  AGT  verl-job-b3   Restoring PIDs ['151904', '169157', '170741']
+2026-07-20T23:44:56.948941  JOB  verl-job-b3   step 10 done reward_mean=0.1171875 loss=0.027606758289039135
+2026-07-20T23:44:56.949012  JOB  verl-job-b3   step 11 done reward_mean=0.0625 loss=-0.0014179758727550507
+2026-07-20T23:44:57.614247  JOB  verl-job-a3   step 12 done reward_mean=0.140625 loss=-0.010779692325741053

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tsrun-util
+  namespace: default
+spec:
+  restartPolicy: Never
+  containers:
+    - name: util
+      image: gcr.io/aishuk-test/timeslice-verl-poc@sha256:100e7d95efefd50fbb7c2fe8dc926a5ef8547418ca8c25de3168c2f9570f38f9
+      command: ["sleep", "14400"]
+      resources:
+        requests:
+          cpu: "1"
+          memory: "2Gi"
+  nodeSelector:
+    group.timeslice.io/shared-gpu: "true"
+  tolerations:
+    - key: "nvidia.com/gpu"
+      operator: "Exists"
+      effect: "NoSchedule"
+    - key: "timeslice.io/shared"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"

@@ -1,0 +1,26 @@
+# PoC overrides for verl-research-cluster-west (GKE COS, shared cluster)
+acceleratororchestrator:
+  image:
+    repository: us-west1-docker.pkg.dev/aishuk-test/timeslice/acceleratororchestrator
+    tag: main-11a661f
+
+snapshot-agent:
+  image:
+    repository: us-west1-docker.pkg.dev/aishuk-test/timeslice/snapshot-agent
+    tag: main-11a661f
+  # Only run on nodes we explicitly opted into time-slicing
+  nodeSelector:
+    timeslice.io/enabled: "true"
+
+nvidia-dra-driver-gpu:
+  enabled: true
+  nvidiaDriverRoot: "/home/kubernetes/bin/nvidia/"
+  kubeletPlugin:
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: "timeslice.io/enabled"
+                  operator: "In"
+                  values: ["true"]

@@ -1,0 +1,56 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: verl-job-a
+  namespace: default
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        timeslice.io/job-id: "verl-job-a"
+        timeslice.io/group: "shared-gpu"
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: verl
+          image: gcr.io/aishuk-test/timeslice-verl-poc@sha256:100e7d95efefd50fbb7c2fe8dc926a5ef8547418ca8c25de3168c2f9570f38f9
+          command: ["/opt/poc/run_job.sh"]
+          env:
+            - name: TIMESLICE_JOB_ID
+              value: "verl-job-a"
+            - name: TIMESLICE_ORCH_ADDR
+              value: "timeslice-acceleratororchestrator.timeslice-system.svc.cluster.local:50051"
+            - name: TIMESLICE_GROUP
+              value: "shared-gpu"
+            - name: TOTAL_TRAIN_STEPS
+              value: "12"
+            - name: EXP_NAME
+              value: "tsrun-job-a"
+          resources:
+            requests:
+              cpu: "12"
+              memory: "48Gi"
+            claims:
+              - name: accelerator
+          volumeMounts:
+            - name: dshm
+              mountPath: /dev/shm
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 16Gi
+      resourceClaims:
+        - name: accelerator
+          resourceClaimName: shared-gpu-claim
+      nodeSelector:
+        group.timeslice.io/shared-gpu: "true"
+      tolerations:
+        - key: "nvidia.com/gpu"
+          operator: "Exists"
+          effect: "NoSchedule"
+        - key: "timeslice.io/shared"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"

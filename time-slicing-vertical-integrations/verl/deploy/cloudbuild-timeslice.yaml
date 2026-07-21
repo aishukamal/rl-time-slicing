@@ -1,0 +1,29 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - docker/acceleratororchestrator/Dockerfile
+      - -t
+      - us-west1-docker.pkg.dev/aishuk-test/timeslice/acceleratororchestrator:main-11a661f
+      - -t
+      - us-west1-docker.pkg.dev/aishuk-test/timeslice/acceleratororchestrator:latest
+      - .
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - docker/snapshot-agent/Dockerfile
+      - -t
+      - us-west1-docker.pkg.dev/aishuk-test/timeslice/snapshot-agent:main-11a661f
+      - -t
+      - us-west1-docker.pkg.dev/aishuk-test/timeslice/snapshot-agent:latest
+      - .
+images:
+  - us-west1-docker.pkg.dev/aishuk-test/timeslice/acceleratororchestrator:main-11a661f
+  - us-west1-docker.pkg.dev/aishuk-test/timeslice/acceleratororchestrator:latest
+  - us-west1-docker.pkg.dev/aishuk-test/timeslice/snapshot-agent:main-11a661f
+  - us-west1-docker.pkg.dev/aishuk-test/timeslice/snapshot-agent:latest
+options:
+  machineType: E2_HIGHCPU_8
+timeout: 1800s

@@ -1,0 +1,77 @@
+steps:
+  # 1. Build the image (base pull ~14 GB, be patient).
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - gcr.io/aishuk-test/timeslice-verl-poc:v1
+      - .
+
+  # 2. CRITICAL smoke test (CPU): plugin loads via VERL_USE_EXTERNAL_MODULES,
+  #    trainer mode "sync_timesliced" resolves in verl's v1 registry, and the
+  #    timeslice OrchestratorClient imports. Build fails if registration breaks.
+  - id: smoke-registration
+    name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - --rm
+      - gcr.io/aishuk-test/timeslice-verl-poc:v1
+      - python3
+      - -c
+      - |
+        import os
+        os.environ['VERL_USE_EXTERNAL_MODULES'] = 'timeslice_verl'
+        from timeslice import OrchestratorClient
+        print('timeslice client OK:', OrchestratorClient)
+        import verl
+        from verl.trainer.ppo.v1.trainer_base import get_trainer_cls
+        cls = get_trainer_cls('sync_timesliced')
+        import timeslice_verl
+        assert cls is timeslice_verl.PPOTrainerSyncTimesliced, cls
+        from timeslice_verl.locks import PhaseLocks
+        pl = PhaseLocks.from_env()   # no env vars in build -> must warn, not fail
+        pl.ensure(); pl.drop_all(); pl.close()
+        import torch, transfer_queue, ray, grpc
+        import google.protobuf as gp
+        print('SMOKE-REGISTRATION OK: verl', verl.__version__, '| torch', torch.__version__,
+              '| protobuf', gp.__version__, '|', cls)
+
+  # 3. Same, but via the verl.plugins entry point alone (env var cleared) —
+  #    this is what guarantees registration inside every Ray actor process.
+  - id: smoke-entrypoint
+    name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - --rm
+      - -e
+      - VERL_USE_EXTERNAL_MODULES=
+      - gcr.io/aishuk-test/timeslice-verl-poc:v1
+      - python3
+      - -c
+      - |
+        import verl
+        from verl.trainer.ppo.v1.trainer_base import get_trainer_cls
+        cls = get_trainer_cls('sync_timesliced')
+        print('SMOKE-ENTRYPOINT OK:', cls)
+
+  # 4. Hydra-compose the exact run_job.sh config (--cfg job, no GPU, no data):
+  #    fails the build if any override key drifted from the pinned verl schema.
+  - id: smoke-config
+    name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - --rm
+      - -e
+      - CONFIG_CHECK=1
+      - gcr.io/aishuk-test/timeslice-verl-poc:v1
+      - bash
+      - /opt/poc/run_job.sh
+
+images:
+  - gcr.io/aishuk-test/timeslice-verl-poc:v1
+
+timeout: 7200s
+options:
+  machineType: E2_HIGHCPU_32
+  diskSizeGb: 300

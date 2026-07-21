@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: smoke-a
+  namespace: default
+  labels:
+    timeslice.io/job-id: "smoke-a"
+    timeslice.io/group: "shared-gpu"
+spec:
+  restartPolicy: Never
+  containers:
+    - name: cuda
+      image: nvidia/cuda:12.4.1-base-ubuntu22.04
+      command: ["bash", "-c", "nvidia-smi -L && sleep 3600"]
+      resources:
+        claims:
+          - name: accelerator
+  resourceClaims:
+    - name: accelerator
+      resourceClaimName: shared-gpu-claim
+  nodeSelector:
+    group.timeslice.io/shared-gpu: "true"
+  tolerations:
+    - key: "nvidia.com/gpu"
+      operator: "Equal"
+      value: "present"
+      effect: "NoSchedule"
+    - key: "timeslice.io/shared"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
