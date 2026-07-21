@@ -100,17 +100,9 @@ Goal: two genuine verl workloads (Qwen2.5-0.5B GRPO on GSM8K, single-GPU colocat
 - Track C (pending A+B): two Jobs verl-job-a/b, evidence = orchestrator alternation, agent snapshot/restore logs, both jobs' reward curves progressing, nvidia-smi occupancy trace.
 - poc-verl/ dir: protocol simulation files (PhaseObserver + mock orchestrator) — now demoted to future package unit tests; NOT the demo.
 
-### RESULT (2026-07-20): DEMONSTRATED ✅
+### RESULT (2026-07-20): DEMONSTRATED ✅ — see POC-REPORT.md
 
-Run 3 of 3 (`verl-job-a3`/`b3`): **a3 12/12 steps, b3 11/12 steps, 23 strictly-alternating turns, 22 clean automatic snapshot/restore handoffs, zero ordering violations** — two real verl GRPO workloads sharing one physical H100 via orchestrator locks + cuda-checkpoint.
-
-Numbers: steady-state turn (1 GRPO step) 19.7–20.5s vs 17.6–19.8s solo; switch cost ~14.6s (snapshot ~10s + restore ~3s + ~1.5s orchestration); b3's first ACQUIRE blocked 137s with zero GPU work while a3 held the group; solo releases logged `snapshot_deferred=True` (zero-cost-when-alone confirmed), contended releases `snapshot_deferred=False`. Training integrity: reward_mean a3 0.016→0.141, b3 0.008→0.117, tracking the solo baseline across ~12 suspensions each; no NaNs/corruption. nvidia-smi trace: strict compute alternation; memory eviction partial (~4GB of suspended job stays resident — keepalive + one FSDP WorkerDict).
-
-Adoption story validated end-to-end: pip package (`timeslice_verl`, registered via verl.plugins entry point) + env vars + `trainer.v1.trainer_mode=sync_timesliced` + manifest kit. **Zero verl source changes.**
-
-NOT yet robust — platform bugs found (all platform-side, none verl/training-side; details in fault-tolerance memory): first-ACQUIRE deadlock (grant requires GPU PIDs before client touches GPU → keepalive workaround), completed-pod snapshot faults group (fix exists upstream, undeployed), cuda-checkpoint lock flake ~1/20 with no rollback (cost b3 its last step), sticky ghost lock/agent state. These are the priority fixes before any unattended/demo use.
-
-Evidence: /tmp/tsrun-1784585716/ (EVIDENCE-SUMMARY.md, timelines, analyze.py, all pod/orchestrator/agent logs, nvidia-smi trace, manifests). Platform left deployed on west; PR #112 (image publishing fix) in draft.
+Sync-colocated mechanism gate passed: 22 clean automatic cuda-checkpoint handoffs between two real verl GRPO jobs on one H100, both learning, zero verl source changes. Four platform bugs found (all platform-side; fault-tolerance memory + report findings). Full numbers, evidence index, and conclusions live in **POC-REPORT.md** (single source of truth for this experiment). Platform left deployed on west; PR #112 (image publishing fix) in draft; code + docs published at github.com/aishukamal/rl-time-slicing/tree/main/time-slicing-vertical-integrations. Next: disagg PoC (Track D prep in flight).
 
 ## Risks / open items
 - verl v1 API stability: private-method wrapping for sub-phase events has no stability contract — keep the package pinned per verl minor version; upstream RFC removes this fragility.
