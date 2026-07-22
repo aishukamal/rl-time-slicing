@@ -1,0 +1,68 @@
+=== window 2026-07-21 22:42:00+00:00 .. 2026-07-21 23:25:00+00:00
+
+--- CROSS-PIPELINING intervals (trainers-job || samplers-job, different jobs, >=4s):
+  22:59:07 .. 22:59:15      8.0s  trainers=dis-b9  samplers=dis-a9
+  23:02:39 .. 23:07:33    294.3s  trainers=dis-a9  samplers=dis-b9
+  => 2 intervals, total overlap 302.3s
+
+--- per-pool duty (fraction of window samples with a RUNNING job on the pool):
+  trainers: {'samples': 1289, 'busy_frac': 0.6322730799069046, 'dis-a9_frac': 0.5515903801396431, 'dis-b9_frac': 0.39410395655546937}
+  samplers: {'samples': 1289, 'busy_frac': 0.9829325058184639, 'dis-a9_frac': 0.7905352986811481, 'dis-b9_frac': 0.517455391776571}
+
+--- switch ops (orchestrator):
+  snapshots triggered: 15  restores triggered: 15  ops completed: 24
+  op durations ms: min=506 p50=9381 max=9889
+    22:58:55.170 snapshot job=dis-a9   group=trainers  
+    22:59:05.171 complete job=         group=trainers  9889ms
+    22:59:05.172 restore  job=dis-b9   group=trainers  
+    22:59:06.174 complete job=         group=trainers  514ms
+    22:59:06.872 snapshot job=dis-a9   group=samplers  
+    22:59:16.873 complete job=         group=samplers  9853ms
+    22:59:16.873 restore  job=dis-b9   group=samplers  
+    22:59:17.875 complete job=         group=samplers  506ms
+    23:02:23.977 snapshot job=dis-b9   group=trainers  
+    23:02:33.978 complete job=         group=trainers  9843ms
+    23:02:33.979 restore  job=dis-a9   group=trainers  
+    23:02:37.981 complete job=         group=trainers  3111ms
+    23:07:25.394 snapshot job=dis-b9   group=samplers  
+    23:07:35.396 complete job=         group=samplers  9381ms
+    23:07:35.396 restore  job=dis-a9   group=samplers  
+    23:07:38.397 complete job=         group=samplers  2867ms
+    23:09:51.364 snapshot job=dis-a9   group=trainers  
+    23:09:52.371 restore  job=dis-b9   group=trainers  
+    22:58:55.170 snapshot job=dis-a9   group=trainers  
+    22:59:05.171 complete job=         group=trainers  9889ms
+    22:59:05.172 restore  job=dis-b9   group=trainers  
+    22:59:06.174 complete job=         group=trainers  514ms
+    22:59:06.872 snapshot job=dis-a9   group=samplers  
+    22:59:16.873 complete job=         group=samplers  9853ms
+    22:59:16.873 restore  job=dis-b9   group=samplers  
+    22:59:17.875 complete job=         group=samplers  506ms
+    23:02:23.977 snapshot job=dis-b9   group=trainers  
+    23:02:33.978 complete job=         group=trainers  9843ms
+    23:02:33.979 restore  job=dis-a9   group=trainers  
+    23:02:37.981 complete job=         group=trainers  3111ms
+    23:07:25.394 snapshot job=dis-b9   group=samplers  
+    23:07:35.396 complete job=         group=samplers  9381ms
+    23:07:35.396 restore  job=dis-a9   group=samplers  
+    23:07:38.397 complete job=         group=samplers  2867ms
+    23:09:51.364 snapshot job=dis-a9   group=trainers  
+    23:09:52.371 restore  job=dis-b9   group=trainers  
+    22:58:55.170 snapshot job=dis-a9   group=trainers  
+    22:59:05.171 complete job=         group=trainers  9889ms
+    22:59:05.172 restore  job=dis-b9   group=trainers  
+    22:59:06.174 complete job=         group=trainers  514ms
+    22:59:06.872 snapshot job=dis-a9   group=samplers  
+    22:59:16.873 complete job=         group=samplers  9853ms
+    22:59:16.873 restore  job=dis-b9   group=samplers  
+    22:59:17.875 complete job=         group=samplers  506ms
+    23:02:23.977 snapshot job=dis-b9   group=trainers  
+    23:02:33.978 complete job=         group=trainers  9843ms
+    23:02:33.979 restore  job=dis-a9   group=trainers  
+    23:02:37.981 complete job=         group=trainers  3111ms
+    23:07:25.394 snapshot job=dis-b9   group=samplers  
+    23:07:35.396 complete job=         group=samplers  9381ms
+    23:07:35.396 restore  job=dis-a9   group=samplers  
+    23:07:38.397 complete job=         group=samplers  2867ms
+    23:09:51.364 snapshot job=dis-a9   group=trainers  
+    23:09:52.371 restore  job=dis-b9   group=trainers  

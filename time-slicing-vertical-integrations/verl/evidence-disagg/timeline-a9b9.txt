@@ -1,0 +1,93 @@
+INTERLEAVED TWO-POOL TIMELINE  dis-a9 / dis-b9  2026-07-21
+22:44:38.213 A(dis-a9) ACQUIRE role=trainer group=trainers waited=1001ms context_restored=True
+22:44:38.213 A(dis-a9) ACQUIRE role=sampler group=samplers waited=1000ms context_restored=True
+22:47:00.367 A(dis-a9) RELEASE role=sampler group=samplers pending_waiters=0 snapshot_deferred=True
+22:47:00.367 A(dis-a9) RELEASE role=trainer group=trainers pending_waiters=1 snapshot_deferred=False
+22:47:00.367 A(dis-a9) ACQUIRE role=sampler group=samplers waited=1000ms context_restored=True
+22:47:00.367 A(dis-a9) RELEASE role=sampler group=samplers pending_waiters=0 snapshot_deferred=True
+22:58:55.170 PLATFORM snapshot dis-a9 @ trainers
+22:59:05.171 PLATFORM op-complete @ trainers (9889ms)
+22:59:05.172 PLATFORM restore  dis-b9 @ trainers
+22:59:06.174 PLATFORM op-complete @ trainers (514ms)
+22:59:06.872 PLATFORM snapshot dis-a9 @ samplers
+22:59:16.873 PLATFORM op-complete @ samplers (9853ms)
+22:59:16.873 PLATFORM restore  dis-b9 @ samplers
+22:59:17.875 PLATFORM op-complete @ samplers (506ms)
+23:00:06.530 B(dis-b9) ACQUIRE role=trainer group=trainers waited=772000ms context_restored=True
+23:00:06.530 B(dis-b9) ACQUIRE role=sampler group=samplers waited=12000ms context_restored=True
+23:02:23.977 PLATFORM snapshot dis-b9 @ trainers
+23:02:33.978 PLATFORM op-complete @ trainers (9843ms)
+23:02:33.979 PLATFORM restore  dis-a9 @ trainers
+23:02:37.981 PLATFORM op-complete @ trainers (3111ms)
+23:02:38.942 B(dis-b9) RELEASE role=sampler group=samplers pending_waiters=0 snapshot_deferred=True
+23:02:38.942 B(dis-b9) RELEASE role=trainer group=trainers pending_waiters=1 snapshot_deferred=False
+23:02:38.942 B(dis-b9) ACQUIRE role=sampler group=samplers waited=15000ms context_restored=True
+23:07:25.394 PLATFORM snapshot dis-b9 @ samplers
+23:07:35.396 PLATFORM op-complete @ samplers (9381ms)
+23:07:35.396 PLATFORM restore  dis-a9 @ samplers
+23:07:38.397 PLATFORM op-complete @ samplers (2867ms)
+23:08:02.804 A(dis-a9) ACQUIRE role=trainer group=trainers waited=938000ms context_restored=True
+23:08:02.804 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:08:02.804 A(dis-a9) ACQUIRE role=sampler group=samplers waited=289000ms context_restored=True
+23:08:02.804 A(dis-a9) RELEASE role=sampler group=samplers pending_waiters=0 snapshot_deferred=True
+23:08:02.804 A(dis-a9) STEP 1 done (compute 1248.0713012180058s)
+23:08:02.804 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:08:02.804 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:08:02.804 A(dis-a9) ACQUIRE role=sampler group=samplers waited=1001ms context_restored=True
+23:08:02.804 A(dis-a9) RELEASE role=sampler group=samplers pending_waiters=0 snapshot_deferred=True
+23:08:02.804 A(dis-a9) STEP 2 done (compute 12.228847852005856s)
+23:08:02.804 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:08:02.804 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:08:02.804 A(dis-a9) ACQUIRE role=sampler group=samplers waited=1000ms context_restored=True
+23:08:28.860 A(dis-a9) RELEASE role=sampler group=samplers pending_waiters=0 snapshot_deferred=True
+23:08:28.860 A(dis-a9) STEP 3 done (compute 11.781597256005625s)
+23:08:28.860 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:08:28.860 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:08:28.860 A(dis-a9) ACQUIRE role=sampler group=samplers waited=1000ms context_restored=True
+23:08:28.860 A(dis-a9) RELEASE role=sampler group=samplers pending_waiters=0 snapshot_deferred=True
+23:08:28.860 A(dis-a9) STEP 4 done (compute 11.683513411000604s)
+23:08:28.860 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:08:28.860 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:08:28.860 A(dis-a9) ACQUIRE role=sampler group=samplers waited=1001ms context_restored=True
+23:08:28.860 A(dis-a9) RELEASE role=sampler group=samplers pending_waiters=0 snapshot_deferred=True
+23:09:04.506 A(dis-a9) STEP 5 done (compute 11.632220744999358s)
+23:09:04.506 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:09:04.506 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:09:04.506 A(dis-a9) ACQUIRE role=sampler group=samplers waited=1000ms context_restored=True
+23:09:04.506 A(dis-a9) RELEASE role=sampler group=samplers pending_waiters=0 snapshot_deferred=True
+23:09:04.506 A(dis-a9) STEP 6 done (compute 12.119814253994264s)
+23:09:04.506 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:09:04.506 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:09:04.506 A(dis-a9) ACQUIRE role=sampler group=samplers waited=1001ms context_restored=True
+23:09:04.506 A(dis-a9) RELEASE role=sampler group=samplers pending_waiters=0 snapshot_deferred=True
+23:09:04.506 A(dis-a9) STEP 7 done (compute 11.594821684993804s)
+23:09:04.506 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:09:04.506 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:09:04.506 A(dis-a9) ACQUIRE role=sampler group=samplers waited=1000ms context_restored=True
+23:09:04.506 A(dis-a9) RELEASE role=sampler group=samplers pending_waiters=0 snapshot_deferred=True
+23:09:39.620 A(dis-a9) STEP 8 done (compute 11.810376824010746s)
+23:09:39.620 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:09:39.620 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:09:39.620 A(dis-a9) ACQUIRE role=sampler group=samplers waited=1000ms context_restored=True
+23:09:39.620 A(dis-a9) RELEASE role=sampler group=samplers pending_waiters=0 snapshot_deferred=True
+23:09:39.620 A(dis-a9) STEP 9 done (compute 11.604908656998305s)
+23:09:39.620 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:09:39.620 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:09:39.620 A(dis-a9) ACQUIRE role=sampler group=samplers waited=1000ms context_restored=True
+23:09:39.620 A(dis-a9) RELEASE role=sampler group=samplers pending_waiters=0 snapshot_deferred=True
+23:09:39.620 A(dis-a9) STEP 10 done (compute 11.582880639005452s)
+23:09:39.620 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:09:39.620 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:09:39.620 A(dis-a9) ACQUIRE role=sampler group=samplers waited=1000ms context_restored=True
+23:09:39.620 A(dis-a9) RELEASE role=sampler group=samplers pending_waiters=0 snapshot_deferred=True
+23:09:51.201 A(dis-a9) STEP 11 done (compute 11.688678513994091s)
+23:09:51.201 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:09:51.201 A(dis-a9) sample_begin: batch already buffered (>= 16); keeping TRAINER, skipping SAMPLER
+23:09:51.201 A(dis-a9) ACQUIRE role=sampler group=samplers waited=1000ms context_restored=True
+23:09:51.364 PLATFORM snapshot dis-a9 @ trainers
+23:09:51.738 A(dis-a9) RELEASE role=sampler group=samplers pending_waiters=0 snapshot_deferred=True
+23:09:51.738 A(dis-a9) STEP 12 done (compute 11.62443543500558s)
+23:09:51.738 A(dis-a9) atexit: releasing held roles ['trainer']
+23:09:51.738 A(dis-a9) RELEASE role=trainer group=trainers pending_waiters=1 snapshot_deferred=False
+23:09:52.371 PLATFORM restore  dis-b9 @ trainers
+23:09:52.413 B(dis-b9) RELEASE role=sampler group=samplers pending_waiters=1 snapshot_deferred=False
