@@ -1,0 +1,136 @@
+steps:
+  # 0. Unit tests BEFORE the (slow) image build: pure-python lock-transition
+  #    logic with a fake orchestrator client. Fails fast on logic errors.
+  - id: unit-tests-fast
+    name: python:3.11-slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -e
+        python3 timeslice_verl/tests/test_transitions.py -v
+        echo 'UNIT-TESTS-FAST OK'
+
+  # 1. Build the image (base pull ~14 GB, be patient).
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - gcr.io/aishuk-test/timeslice-verl-poc:v2
+      - .
+
+  # 2. Same unit tests inside the built image (real timeslice/verl stack
+  #    importable next to the package; still CPU-only, fake client).
+  - id: unit-tests-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - --rm
+      - gcr.io/aishuk-test/timeslice-verl-poc:v2
+      - python3
+      - /opt/timeslice_verl/tests/test_transitions.py
+      - -v
+
+  # 3. CRITICAL smoke test (CPU): plugin loads via VERL_USE_EXTERNAL_MODULES,
+  #    BOTH trainer modes resolve in verl's v1 registry, and the timeslice
+  #    OrchestratorClient imports. Build fails if registration breaks.
+  - id: smoke-registration
+    name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - --rm
+      - gcr.io/aishuk-test/timeslice-verl-poc:v2
+      - python3
+      - -c
+      - |
+        import os
+        os.environ['VERL_USE_EXTERNAL_MODULES'] = 'timeslice_verl'
+        from timeslice import OrchestratorClient
+        print('timeslice client OK:', OrchestratorClient)
+        import verl
+        from verl.trainer.ppo.v1.trainer_base import get_trainer_cls
+        import timeslice_verl
+        cls_sync = get_trainer_cls('sync_timesliced')
+        assert cls_sync is timeslice_verl.PPOTrainerSyncTimesliced, cls_sync
+        cls_disagg = get_trainer_cls('separate_async_timesliced')
+        assert cls_disagg is timeslice_verl.PPOTrainerSeparateAsyncTimesliced, cls_disagg
+        from verl.trainer.ppo.v1.trainer_separate_async import PPOTrainerSeparateAsync
+        assert issubclass(cls_disagg, PPOTrainerSeparateAsync)
+        from timeslice_verl.locks import PhaseLocks, RoleLocks, PhaseTransitions
+        pl = PhaseLocks.from_env()   # no env vars in build -> must warn, not fail
+        pl.ensure(); pl.drop_all(); pl.close()
+        rl = RoleLocks.from_env()    # ditto: no-op mode
+        pt = PhaseTransitions(rl)
+        pt.init_begin(); pt.train_begin(); pt.sample_begin(True); pt.sample_end()
+        pt.weight_sync_begin(); pt.weight_sync_end(); pt.train_end()
+        import torch, transfer_queue, ray, grpc
+        import google.protobuf as gp
+        print('SMOKE-REGISTRATION OK: verl', verl.__version__, '| torch', torch.__version__,
+              '| protobuf', gp.__version__, '|', cls_sync, '|', cls_disagg)
+
+  # 4. Same, but via the verl.plugins entry point alone (env var cleared) —
+  #    this is what guarantees registration inside every Ray actor process.
+  - id: smoke-entrypoint
+    name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - --rm
+      - -e
+      - VERL_USE_EXTERNAL_MODULES=
+      - gcr.io/aishuk-test/timeslice-verl-poc:v2
+      - python3
+      - -c
+      - |
+        import verl
+        from verl.trainer.ppo.v1.trainer_base import get_trainer_cls
+        cls_sync = get_trainer_cls('sync_timesliced')
+        cls_disagg = get_trainer_cls('separate_async_timesliced')
+        print('SMOKE-ENTRYPOINT OK:', cls_sync, cls_disagg)
+
+  # 5. Hydra-compose the exact run_job.sh config (--cfg job, no GPU, no data):
+  #    the v1 sync mode must keep working unchanged.
+  - id: smoke-config-sync
+    name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - --rm
+      - -e
+      - CONFIG_CHECK=1
+      - gcr.io/aishuk-test/timeslice-verl-poc:v2
+      - bash
+      - /opt/poc/run_job.sh
+
+  # 6. Hydra-compose the disagg config (run_job_disagg.sh head-driver role,
+  #    --cfg job): fails the build if any disagg override key (rollout.nnodes,
+  #    checkpoint_engine engine_kwargs, trainer.v1.separate_async.*, ray
+  #    runtime_env env_vars) drifted from the pinned verl schema. TIMESLICE_*
+  #    set so the runtime_env propagation branch is composed too.
+  - id: smoke-config-disagg
+    name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - --rm
+      - -e
+      - CONFIG_CHECK=1
+      - -e
+      - ROLE=head-driver
+      - -e
+      - TIMESLICE_JOB_ID=cfgcheck
+      - -e
+      - TIMESLICE_ORCH_ADDR=orchestrator.timeslice.svc:50051
+      - -e
+      - TIMESLICE_TRAINER_GROUP=trainers
+      - -e
+      - TIMESLICE_SAMPLER_GROUP=samplers
+      - gcr.io/aishuk-test/timeslice-verl-poc:v2
+      - bash
+      - /opt/poc/run_job_disagg.sh
+
+images:
+  - gcr.io/aishuk-test/timeslice-verl-poc:v2
+
+timeout: 7200s
+options:
+  machineType: E2_HIGHCPU_32
+  diskSizeGb: 300

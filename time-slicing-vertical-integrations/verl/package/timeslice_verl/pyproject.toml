@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "timeslice-verl"
-version = "0.1.0"
+version = "0.2.0"
 description = "verl <-> llm-d-rl-time-slicing integration: whole-step turn-taking PPO/GRPO trainer"
 requires-python = ">=3.10"
 # Intentionally no dependencies: verl and timeslice are provided by the image.
