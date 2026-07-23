@@ -35,7 +35,7 @@ Integration findings folded back into the package: verl's `trainer_base` branche
 
 ## Platform findings (all platform-side; none veRL/training-side)
 
-1. **First-ACQUIRE deadlock** — orchestrator grants only once the agent sees the job's GPU PIDs, but correct clients acquire *before* touching the GPU. Workaround: CUDA keepalive process in each pod. Needs a grant-semantics fix, not a patch.
+1. **First-ACQUIRE deadlock (pods-before-acquire lifecycle)** — the grant gate (`LoadedJob`) blocks any job whose labeled pods exist but haven't touched the GPU (agent state IDLE). The deploy-pods-*after*-grant lifecycle (guide Pattern A, the e2e tests, autoscaled RayJobs with replicas:0) is unaffected — which is why existing tests pass — but static-pod deployments deadlock on their first acquire. Workaround: CUDA keepalive process. Fix is small: treat cold-start IDLE (no saved context, nothing else loaded) as grantable, like UNSPECIFIED already is.
 2. **Snapshotting a completed job faults the whole group** — empty PID discovery fails hard (upstream fix exists, not in the deployed image). Workaround: stay-alive wrapper post-training.
 3. **cuda-checkpoint lock flake (~1/20 ops) with no rollback** — one failed snapshot faults job X, then the controller restores Y onto an un-evicted GPU, faulting Y too. Ended run 2; cost b3 its 12th step in run 3. `NCCL_CUMEM_ENABLE=0` did not eliminate it. Needs retry-then-rollback.
 4. **Sticky ghost state** — failed acquirers wedge the lock queue until a manual Yield-as-ghost; the agent never forgets FAULTED job IDs (fresh job ids required per attempt).
