@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>timeslice-verl — the full adoption journey, then a real run</title>
+<style>
+  :root {
+    color-scheme: dark;
+    /* reference palette, dark mode (validated set — see dataviz palette.md) */
+    --page:        #0d0d0d;
+    --surface:     #1a1a19;
+    --ink:         #ffffff;
+    --ink-2:       #c3c2b7;
+    --ink-muted:   #898781;
+    --grid:        #2c2c2a;
+    --baseline:    #383835;
+    --border:      rgba(255,255,255,0.10);
+    --job-a:       #3987e5;   /* categorical slot 1 (blue, dark step) */
+    --job-b:       #199e70;   /* categorical slot 3 (aqua, dark step) */
+    --warn:        #fab219;   /* status: switch/snapshot in flight */
+    --good:        #0ca30c;   /* status: ready/clean */
+    --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { background: var(--page); color: var(--ink); font-family: var(--font); overflow: hidden; }
+  #stage { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 36px; border-bottom: 1px solid var(--border); background: var(--surface);
+  }
+  .brand { display: flex; align-items: center; gap: 13px; }
+  .brand-icon {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--job-a), var(--job-b));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 17px; color: #0d0d0d;
+  }
+  .brand h1 { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+  .brand h1 span { color: var(--ink-muted); font-weight: 500; }
+  .badges { display: flex; gap: 10px; align-items: center; }
+  .badge {
+    font-size: 12.5px; font-weight: 600; letter-spacing: 0.04em;
+    padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);
+    color: var(--ink-2); background: rgba(255,255,255,0.03);
+  }
+  .badge.rec { color: var(--ink); border-color: rgba(250,178,25,0.4); display: flex; gap: 8px; align-items: center; }
+  .badge.rec .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); animation: pulse 1.6s infinite; }
+  @keyframes pulse { 50% { opacity: 0.35; } }
+
+  /* ---------- scenes ---------- */
+  .scene {
+    position: absolute; inset: 67px 0 40px 0; padding: 26px 44px;
+    opacity: 0; transition: opacity 0.5s ease; pointer-events: none;
+    display: flex; flex-direction: column;
+  }
+  .scene.on { opacity: 1; pointer-events: auto; }
+
+  /* scene 1 — hook */
+  #s1 { justify-content: center; align-items: center; text-align: center; }
+  #s1 .eyebrow { font-size: 15px; font-weight: 700; letter-spacing: 0.22em; color: var(--ink-muted); margin-bottom: 26px; }
+  #s1 h2 { font-size: 60px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.12; max-width: 1150px; }
+  #s1 h2 .za { color: var(--job-a); } #s1 h2 .zb { color: var(--job-b); }
+  #s1 .sub { margin-top: 28px; font-size: 21px; color: var(--ink-2); max-width: 950px; line-height: 1.55; }
+  #s1 .sub b { color: var(--ink); }
+
+  /* journey scene */
+  #sj { gap: 18px; }
+  .rail { display: flex; gap: 12px; }
+  .rstep {
+    flex: 1; display: flex; align-items: center; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 18px; opacity: 0.45;
+  }
+  .rstep.active { opacity: 1; border-color: rgba(255,255,255,0.25); }
+  .rstep.done { opacity: 0.8; }
+  .rstep .n {
+    width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--ink-muted);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14.5px; color: var(--ink-2);
+    flex: none;
+  }
+  .rstep.active .n { border-color: var(--ink); color: var(--ink); }
+  .rstep.done .n { border-color: var(--good); color: var(--good); }
+  .rstep .rt { font-size: 14.5px; font-weight: 700; }
+  .rstep .rs { font-size: 12px; color: var(--ink-muted); margin-top: 1px; }
+  #jbody { display: flex; gap: 24px; flex: 1; min-height: 0; }
+  #jleft { flex: 1.25; position: relative; }
+  .chapter {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    opacity: 0; transition: opacity 0.45s ease; pointer-events: none;
+  }
+  .chapter.on { opacity: 1; pointer-events: auto; }
+  .chapter .panel-h { font-size: 14px; font-weight: 700; letter-spacing: 0.13em; color: var(--ink-muted); margin-bottom: 12px; }
+  .chapter .panel-h b { color: var(--ink); }
+  .term {
+    flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 22px 28px; font-family: var(--mono); font-size: 16px; line-height: 1.72;
+    white-space: pre-wrap; color: var(--ink-2); overflow: hidden;
+  }
+  .term .p  { color: var(--ink-muted); }
+  .term .ok { color: var(--good); font-weight: 600; }
+  .term .add { color: var(--ink); background: rgba(12,163,12,0.14); border-radius: 4px; }
+  .term .key { color: var(--job-a); }
+  .term .cur { display: inline-block; width: 9px; height: 19px; background: var(--ink-2); vertical-align: text-bottom; animation: pulse 1s infinite; }
+  .chapter .note {
+    margin-top: 12px; font-size: 15.5px; color: var(--ink-2); line-height: 1.5;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 18px;
+  }
+  .chapter .note b { color: var(--ink); }
+  #jright { flex: 1; display: flex; flex-direction: column; }
+  #jright .panel-h { font-size: 14px; font-weight: 700; letter-spacing: 0.13em; color: var(--ink-muted); margin-bottom: 12px; }
+  #diagram { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
+
+  /* replay scene */
+  #s3 { gap: 16px; }
+  .counters { display: flex; gap: 14px; }
+  .counter { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 18px; }
+  .counter .v { font-size: 27px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .counter .k { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: var(--ink-muted); margin-top: 2px; }
+  .counter .v .chip { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 22px; }
+  .panel .ph { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .panel .ph .t { font-size: 13.5px; font-weight: 700; letter-spacing: 0.12em; color: var(--ink-muted); }
+  .legend { display: flex; gap: 16px; font-size: 13px; color: var(--ink-2); align-items: center; }
+  .legend .chip { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  #row2 { display: flex; gap: 18px; flex: 1; min-height: 0; }
+  #rewardPanel { flex: 1.4; display: flex; flex-direction: column; }
+  #feedPanel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  #feed { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 7px; }
+  .card {
+    display: flex; gap: 12px; align-items: center;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    border-left: 3px solid var(--ink-muted); border-radius: 9px; padding: 8px 13px;
+    font-size: 14px; color: var(--ink-2);
+  }
+  .card .ts { font-family: var(--mono); font-size: 12px; color: var(--ink-muted); min-width: 50px; font-variant-numeric: tabular-nums; }
+  .card .who { font-weight: 700; color: var(--ink); min-width: 46px; }
+  .card.a { border-left-color: var(--job-a); }
+  .card.b { border-left-color: var(--job-b); }
+  .card .ic { font-size: 15px; min-width: 18px; text-align: center; }
+  svg text { font-family: var(--font); }
+
+  /* recap */
+  #s4 { justify-content: center; align-items: center; text-align: center; }
+  #s4 h2 { font-size: 50px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+  #s4 h2 em { font-style: normal; color: var(--good); }
+  #s4 .facts { margin-top: 36px; display: flex; gap: 16px; }
+  #s4 .fact {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 26px; font-size: 16px; color: var(--ink-2); line-height: 1.45; max-width: 300px;
+  }
+  #s4 .fact b { color: var(--ink); display: block; font-size: 23px; margin-bottom: 5px; }
+  #s4 .proof { margin-top: 26px; font-size: 16.5px; color: var(--ink-2); }
+  #s4 .proof b { color: var(--ink); }
+  #s4 .pipline { margin-top: 26px; font-family: var(--mono); font-size: 21px; color: var(--ink); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px 32px; }
+  #s4 .pipline span { color: var(--ink-muted); }
+
+  footer {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 36px; font-size: 12.5px; color: var(--ink-muted);
+    border-top: 1px solid var(--border); background: var(--page);
+  }
+  #progress { position: absolute; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--job-a), var(--job-b)); width: 0; z-index: 10; }
+  #tooltip {
+    position: fixed; display: none; background: #0d0d0d; border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px; font-size: 13px; color: var(--ink-2); pointer-events: none; z-index: 50;
+  }
+
+  /* start overlay */
+  #startOverlay {
+    position: fixed; inset: 0; z-index: 100; background: rgba(13,13,13,0.72);
+    backdrop-filter: blur(6px); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 26px;
+  }
+  #startBtn {
+    display: flex; align-items: center; gap: 16px;
+    font: 700 24px var(--font); color: #0d0d0d; letter-spacing: 0.02em;
+    background: linear-gradient(135deg, var(--job-a), var(--job-b));
+    border: none; border-radius: 999px; padding: 22px 46px; cursor: pointer;
+  }
+  #startBtn:hover { filter: brightness(1.12); }
+  #startBtn .tri { font-size: 20px; }
+  #startOverlay .hint { font-size: 15px; color: var(--ink-2); }
+
+  /* deterministic still-frame mode (?t=N) for video frame capture */
+  .still * { transition: none !important; animation: none !important; }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="stage">
+  <header>
+    <div class="brand">
+      <div class="brand-icon">⧉</div>
+      <h1>timeslice-verl <span>· GPU time-slicing for veRL — the full adoption journey</span></h1>
+    </div>
+    <div class="badges">
+      <div class="badge">GKE + DRA · 2 shared H100 pools · async disaggregated veRL</div>
+      <div class="badge rec"><span class="dot"></span> ENDS IN A REAL RUN REPLAY · 2026-07-21</div>
+    </div>
+  </header>
+
+  <!-- Scene 1: hook -->
+  <section class="scene" id="s1">
+    <div class="eyebrow">TIME-SLICING FOR VERL · THE WHOLE UX, START TO FINISH</div>
+    <h2><span class="za">Two async RL jobs.</span> <span class="zb">Two shared GPU pools.</span><br>Zero code changes.</h2>
+    <div class="sub">You have a GKE cluster running veRL jobs. This is <b>everything</b> between you and
+      time-sliced GPU pools — platform install, node pools, shared claims, your job manifest — ending in a
+      replay of a <b>real recorded run</b>: two unmodified veRL jobs in disaggregated async mode,
+      cross-pipelining so <b>one trains while the other generates</b>.</div>
+  </section>
+
+  <!-- Journey: 4 chapters + persistent cluster diagram -->
+  <section class="scene" id="sj">
+    <div class="rail">
+      <div class="rstep" id="r1"><div class="n">1</div><div><div class="rt">Install the platform</div><div class="rs">one helm install · once per cluster</div></div></div>
+      <div class="rstep" id="r2"><div class="n">2</div><div><div class="rt">Pick the node pool</div><div class="rs">one taint · reuse an existing pool</div></div></div>
+      <div class="rstep" id="r3"><div class="n">3</div><div><div class="rt">Create the shared claims</div><div class="rs">one 12-line YAML per shared pool</div></div></div>
+      <div class="rstep" id="r4"><div class="n">4</div><div><div class="rt">Adapt your job</div><div class="rs">pip install + config · zero code changes</div></div></div>
+    </div>
+    <div id="jbody">
+      <div id="jleft">
+        <div class="chapter" id="c1">
+          <div class="panel-h">STEP 1 — <b>INSTALL THE PLATFORM</b> · public images, straight off the repo</div>
+          <div class="term" id="term1"></div>
+        </div>
+        <div class="chapter" id="c2">
+          <div class="panel-h">STEP 2 — <b>PICK THE GPU NODE POOL</b> · new or existing</div>
+          <div class="term" id="term2"></div>
+          <div class="note"><b>That's the whole step.</b> The snapshot agent is already on every GPU node
+            (DaemonSet from step 1); the taint just keeps non-cooperative pods off the shared pool.</div>
+        </div>
+        <div class="chapter" id="c3">
+          <div class="panel-h">STEP 3 — <b>ONE SHARED CLAIM PER GPU POOL</b> · standard Kubernetes DRA</div>
+          <div class="term" id="term3"></div>
+          <div class="note"><b>This is the sharing trick:</b> every job's trainer pod references the <b>same</b>
+            trainers claim, every sampler pod the <b>same</b> samplers claim — instead of asking for their own
+            <span style="font-family:var(--mono)">nvidia.com/gpu</span>. Kubernetes packs them onto the shared
+            GPUs; the orchestrator arbitrates turns per pool.</div>
+        </div>
+        <div class="chapter" id="c4">
+          <div class="panel-h">STEP 4 — <b>ADAPT YOUR VERL JOB</b> · deploy-time only</div>
+          <div class="term" id="term4"></div>
+          <div class="note"><b>0</b> lines of training code changed · <b>0</b> lines of veRL changed ·
+            <b>1</b> pip install in the image · <b>2</b> config keys · <b>4</b> env vars · <b>~12</b> manifest lines</div>
+        </div>
+      </div>
+      <div id="jright">
+        <div class="panel-h">YOUR CLUSTER, AS YOU GO</div>
+        <svg id="diagram" width="100%" height="100%"></svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- Replay -->
+  <section class="scene" id="s3">
+    <div class="counters">
+      <div class="counter"><div class="v" id="cElapsed">0:00</div><div class="k">RUN TIME (REAL) · REPLAY AT ≈38×</div></div>
+      <div class="counter"><div class="v" id="cCross" style="color:var(--good)">0:00</div><div class="k">CROSS-PIPELINING — BOTH POOLS BUSY, DIFFERENT JOBS</div></div>
+      <div class="counter"><div class="v" id="cHandoffs">0</div><div class="k">CROSS-POOL HANDOFFS</div></div>
+      <div class="counter"><div class="v" id="cSwitch">—</div><div class="k">AVG SWITCH (SNAPSHOT+RESTORE)</div></div>
+      <div class="counter"><div class="v"><span class="chip" style="background:var(--job-a)"></span><span id="cStepsA">0</span>/12</div><div class="k">JOB A — GRPO STEPS DONE</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="ph">
+        <span class="t">THE VALUE SIGNATURE — ONE JOB TRAINS WHILE THE OTHER GENERATES (RECORDED RUN)</span>
+        <span class="legend">
+          <span><span class="chip" style="background:var(--job-a)"></span>Job A on pool</span>
+          <span><span class="chip" style="background:var(--job-b)"></span>Job B on pool</span>
+          <span><span class="chip" style="background:var(--warn)"></span>checkpointed handoff</span>
+          <span><span class="chip" style="background:rgba(12,163,12,0.35)"></span>cross-pipelining</span>
+        </span>
+      </div>
+      <svg id="gantt" width="100%" height="170" preserveAspectRatio="none"></svg>
+      <div style="margin-top:6px; font-size:13px; color:var(--ink-muted); line-height:1.45;">
+        Replay of the contended final 11.5 min (solo init elided). Lanes show pool residency between checkpoint
+        boundaries. Scale note: at 0.5B the model generates too fast to ever starve the trainer, so both pools stay
+        contended — this proves the <span style="color:var(--ink-2)">mechanics</span> of cross-pool sharing; the idle-recovery
+        payoff applies at production scale, where trainers wait 30–74% of the time on generation.</div>
+    </div>
+
+    <div id="row2">
+      <div class="panel" id="rewardPanel">
+        <div class="ph">
+          <span class="t">JOB A KEEPS LEARNING ACROSS SUSPENSIONS — REWARD PER STEP (MEASURED)</span>
+          <span class="legend"><span style="font-size:12px">Job B was still generating (pre-step-1) when the run ended · marker times spread across A's measured tenure (step logs flush-batched)</span></span>
+        </div>
+        <svg id="reward" width="100%" height="100%" style="flex:1"></svg>
+      </div>
+      <div class="panel" id="feedPanel">
+        <div class="ph"><span class="t">ORCHESTRATOR / SNAPSHOT-AGENT EVENTS (RECORDED)</span></div>
+        <div id="feed"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recap -->
+  <section class="scene" id="s4">
+    <h2>veRL: <em>untouched</em>. Your training code: <em>untouched</em>.</h2>
+    <div class="facts">
+      <div class="fact"><b>1 helm install</b> platform + snapshot agent + NVIDIA DRA driver — once per cluster</div>
+      <div class="fact"><b>1 taint · 1 claim/pool</b> point it at your node pools, share each GPU through one ResourceClaim</div>
+      <div class="fact"><b>6 settings / job</b> pip install in the image, 2 config keys, 4 env vars, ~12 manifest lines</div>
+    </div>
+    <div class="proof">Proven on a real disaggregated async run: <b>~5 min of measured cross-pipelining</b> —
+      one job training while the other generates on shared pools · <b>12/12 GRPO steps</b> for the completing job,
+      rewards matching solo · cross-pool switches <b>~10–13 s</b>, no operator action.</div>
+    <div class="pipline">$ pip install timeslice-verl <span>· the rest is deploy-time config</span></div>
+  </section>
+
+  <footer>
+    <span>The run replay is recorded, not simulated — every timestamp, switch duration, and reward is measured (poc-evidence/disagg/timeline-a9b9.txt)</span>
+    <span>llm-d-rl-time-slicing · veRL v1 plugin trainer · Kubernetes DRA · cuda-checkpoint suspend/resume</span>
+  </footer>
+</div>
+<div id="tooltip"></div>
+
+<div id="startOverlay">
+  <button id="startBtn"><span class="tri">▶</span> START THE TOUR</button>
+  <div class="hint">~2 minutes · click anywhere to pause once playing</div>
+</div>
+
+<script>
+const DATA = {"lanes":{"trainers":[{"job":"A","start":0.0,"end":35.17},{"job":"B","start":36.17,"end":243.98},{"job":"A","start":247.98,"end":681.36}],"samplers":[{"job":"A","start":0.0,"end":46.87},{"job":"B","start":47.88,"end":545.4},{"job":"A","start":548.4,"end":690.0}]},"switches":[{"pool":"trainers","start":25.17,"end":36.17,"snap_s":9.9,"restore_s":0.5},{"pool":"samplers","start":36.87,"end":47.88,"snap_s":9.9,"restore_s":0.5},{"pool":"trainers","start":233.98,"end":247.98,"snap_s":9.8,"restore_s":3.1},{"pool":"samplers","start":535.39,"end":548.4,"snap_s":9.4,"restore_s":2.9},{"pool":"trainers","start":681.36,"end":690.0,"snap_s":null,"restore_s":null,"fault":true}],"overlaps":[{"start":36.17,"end":46.87},{"start":247.98,"end":545.4}],"steps":{"A":[{"t":260.0,"step":1,"reward":0.0156},{"t":298.3,"step":2,"reward":0.0156},{"t":336.6,"step":3,"reward":0.0},{"t":374.9,"step":4,"reward":0.0156},{"t":413.2,"step":5,"reward":0.0234},{"t":451.5,"step":6,"reward":0.0469},{"t":489.8,"step":7,"reward":0.0391},{"t":528.1,"step":8,"reward":0.0781},{"t":566.4,"step":9,"reward":0.0547},{"t":604.7,"step":10,"reward":0.1172},{"t":643.0,"step":11,"reward":0.0391},{"t":681.3,"step":12,"reward":0.1562}]},"events":[{"t":25.2,"job":"A","kind":"snap","msg":"Snapshot off trainers pool begins"},{"t":35.2,"job":"A","kind":"snap","msg":"Trainers state saved (9.9 s)"},{"t":36.2,"job":"B","kind":"restore","msg":"Restored onto trainers pool (0.5 s)"},{"t":46.9,"job":"A","kind":"snap","msg":"Snapshot off samplers pool (9.9 s)"},{"t":47.9,"job":"B","kind":"restore","msg":"Restored onto samplers pool (0.5 s)"},{"t":96.5,"job":"B","kind":"grant","msg":"Locks granted \u2014 init + weight sync under dual lock"},{"t":234.0,"job":"B","kind":"snap","msg":"Snapshot off trainers (9.8 s) \u2014 hands pool to Job A"},{"t":248.0,"job":"A","kind":"restore","msg":"Restored onto trainers (3.1 s) \u2014 training begins"},{"t":248.6,"job":"X","kind":"cross","msg":"CROSS-PIPELINING \u2014 Job A training \u2016 Job B generating"},{"t":535.4,"job":"B","kind":"snap","msg":"Snapshot off samplers (9.4 s)"},{"t":548.4,"job":"A","kind":"restore","msg":"Restored onto samplers (2.9 s) \u2014 serves its own late-step generation"},{"t":572.8,"job":"A","kind":"grant","msg":"sample_begin: batch already buffered \u2014 keeps TRAINER, skips SAMPLER"},{"t":681.4,"job":"A","kind":"grant","msg":"12/12 GRPO steps complete \u2014 snapshot at exit"},{"t":682.4,"job":"X","kind":"fault","msg":"Run ends: completion-boundary race \u2014 known platform bug, fix tracked"}],"stats":{"span":690.0,"cross_total":308.1,"handoffs":4,"switch_mean_s":12.8}};
+
+/* ---------- scene timeline (seconds); ends and HOLDS on the recap ---------- */
+const S = { s1: [0, 7], sj: [7, 74], s3: [74, 92], s4: [92, Infinity] };
+const CH = { c1: [7, 24], c2: [24, 36], c3: [36, 51], c4: [51, 74] };
+const END = 100;  /* progress bar completes here; scene 4 stays up forever */
+const REPLAY_SPAN = DATA.stats.span;
+
+const qs = new URLSearchParams(location.search);
+const FIXED_T = qs.has('t') ? parseFloat(qs.get('t')) : null;
+let started = FIXED_T !== null, startAt = 0, paused = false, pauseT = 0;
+
+/* ---------- chapter terminal scripts ---------- */
+const TYPE_RATE = 42;
+const T1 = [
+  { d: 0.0, t: "$ ", c: "p" },
+  { d: 0.2, t: "# you already have: a GKE cluster running veRL jobs\n", c: "p" },
+  { d: 1.2, t: "$ ", c: "p" },
+  { d: 1.4, t: "git clone https://github.com/llm-d-incubation/llm-d-rl-time-slicing\n", type: true },
+  { d: 3.4, t: "$ ", c: "p" },
+  { d: 3.6, t: "helm install timeslice llm-d-rl-time-slicing/deploy \\\n      -n timeslice-system --create-namespace -f values-gke.yaml\n", type: true },
+  { d: 7.6, t: "\n  ✓ accelerator orchestrator — the cluster's GPU lock service\n", c: "ok" },
+  { d: 9.0, t: "  ✓ snapshot agent — DaemonSet, lands on every GPU node\n", c: "ok" },
+  { d: 10.4, t: "  ✓ NVIDIA DRA driver — bundled subchart, enables GPU claims\n", c: "ok" },
+  { d: 12.4, t: "\nOne install per cluster. Images are public — no build step.\n", c: "p" },
+];
+const T2 = [
+  { d: 0.0, t: "$ ", c: "p" },
+  { d: 0.2, t: "# dedicate (or reuse) a GPU node pool for time-slicing\n", c: "p" },
+  { d: 1.2, t: "$ ", c: "p" },
+  { d: 1.4, t: "kubectl taint nodes -l cloud.google.com/gke-nodepool=h100-pool \\\n      timeslice.io/shared=true:NoSchedule\n", type: true },
+  { d: 5.4, t: "\n  ✓ only jobs that opt in (tolerate the taint) schedule here\n", c: "ok" },
+];
+const T3 = [
+  { d: 0.0, t: "$ ", c: "p" },
+  { d: 0.2, t: "cat shared-trainers-gpu-claim.yaml\n", type: true },
+  { d: 1.6, t: "apiVersion: resource.k8s.io/v1\nkind: ResourceClaim\nmetadata:\n  name: shared-trainers-gpu-claim\nspec:\n  devices:\n    requests:\n      - name: gpu\n        exactly:\n          deviceClassName: gpu.nvidia.com\n          allocationMode: ExactCount\n          count: 1\n", c: "key" },
+  { d: 7.6, t: "$ ", c: "p" },
+  { d: 7.8, t: "# same 12 lines again, named shared-samplers-gpu-claim\n", c: "p" },
+  { d: 8.8, t: "$ ", c: "p" },
+  { d: 9.0, t: "kubectl apply -f shared-trainers-gpu-claim.yaml -f shared-samplers-gpu-claim.yaml\n", type: true },
+  { d: 11.6, t: "  ✓ each pool's GPU claimable by many cooperating pods\n", c: "ok" },
+];
+const T4 = [
+  { d: 0.0, t: "# in your image (once):\n", c: "p" },
+  { d: 0.8, t: "RUN pip install timeslice-verl\n", c: "add", type: true },
+  { d: 2.6, t: "\n# in your launch command (2 added keys — async disagg mode):\npython -m verl.trainer.main_ppo \\\n", c: "p" },
+  { d: 4.4, t: "    trainer.use_v1=True \\\n", c: "add", type: true },
+  { d: 5.6, t: "    trainer.v1.trainer_mode=separate_async_timesliced \\\n", c: "add", type: true },
+  { d: 7.6, t: "    data.train_files=... actor_rollout_ref.model.path=...   # unchanged\n", c: "p" },
+  { d: 9.2, t: "\n# in your pod specs (~12 added lines):\n", c: "p" },
+  { d: 10.0, t: "  labels:  { timeslice.io/job-id: grpo-job-a, group: trainers|samplers }\n", c: "add", type: true },
+  { d: 12.4, t: "  tolerations: [ timeslice.io/shared=true:NoSchedule ]\n", c: "add", type: true },
+  { d: 14.4, t: "  resourceClaims: trainer pod → shared-trainers-gpu-claim\n                  sampler pod → shared-samplers-gpu-claim\n", c: "add", type: true },
+  { d: 17.6, t: "  env:  TIMESLICE_JOB_ID · TIMESLICE_ORCH_ADDR ·\n        TIMESLICE_TRAINER_GROUP · TIMESLICE_SAMPLER_GROUP\n", c: "add", type: true },
+  { d: 20.6, t: "\nSame change for job B — then submit both.\n", c: "ok" },
+];
+const TERMS = [["term1", T1, "c1"], ["term2", T2, "c2"], ["term3", T3, "c3"], ["term4", T4, "c4"]];
+
+function termHTML(script, tl) {
+  let html = "";
+  for (const seg of script) {
+    if (tl < seg.d) break;
+    let txt = seg.t;
+    if (seg.type) txt = txt.slice(0, Math.floor((tl - seg.d) * TYPE_RATE));
+    html += seg.c ? `<span class="${seg.c}">${esc(txt)}</span>` : esc(txt);
+  }
+  return html + '<span class="cur"></span>';
+}
+function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+
+/* ---------- cluster diagram ---------- */
+function renderDiagram(t) {
+  const on = {
+    platform: t >= CH.c1[0] + 7.5,
+    dra:      t >= CH.c1[0] + 10.5,
+    agent:    t >= CH.c1[0] + 9.0,
+    taint:    t >= CH.c2[0] + 5.5,
+    claim:    t >= CH.c3[0] + 9.8,
+    jobs:     t >= CH.c4[0] + 20.5,
+  };
+  const W = 660, H = 700;
+  const chip = (x, y, w, label, color, show, sub) => show ? `
+    <g opacity="1">
+      <rect x="${x}" y="${y}" width="${w}" height="${sub ? 46 : 34}" rx="8" fill="rgba(255,255,255,0.04)" stroke="${color}" stroke-width="1.3"/>
+      <text x="${x + 12}" y="${y + 22}" font-size="13.5" font-weight="600" fill="var(--ink)">${label}</text>
+      ${sub ? `<text x="${x + 12}" y="${y + 38}" font-size="11" fill="var(--ink-muted)">${sub}</text>` : ""}
+    </g>` : "";
+  const pool = (x, name, claim, showClaim, showAgent, showTaint, jobA, jobB, showJobs) => `
+    <rect x="${x}" y="186" width="292" height="288" rx="12" fill="rgba(255,255,255,0.02)" stroke="var(--grid)"/>
+    <text x="${x + 14}" y="210" font-size="12" font-weight="700" fill="var(--ink-muted)">${name}</text>
+    ${showTaint ? `<g>
+      <rect x="${x + 14}" y="220" width="196" height="24" rx="12" fill="rgba(250,178,25,0.12)" stroke="var(--warn)"/>
+      <text x="${x + 24}" y="237" font-size="10.5" font-weight="700" fill="var(--ink)">⛔ taint: timeslice.io/shared</text>
+    </g>` : ""}
+    <rect x="${x + 14}" y="252" width="94" height="62" rx="9" fill="rgba(57,135,229,0.10)" stroke="var(--ink-muted)"/>
+    <text x="${x + 34}" y="280" font-size="14" font-weight="800" fill="var(--ink)">H100</text>
+    <text x="${x + 22}" y="300" font-size="10" fill="var(--ink-muted)">shared GPU</text>
+    ${chip(x + 118, 252, 160, "⬇⬆ snapshot agent", "var(--good)", showAgent, "cuda-checkpoint")}
+    ${showClaim ? `<g>
+      <rect x="${x + 14}" y="326" width="264" height="44" rx="8" fill="rgba(255,255,255,0.04)" stroke="var(--ink)" stroke-width="1.3"/>
+      <text x="${x + 26}" y="346" font-size="12.5" font-weight="600" fill="var(--ink)">▣ ${claim}</text>
+      <text x="${x + 26}" y="362" font-size="10.5" fill="var(--ink-muted)">DRA · ExactCount 1 · shared by all</text>
+    </g>` : ""}
+    ${showJobs ? `<g>
+      <rect x="${x + 14}" y="384" width="126" height="56" rx="9" fill="rgba(57,135,229,0.08)" stroke="var(--job-a)" stroke-width="1.5"/>
+      <text x="${x + 24}" y="406" font-size="12" font-weight="700" fill="var(--ink)">job-a ${jobA}</text>
+      <text x="${x + 24}" y="424" font-size="10" fill="var(--ink-muted)">unmodified veRL</text>
+      <rect x="${x + 152}" y="384" width="126" height="56" rx="9" fill="rgba(25,158,112,0.08)" stroke="var(--job-b)" stroke-width="1.5"/>
+      <text x="${x + 162}" y="406" font-size="12" font-weight="700" fill="var(--ink)">job-b ${jobB}</text>
+      <text x="${x + 162}" y="424" font-size="10" fill="var(--ink-muted)">unmodified veRL</text>
+      <line x1="${x + 77}" y1="384" x2="${x + 120}" y2="370" stroke="var(--job-a)" stroke-width="1.2"/>
+      <line x1="${x + 215}" y1="384" x2="${x + 172}" y2="370" stroke="var(--job-b)" stroke-width="1.2"/>
+      <text x="${x + 14}" y="462" font-size="10.5" fill="var(--ink-2)">2 pods → 1 claim → 1 GPU</text>
+    </g>` : ""}`;
+  let g = `
+    <rect x="8" y="8" width="${W - 16}" height="${H - 16}" rx="16" fill="none" stroke="var(--baseline)" stroke-width="1.4" stroke-dasharray="7 5"/>
+    <text x="26" y="36" font-size="13" font-weight="700" letter-spacing="1.5" fill="var(--ink-muted)">GKE CLUSTER</text>
+
+    <rect x="30" y="54" width="${W - 60}" height="112" rx="12" fill="rgba(255,255,255,0.02)" stroke="var(--grid)"/>
+    <text x="46" y="78" font-size="12" font-weight="700" fill="var(--ink-muted)">CPU POOL</text>
+    ${chip(46, 92, 270, "⚖ accelerator orchestrator", "var(--good)", on.platform, "GPU lock service · one queue per pool")}
+    ${chip(330, 92, 200, "NVIDIA DRA driver", "var(--good)", on.dra, "device claims enabled")}
+
+    ${pool(30, "TRAINERS POOL · 1 node", "shared-trainers-gpu-claim", on.claim, on.agent, on.taint, "trainer", "trainer", on.jobs)}
+    ${pool(338, "SAMPLERS POOL · 1 node", "shared-samplers-gpu-claim", on.claim, on.agent, on.taint, "sampler", "sampler", on.jobs)}
+
+    <g opacity="${on.platform ? 1 : 0.25}">
+      <line x1="${W / 2}" y1="166" x2="${W / 2}" y2="186" stroke="var(--ink-muted)" stroke-width="1.2" stroke-dasharray="4 4"/>
+      <text x="${W / 2 + 8}" y="181" font-size="10.5" fill="var(--ink-muted)">gRPC 50051</text>
+    </g>
+
+    <rect x="30" y="494" width="${W - 60}" height="182" rx="12" fill="none" stroke="var(--grid)"/>
+    <text x="46" y="518" font-size="12" font-weight="700" fill="var(--ink-muted)">WHAT EACH PIECE DOES</text>
+    <text x="46" y="544" font-size="12.5" fill="${on.platform ? "var(--ink-2)" : "var(--baseline)"}">⚖  orchestrator — one lock per pool; jobs acquire before touching a GPU, yield when idle or done</text>
+    <text x="46" y="568" font-size="12.5" fill="${on.agent ? "var(--ink-2)" : "var(--baseline)"}">⬇⬆  snapshot agent — checkpoints the yielding job off the pool, restores the next (cuda-checkpoint)</text>
+    <text x="46" y="592" font-size="12.5" fill="${on.claim ? "var(--ink-2)" : "var(--baseline)"}">▣  shared claims — standard DRA objects letting many pods schedule onto the same physical GPU</text>
+    <text x="46" y="616" font-size="12.5" fill="${on.jobs ? "var(--ink-2)" : "var(--baseline)"}">◩  timeslice-verl — pip package; role locks (trainer/sampler) + yield-on-starvation at the sample wait</text>
+    <text x="46" y="640" font-size="12.5" fill="${on.jobs ? "var(--ink-2)" : "var(--baseline)"}">Each job spans both pools: trainer pod ⇢ trainers claim, sampler pod ⇢ samplers claim.</text>
+    <text x="46" y="662" font-size="12.5" fill="${on.jobs ? "var(--ink-2)" : "var(--baseline)"}">Your training code and veRL itself: no changes anywhere.</text>
+  `;
+  const d = document.getElementById('diagram');
+  d.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  d.innerHTML = g;
+}
+
+/* ---------- replay rendering (recorded run) ---------- */
+const gantt = document.getElementById('gantt');
+const rewardSvg = document.getElementById('reward');
+const feed = document.getElementById('feed');
+const JOB_COLOR = { A: 'var(--job-a)', B: 'var(--job-b)' };
+const ICONS = { grant: '▶', yield: '⏸', snap: '⬇', restore: '⬆', acquire: '…', cross: '‖', fault: '✕' };
+function fmtClock(s) { const m = Math.floor(s / 60); return m + ':' + String(Math.floor(s % 60)).padStart(2, '0'); }
+
+function renderReplay(rt) {
+  const done = DATA.switches.filter(s => !s.fault && s.end <= rt);
+  document.getElementById('cElapsed').textContent = fmtClock(rt);
+  document.getElementById('cHandoffs').textContent = done.length;
+  document.getElementById('cSwitch').textContent = done.length
+    ? (done.reduce((a, s) => a + (s.end - s.start), 0) / done.length).toFixed(1) + ' s' : '—';
+  document.getElementById('cStepsA').textContent = DATA.steps.A.filter(s => s.t <= rt).length;
+  const crossSoFar = DATA.overlaps.reduce((a, o) => a + Math.max(0, Math.min(o.end, rt) - o.start), 0);
+  document.getElementById('cCross').textContent = fmtClock(crossSoFar);
+
+  const W = gantt.clientWidth || 1600, H = 170, LH = 40, LGAP = 26, top = 26, LABEL = 92;
+  const x = s => LABEL + (s / REPLAY_SPAN) * (W - LABEL - 8);
+  const laneY = { trainers: top, samplers: top + LH + LGAP };
+  let g = '';
+  for (let s = 0; s <= REPLAY_SPAN; s += 120) {
+    g += `<line x1="${x(s)}" y1="${top - 8}" x2="${x(s)}" y2="${top + 2 * LH + LGAP + 8}" stroke="var(--grid)" stroke-width="1"/>`;
+    g += `<text x="${x(s) + 4}" y="${top + 2 * LH + LGAP + 22}" font-size="11" fill="var(--ink-muted)">${fmtClock(s)}</text>`;
+  }
+  /* cross-pipelining wash spanning both lanes */
+  for (const o of DATA.overlaps) {
+    if (o.start >= rt) continue;
+    const e = Math.min(o.end, rt);
+    g += `<rect x="${x(o.start)}" y="${top - 6}" width="${Math.max(x(e) - x(o.start), 1)}" height="${2 * LH + LGAP + 12}"
+           fill="rgba(12,163,12,0.10)" stroke="rgba(12,163,12,0.35)" stroke-width="1"
+           data-tip="cross-pipelining: different jobs busy on both pools (${Math.round(o.end - o.start)}s)"/>`;
+    if (e - o.start > 60) {
+      g += `<text x="${x(o.start) + 8}" y="${top + LH + LGAP / 2 + 4}" font-size="11.5" font-weight="700" fill="var(--good)">A trains ‖ B generates</text>`;
+    }
+  }
+  for (const [pool, yy] of Object.entries(laneY)) {
+    g += `<text x="0" y="${yy + LH / 2 + 4}" font-size="12" font-weight="700" fill="var(--ink-muted)">${pool.toUpperCase()}</text>`;
+    g += `<line x1="${LABEL}" y1="${yy + LH + 1}" x2="${W}" y2="${yy + LH + 1}" stroke="var(--baseline)" stroke-width="1"/>`;
+    for (const seg of DATA.lanes[pool]) {
+      if (seg.start >= rt) continue;
+      const e = Math.min(seg.end, rt);
+      const wpx = Math.max(x(e) - x(seg.start) - 2, 1.5);
+      g += `<rect x="${x(seg.start) + 1}" y="${yy}" width="${wpx}" height="${LH}" rx="3"
+             fill="${JOB_COLOR[seg.job]}" data-tip="Job ${seg.job} resident on ${pool} · ${fmtClock(seg.start)}–${fmtClock(seg.end)}"/>`;
+    }
+    for (const sw of DATA.switches) {
+      if (sw.pool !== pool || sw.start >= rt) continue;
+      const e = Math.min(sw.end, rt);
+      g += `<rect x="${x(sw.start)}" y="${yy + LH / 2 - 3}" width="${Math.max(x(e) - x(sw.start), 1)}" height="6" rx="2"
+             fill="var(--warn)" data-tip="${sw.fault ? 'at-exit snapshot raced by restore — run faulted (known bug)' : `handoff: snapshot ${sw.snap_s}s + restore ${sw.restore_s}s`}"/>`;
+    }
+  }
+  g += `<line x1="${x(rt)}" y1="${top - 12}" x2="${x(rt)}" y2="${top + 2 * LH + LGAP + 10}" stroke="var(--ink)" stroke-width="1.5" opacity="0.8"/>`;
+  gantt.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  gantt.innerHTML = g;
+
+  const RW = rewardSvg.clientWidth || 800, RH = rewardSvg.clientHeight || 300;
+  const pad = { l: 46, r: 84, t: 14, b: 30 };
+  const xr = st => pad.l + ((st - 1) / 11) * (RW - pad.l - pad.r);
+  const yr = v => RH - pad.b - (v / 0.15) * (RH - pad.t - pad.b);
+  let r = '';
+  for (const v of [0, 0.05, 0.10, 0.15]) {
+    r += `<line x1="${pad.l}" y1="${yr(v)}" x2="${RW - pad.r}" y2="${yr(v)}" stroke="var(--grid)" stroke-width="1"/>`;
+    r += `<text x="${pad.l - 8}" y="${yr(v) + 4}" font-size="11.5" fill="var(--ink-muted)" text-anchor="end">${v.toFixed(2)}</text>`;
+  }
+  for (let st = 1; st <= 12; st += 1) {
+    r += `<text x="${xr(st)}" y="${RH - 8}" font-size="11.5" fill="var(--ink-muted)" text-anchor="middle">${st}</text>`;
+  }
+  r += `<line x1="${pad.l}" y1="${yr(0)}" x2="${RW - pad.r}" y2="${yr(0)}" stroke="var(--baseline)" stroke-width="1"/>`;
+  {
+    const pts = DATA.steps.A.filter(s => s.t <= rt);
+    if (pts.length) {
+      const path = pts.map((p, i) => (i ? 'L' : 'M') + xr(p.step) + ' ' + yr(p.reward)).join(' ');
+      r += `<path d="${path}" fill="none" stroke="var(--job-a)" stroke-width="2" stroke-linejoin="round"/>`;
+      for (const p of pts) {
+        r += `<circle cx="${xr(p.step)}" cy="${yr(p.reward)}" r="4" fill="var(--job-a)" stroke="var(--surface)" stroke-width="2"
+               data-tip="Job A · step ${p.step} · reward ${p.reward.toFixed(3)}"/>`;
+      }
+      const last = pts[pts.length - 1];
+      r += `<text x="${xr(last.step) + 12}" y="${yr(last.reward) + 4}" font-size="13" font-weight="700" fill="var(--ink)">
+              Job A <tspan fill="var(--ink-2)" font-weight="500">${last.reward.toFixed(3)}</tspan></text>`;
+    }
+  }
+  rewardSvg.setAttribute('viewBox', `0 0 ${RW} ${RH}`);
+  rewardSvg.innerHTML = r;
+
+  const evs = DATA.events.filter(e => e.t <= rt).slice(-9).reverse();
+  feed.innerHTML = evs.map(e => `
+    <div class="card ${e.job === 'A' ? 'a' : e.job === 'B' ? 'b' : ''}">
+      <span class="ts">${fmtClock(e.t)}</span>
+      <span class="ic" style="color:${e.kind === 'snap' || e.kind === 'restore' ? 'var(--warn)' : e.kind === 'cross' || e.kind === 'grant' ? 'var(--good)' : e.kind === 'fault' ? 'var(--warn)' : 'var(--ink-muted)'}">${ICONS[e.kind] || '·'}</span>
+      <span class="who">${e.job === 'X' ? '—' : 'Job ' + e.job}</span>
+      <span>${e.msg}</span>
+    </div>`).join('');
+}
+
+/* ---------- master clock ---------- */
+function frame() {
+  let t;
+  if (FIXED_T !== null) t = FIXED_T;
+  else if (!started) t = 0;
+  else if (paused) t = pauseT;
+  else t = (performance.now() - startAt) / 1000;   /* no loop: holds on recap */
+
+  document.getElementById('progress').style.width = (Math.min(t / END, 1) * 100) + '%';
+  for (const [id, [a, b]] of Object.entries(S)) {
+    document.getElementById(id).classList.toggle('on', t >= a && (b === Infinity || t < b));
+  }
+  if (t >= S.sj[0] - 0.2 && t < S.sj[1]) {
+    const names = ["c1", "c2", "c3", "c4"];
+    names.forEach((c, i) => {
+      const [a, b] = CH[c];
+      document.getElementById(c).classList.toggle('on', t >= a && t < b);
+      const r = document.getElementById('r' + (i + 1));
+      r.classList.toggle('active', t >= a && t < b);
+      r.classList.toggle('done', t >= b);
+      if (t >= b) r.querySelector('.n').textContent = '✓';
+      else r.querySelector('.n').textContent = i + 1;
+    });
+    for (const [el, script, ch] of TERMS) {
+      const [a, b] = CH[ch];
+      if (t >= a && t < b) document.getElementById(el).innerHTML = termHTML(script, t - a);
+    }
+    renderDiagram(t);
+  }
+  if (t >= S.s3[0] && t < S.s3[1] + 0.5) {
+    const rt = Math.min((t - S.s3[0]) / (S.s3[1] - S.s3[0]), 1) * REPLAY_SPAN;
+    renderReplay(rt);
+  }
+  if (FIXED_T === null) requestAnimationFrame(frame);
+}
+
+/* ---------- start button / controls ---------- */
+const overlay = document.getElementById('startOverlay');
+if (FIXED_T !== null) {
+  document.documentElement.classList.add('still');
+  overlay.style.display = 'none';
+}
+document.getElementById('startBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  overlay.style.display = 'none';
+  started = true; startAt = performance.now();
+});
+document.addEventListener('click', e => {
+  if (FIXED_T !== null || !started || overlay.contains(e.target)) return;
+  if (!paused) { pauseT = ((performance.now() - startAt) / 1000) % LOOP; paused = true; }
+  else { startAt = performance.now() - pauseT * 1000; paused = false; }
+});
+frame();
+
+/* hover tooltips (interactive viewing) */
+const tip = document.getElementById('tooltip');
+document.addEventListener('mousemove', e => {
+  const el = e.target.closest && e.target.closest('[data-tip]');
+  if (el) {
+    tip.style.display = 'block';
+    tip.textContent = el.getAttribute('data-tip');
+    tip.style.left = (e.clientX + 14) + 'px';
+    tip.style.top = (e.clientY + 14) + 'px';
+  } else tip.style.display = 'none';
+});
+</script>
+</body>
+</html>

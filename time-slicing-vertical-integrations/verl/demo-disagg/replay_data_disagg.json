@@ -1,0 +1,242 @@
+{
+ "lanes": {
+  "trainers": [
+   {
+    "job": "A",
+    "start": 0.0,
+    "end": 35.17
+   },
+   {
+    "job": "B",
+    "start": 36.17,
+    "end": 243.98
+   },
+   {
+    "job": "A",
+    "start": 247.98,
+    "end": 681.36
+   }
+  ],
+  "samplers": [
+   {
+    "job": "A",
+    "start": 0.0,
+    "end": 46.87
+   },
+   {
+    "job": "B",
+    "start": 47.88,
+    "end": 545.4
+   },
+   {
+    "job": "A",
+    "start": 548.4,
+    "end": 690.0
+   }
+  ]
+ },
+ "switches": [
+  {
+   "pool": "trainers",
+   "start": 25.17,
+   "end": 36.17,
+   "snap_s": 9.9,
+   "restore_s": 0.5
+  },
+  {
+   "pool": "samplers",
+   "start": 36.87,
+   "end": 47.88,
+   "snap_s": 9.9,
+   "restore_s": 0.5
+  },
+  {
+   "pool": "trainers",
+   "start": 233.98,
+   "end": 247.98,
+   "snap_s": 9.8,
+   "restore_s": 3.1
+  },
+  {
+   "pool": "samplers",
+   "start": 535.39,
+   "end": 548.4,
+   "snap_s": 9.4,
+   "restore_s": 2.9
+  },
+  {
+   "pool": "trainers",
+   "start": 681.36,
+   "end": 690.0,
+   "snap_s": null,
+   "restore_s": null,
+   "fault": true
+  }
+ ],
+ "overlaps": [
+  {
+   "start": 36.17,
+   "end": 46.87
+  },
+  {
+   "start": 247.98,
+   "end": 545.4
+  }
+ ],
+ "steps": {
+  "A": [
+   {
+    "t": 260.0,
+    "step": 1,
+    "reward": 0.0156
+   },
+   {
+    "t": 298.3,
+    "step": 2,
+    "reward": 0.0156
+   },
+   {
+    "t": 336.6,
+    "step": 3,
+    "reward": 0.0
+   },
+   {
+    "t": 374.9,
+    "step": 4,
+    "reward": 0.0156
+   },
+   {
+    "t": 413.2,
+    "step": 5,
+    "reward": 0.0234
+   },
+   {
+    "t": 451.5,
+    "step": 6,
+    "reward": 0.0469
+   },
+   {
+    "t": 489.8,
+    "step": 7,
+    "reward": 0.0391
+   },
+   {
+    "t": 528.1,
+    "step": 8,
+    "reward": 0.0781
+   },
+   {
+    "t": 566.4,
+    "step": 9,
+    "reward": 0.0547
+   },
+   {
+    "t": 604.7,
+    "step": 10,
+    "reward": 0.1172
+   },
+   {
+    "t": 643.0,
+    "step": 11,
+    "reward": 0.0391
+   },
+   {
+    "t": 681.3,
+    "step": 12,
+    "reward": 0.1562
+   }
+  ]
+ },
+ "events": [
+  {
+   "t": 25.2,
+   "job": "A",
+   "kind": "snap",
+   "msg": "Snapshot off trainers pool begins"
+  },
+  {
+   "t": 35.2,
+   "job": "A",
+   "kind": "snap",
+   "msg": "Trainers state saved (9.9 s)"
+  },
+  {
+   "t": 36.2,
+   "job": "B",
+   "kind": "restore",
+   "msg": "Restored onto trainers pool (0.5 s)"
+  },
+  {
+   "t": 46.9,
+   "job": "A",
+   "kind": "snap",
+   "msg": "Snapshot off samplers pool (9.9 s)"
+  },
+  {
+   "t": 47.9,
+   "job": "B",
+   "kind": "restore",
+   "msg": "Restored onto samplers pool (0.5 s)"
+  },
+  {
+   "t": 96.5,
+   "job": "B",
+   "kind": "grant",
+   "msg": "Locks granted \u2014 init + weight sync under dual lock"
+  },
+  {
+   "t": 234.0,
+   "job": "B",
+   "kind": "snap",
+   "msg": "Snapshot off trainers (9.8 s) \u2014 hands pool to Job A"
+  },
+  {
+   "t": 248.0,
+   "job": "A",
+   "kind": "restore",
+   "msg": "Restored onto trainers (3.1 s) \u2014 training begins"
+  },
+  {
+   "t": 248.6,
+   "job": "X",
+   "kind": "cross",
+   "msg": "CROSS-PIPELINING \u2014 Job A training \u2016 Job B generating"
+  },
+  {
+   "t": 535.4,
+   "job": "B",
+   "kind": "snap",
+   "msg": "Snapshot off samplers (9.4 s)"
+  },
+  {
+   "t": 548.4,
+   "job": "A",
+   "kind": "restore",
+   "msg": "Restored onto samplers (2.9 s) \u2014 serves its own late-step generation"
+  },
+  {
+   "t": 572.8,
+   "job": "A",
+   "kind": "grant",
+   "msg": "sample_begin: batch already buffered \u2014 keeps TRAINER, skips SAMPLER"
+  },
+  {
+   "t": 681.4,
+   "job": "A",
+   "kind": "grant",
+   "msg": "12/12 GRPO steps complete \u2014 snapshot at exit"
+  },
+  {
+   "t": 682.4,
+   "job": "X",
+   "kind": "fault",
+   "msg": "Run ends: completion-boundary race \u2014 known platform bug, fix tracked"
+  }
+ ],
+ "stats": {
+  "span": 690.0,
+  "cross_total": 308.1,
+  "handoffs": 4,
+  "switch_mean_s": 12.8
+ }
+}

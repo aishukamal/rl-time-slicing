@@ -1,0 +1,1250 @@
+{
+ "segments": [
+  {
+   "job": "a3",
+   "start": 40.8,
+   "end": 164.68
+  },
+  {
+   "job": "b3",
+   "start": 176.05,
+   "end": 303.15
+  },
+  {
+   "job": "a3",
+   "start": 317.77,
+   "end": 337.88
+  },
+  {
+   "job": "b3",
+   "start": 352.22,
+   "end": 372.33
+  },
+  {
+   "job": "a3",
+   "start": 386.96,
+   "end": 406.69
+  },
+  {
+   "job": "b3",
+   "start": 421.4,
+   "end": 441.53
+  },
+  {
+   "job": "a3",
+   "start": 455.76,
+   "end": 476.22
+  },
+  {
+   "job": "b3",
+   "start": 491.09,
+   "end": 511.07
+  },
+  {
+   "job": "a3",
+   "start": 525.3,
+   "end": 545.1
+  },
+  {
+   "job": "b3",
+   "start": 560.14,
+   "end": 580.17
+  },
+  {
+   "job": "a3",
+   "start": 595.17,
+   "end": 614.9
+  },
+  {
+   "job": "b3",
+   "start": 629.25,
+   "end": 649.13
+  },
+  {
+   "job": "a3",
+   "start": 663.98,
+   "end": 683.8
+  },
+  {
+   "job": "b3",
+   "start": 698.21,
+   "end": 718.25
+  },
+  {
+   "job": "a3",
+   "start": 732.87,
+   "end": 752.78
+  },
+  {
+   "job": "b3",
+   "start": 767.33,
+   "end": 787.35
+  },
+  {
+   "job": "a3",
+   "start": 801.85,
+   "end": 821.67
+  },
+  {
+   "job": "b3",
+   "start": 836.44,
+   "end": 856.42
+  },
+  {
+   "job": "a3",
+   "start": 870.74,
+   "end": 890.56
+  },
+  {
+   "job": "b3",
+   "start": 905.5,
+   "end": 925.44
+  },
+  {
+   "job": "a3",
+   "start": 939.63,
+   "end": 959.45
+  },
+  {
+   "job": "b3",
+   "start": 973.51,
+   "end": 993.51
+  },
+  {
+   "job": "a3",
+   "start": 1008.52,
+   "end": 1028.43
+  }
+ ],
+ "switches": [
+  {
+   "start": 164.68,
+   "from": "a3",
+   "snap_s": 9.7,
+   "restore_s": 0.5,
+   "end": 176.05,
+   "to": "b3"
+  },
+  {
+   "start": 303.15,
+   "from": "b3",
+   "snap_s": 9.8,
+   "restore_s": 3.1,
+   "end": 317.77,
+   "to": "a3"
+  },
+  {
+   "start": 337.88,
+   "from": "a3",
+   "snap_s": 9.8,
+   "restore_s": 3.1,
+   "end": 352.22,
+   "to": "b3"
+  },
+  {
+   "start": 372.33,
+   "from": "b3",
+   "snap_s": 9.8,
+   "restore_s": 3.1,
+   "end": 386.96,
+   "to": "a3"
+  },
+  {
+   "start": 406.69,
+   "from": "a3",
+   "snap_s": 9.8,
+   "restore_s": 3.1,
+   "end": 421.4,
+   "to": "b3"
+  },
+  {
+   "start": 441.53,
+   "from": "b3",
+   "snap_s": 9.7,
+   "restore_s": 3.1,
+   "end": 455.76,
+   "to": "a3"
+  },
+  {
+   "start": 476.22,
+   "from": "a3",
+   "snap_s": 9.7,
+   "restore_s": 3.1,
+   "end": 491.09,
+   "to": "b3"
+  },
+  {
+   "start": 511.07,
+   "from": "b3",
+   "snap_s": 9.7,
+   "restore_s": 3.1,
+   "end": 525.3,
+   "to": "a3"
+  },
+  {
+   "start": 545.1,
+   "from": "a3",
+   "snap_s": 9.8,
+   "restore_s": 3.1,
+   "end": 560.14,
+   "to": "b3"
+  },
+  {
+   "start": 580.17,
+   "from": "b3",
+   "snap_s": 9.8,
+   "restore_s": 3.1,
+   "end": 595.17,
+   "to": "a3"
+  },
+  {
+   "start": 614.9,
+   "from": "a3",
+   "snap_s": 9.8,
+   "restore_s": 3.1,
+   "end": 629.25,
+   "to": "b3"
+  },
+  {
+   "start": 649.13,
+   "from": "b3",
+   "snap_s": 9.7,
+   "restore_s": 3.1,
+   "end": 663.98,
+   "to": "a3"
+  },
+  {
+   "start": 683.8,
+   "from": "a3",
+   "snap_s": 9.8,
+   "restore_s": 3.1,
+   "end": 698.21,
+   "to": "b3"
+  },
+  {
+   "start": 718.25,
+   "from": "b3",
+   "snap_s": 9.8,
+   "restore_s": 3.0,
+   "end": 732.87,
+   "to": "a3"
+  },
+  {
+   "start": 752.78,
+   "from": "a3",
+   "snap_s": 9.8,
+   "restore_s": 3.2,
+   "end": 767.33,
+   "to": "b3"
+  },
+  {
+   "start": 787.35,
+   "from": "b3",
+   "snap_s": 9.8,
+   "restore_s": 3.1,
+   "end": 801.85,
+   "to": "a3"
+  },
+  {
+   "start": 821.67,
+   "from": "a3",
+   "snap_s": 9.8,
+   "restore_s": 3.1,
+   "end": 836.44,
+   "to": "b3"
+  },
+  {
+   "start": 856.42,
+   "from": "b3",
+   "snap_s": 9.7,
+   "restore_s": 3.1,
+   "end": 870.74,
+   "to": "a3"
+  },
+  {
+   "start": 890.56,
+   "from": "a3",
+   "snap_s": 9.8,
+   "restore_s": 3.1,
+   "end": 905.5,
+   "to": "b3"
+  },
+  {
+   "start": 925.44,
+   "from": "b3",
+   "snap_s": 9.7,
+   "restore_s": 3.1,
+   "end": 939.63,
+   "to": "a3"
+  },
+  {
+   "start": 959.45,
+   "from": "a3",
+   "snap_s": 9.7,
+   "restore_s": 3.1,
+   "end": 973.51,
+   "to": "b3"
+  },
+  {
+   "start": 993.51,
+   "from": "b3",
+   "snap_s": 9.8,
+   "restore_s": 3.1,
+   "end": 1008.52,
+   "to": "a3"
+  }
+ ],
+ "events": [
+  {
+   "t": 2.61,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "snap",
+   "msg": "Snapshot complete (2.6s) \u2014 GPU state saved"
+  },
+  {
+   "t": 5.64,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "snap",
+   "msg": "Snapshot complete (2.6s) \u2014 GPU state saved"
+  },
+  {
+   "t": 38.8,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 39.05,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 39.36,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "restore",
+   "msg": "Restore complete (0.5s) \u2014 back on GPU"
+  },
+  {
+   "t": 40.8,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 164.68,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 164.77,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 174.53,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.7s) \u2014 GPU state saved"
+  },
+  {
+   "t": 175.26,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "restore",
+   "msg": "Restore complete (0.5s) \u2014 back on GPU"
+  },
+  {
+   "t": 176.05,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 303.15,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 303.22,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 313.01,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.8s) \u2014 GPU state saved"
+  },
+  {
+   "t": 316.27,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 317.77,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 337.88,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 337.96,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 347.8,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.8s) \u2014 GPU state saved"
+  },
+  {
+   "t": 351.04,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 352.22,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 372.33,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 372.4,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 382.23,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.8s) \u2014 GPU state saved"
+  },
+  {
+   "t": 385.49,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 386.96,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 406.69,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 406.76,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 416.61,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.8s) \u2014 GPU state saved"
+  },
+  {
+   "t": 419.8,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 421.4,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 441.53,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 442.09,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 451.39,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.7s) \u2014 GPU state saved"
+  },
+  {
+   "t": 454.66,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 455.76,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 476.22,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 476.3,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 486.05,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.7s) \u2014 GPU state saved"
+  },
+  {
+   "t": 489.37,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 491.09,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 511.07,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 511.14,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 520.89,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.7s) \u2014 GPU state saved"
+  },
+  {
+   "t": 524.19,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 525.3,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 545.1,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 545.17,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 554.98,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.8s) \u2014 GPU state saved"
+  },
+  {
+   "t": 558.21,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 560.14,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 580.17,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 580.25,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 590.03,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.8s) \u2014 GPU state saved"
+  },
+  {
+   "t": 593.31,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 595.17,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 614.9,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 614.98,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 624.78,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.8s) \u2014 GPU state saved"
+  },
+  {
+   "t": 628.03,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 629.25,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 649.13,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 649.21,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 658.96,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.7s) \u2014 GPU state saved"
+  },
+  {
+   "t": 662.25,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 663.98,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 683.8,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 683.87,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 693.65,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.8s) \u2014 GPU state saved"
+  },
+  {
+   "t": 696.94,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 698.21,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 718.25,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 718.33,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 728.2,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.8s) \u2014 GPU state saved"
+  },
+  {
+   "t": 731.35,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "restore",
+   "msg": "Restore complete (3.0s) \u2014 back on GPU"
+  },
+  {
+   "t": 732.87,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 752.78,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 752.85,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 762.63,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.8s) \u2014 GPU state saved"
+  },
+  {
+   "t": 765.98,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "restore",
+   "msg": "Restore complete (3.2s) \u2014 back on GPU"
+  },
+  {
+   "t": 767.33,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 787.35,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 787.44,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 797.22,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.8s) \u2014 GPU state saved"
+  },
+  {
+   "t": 800.54,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 801.85,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 821.67,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 821.74,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 831.54,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.8s) \u2014 GPU state saved"
+  },
+  {
+   "t": 834.78,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 836.44,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 856.42,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 856.5,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 866.19,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.7s) \u2014 GPU state saved"
+  },
+  {
+   "t": 869.6,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 870.74,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 890.56,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 890.63,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 900.46,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.8s) \u2014 GPU state saved"
+  },
+  {
+   "t": 903.72,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 905.5,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 925.44,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 925.51,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 935.25,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.7s) \u2014 GPU state saved"
+  },
+  {
+   "t": 938.55,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 939.63,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 959.45,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 959.52,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 969.28,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.7s) \u2014 GPU state saved"
+  },
+  {
+   "t": 972.58,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 973.51,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 993.51,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  },
+  {
+   "t": 993.59,
+   "src": "ORC",
+   "job": "b3",
+   "kind": "acquire",
+   "msg": "Requesting GPU lock\u2026"
+  },
+  {
+   "t": 1003.41,
+   "src": "AGT",
+   "job": "b3",
+   "kind": "snap",
+   "msg": "Snapshot complete (9.8s) \u2014 GPU state saved"
+  },
+  {
+   "t": 1006.65,
+   "src": "AGT",
+   "job": "a3",
+   "kind": "restore",
+   "msg": "Restore complete (3.1s) \u2014 back on GPU"
+  },
+  {
+   "t": 1008.52,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "grant",
+   "msg": "Lock granted \u2014 context restored, training resumes"
+  },
+  {
+   "t": 1028.43,
+   "src": "ORC",
+   "job": "a3",
+   "kind": "yield",
+   "msg": "Step done \u2014 yielding GPU"
+  }
+ ],
+ "steps": {
+  "a3": [
+   {
+    "t": 164.68,
+    "step": 1,
+    "reward": 0.016
+   },
+   {
+    "t": 337.88,
+    "step": 2,
+    "reward": 0.008
+   },
+   {
+    "t": 406.69,
+    "step": 3,
+    "reward": 0.016
+   },
+   {
+    "t": 476.22,
+    "step": 4,
+    "reward": 0.016
+   },
+   {
+    "t": 545.1,
+    "step": 5,
+    "reward": 0.039
+   },
+   {
+    "t": 614.9,
+    "step": 6,
+    "reward": 0.063
+   },
+   {
+    "t": 683.8,
+    "step": 7,
+    "reward": 0.039
+   },
+   {
+    "t": 752.78,
+    "step": 8,
+    "reward": 0.055
+   },
+   {
+    "t": 821.67,
+    "step": 9,
+    "reward": 0.039
+   },
+   {
+    "t": 890.56,
+    "step": 10,
+    "reward": 0.094
+   },
+   {
+    "t": 959.45,
+    "step": 11,
+    "reward": 0.07
+   },
+   {
+    "t": 1028.43,
+    "step": 12,
+    "reward": 0.141
+   }
+  ],
+  "b3": [
+   {
+    "t": 303.15,
+    "step": 1,
+    "reward": 0.008
+   },
+   {
+    "t": 372.33,
+    "step": 2,
+    "reward": 0.016
+   },
+   {
+    "t": 441.53,
+    "step": 3,
+    "reward": 0.047
+   },
+   {
+    "t": 511.07,
+    "step": 4,
+    "reward": 0.016
+   },
+   {
+    "t": 580.17,
+    "step": 5,
+    "reward": 0.023
+   },
+   {
+    "t": 649.13,
+    "step": 6,
+    "reward": 0.016
+   },
+   {
+    "t": 718.25,
+    "step": 7,
+    "reward": 0.063
+   },
+   {
+    "t": 787.35,
+    "step": 8,
+    "reward": 0.102
+   },
+   {
+    "t": 856.42,
+    "step": 9,
+    "reward": 0.063
+   },
+   {
+    "t": 925.44,
+    "step": 10,
+    "reward": 0.117
+   },
+   {
+    "t": 993.51,
+    "step": 11,
+    "reward": 0.063
+   }
+  ]
+ },
+ "stats": {
+  "turns": 23,
+  "handoffs": 22,
+  "switch_mean_s": 14.4,
+  "snap_mean_s": 9.8,
+  "restore_mean_s": 3.0,
+  "total_s": 1029.49,
+  "steps_a": 12,
+  "steps_b": 11
+ },
+ "t0": "2026-07-20T23:27:47.338870"
+}

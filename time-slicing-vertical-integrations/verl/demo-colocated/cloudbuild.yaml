@@ -1,0 +1,30 @@
+# Assemble the captured dashboard frames into an MP4 (no local ffmpeg needed).
+# Submit from this directory once frames/ is populated:
+#   gcloud builds submit --project aishuk-test --config cloudbuild.yaml .
+steps:
+  - name: linuxserver/ffmpeg
+    entrypoint: ffmpeg
+    args:
+      - "-framerate"
+      - "12"
+      - "-i"
+      - "frames/f%05d.png"
+      - "-c:v"
+      - "libx264"
+      - "-preset"
+      - "slow"
+      - "-crf"
+      - "19"
+      - "-r"
+      - "24"
+      - "-pix_fmt"
+      - "yuv420p"
+      - "-movflags"
+      - "+faststart"
+      - "timeslice-verl-demo.mp4"
+artifacts:
+  objects:
+    location: gs://aishuk-test-rl-dashboards/verl-ease-demo/
+    paths:
+      - timeslice-verl-demo.mp4
+timeout: 1200s
