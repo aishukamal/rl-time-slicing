@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>See Time-Slicing in Action</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface-1: #fcfcfb; --page: #f9f9f7;
+    --text-primary: #0b0b0b; --text-secondary: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,0.10);
+    --job-a: #2a78d6; --job-b: #eb6834; --both: #1baf7a; --idle: #c3c2b7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      color-scheme: dark;
+      --surface-1: #1a1a19; --page: #0d0d0d;
+      --text-primary: #ffffff; --text-secondary: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+      --job-a: #3987e5; --job-b: #d95926; --both: #199e70; --idle: #383835;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body.viz-root { background: var(--page); color: var(--text-primary);
+    font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; padding: 20px; }
+  .wrap { max-width: 1320px; margin: 0 auto; }
+  header { margin-bottom: 10px; }
+  h1 { font-size: 21px; font-weight: 650; }
+  .sub { color: var(--text-secondary); font-size: 13px; margin-top: 3px; }
+  .runbar { display: flex; align-items: center; gap: 12px; margin: 12px 0 4px; flex-wrap: wrap; }
+  .runbar label { color: var(--text-secondary); font-size: 13px; }
+  .meta { color: var(--text-secondary); font-size: 13px; }
+  .meta b { color: var(--text-primary); font-weight: 600; }
+  .meta .dot { color: var(--muted); margin: 0 6px; }
+  .controls { display: flex; align-items: center; gap: 10px; margin: 10px 0 12px; flex-wrap: wrap; }
+  button.play { width: 92px; padding: 7px 0; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface-1); color: var(--text-primary); font: inherit; font-weight: 600; cursor: pointer; }
+  button.play:hover { border-color: var(--muted); }
+  select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface-1); color: var(--text-primary); font: inherit; }
+  .clock { font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+  .legend { display: flex; gap: 16px; margin-left: auto; align-items: center; font-size: 13px; flex-wrap: wrap; }
+  .key { display: inline-block; width: 14px; height: 4px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr 280px; gap: 14px; align-items: start; }
+  .cols.pools { grid-template-columns: 1fr 280px; }
+  .colhead { font-size: 14px; font-weight: 650; margin-bottom: 8px; }
+  .colhead .tag { font-weight: 400; color: var(--text-secondary); }
+  .panelcard, .side { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+  .panelcard { margin-bottom: 12px; }
+  .panelcard h2 { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+  canvas { display: block; width: 100%; }
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 2px; }
+  .tiles.two { grid-template-columns: repeat(2, 1fr); }
+  .tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; min-height: 74px; display: flex; flex-direction: column; justify-content: center; }
+  .tile .lbl { font-size: 11.5px; color: var(--muted); }
+  .tile .val { font-size: 20px; font-weight: 650; }
+  .side h2 { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+  .side .hint { font-size: 11.5px; color: var(--muted); margin-bottom: 8px; }
+  .feed { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; }
+  .feed li { padding: 6px 10px; border-left: 3px solid var(--baseline);
+    background: color-mix(in srgb, var(--surface-1) 88%, var(--page));
+    border-radius: 0 8px 8px 0; font-size: 12.5px; opacity: 0; transform: translateY(-4px); transition: opacity .25s, transform .25s; }
+  .feed li.show { opacity: 1; transform: none; }
+  .feed li .t { color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 6px; }
+  .feed li.jobA { border-left-color: var(--job-a); }
+  .feed li.jobB { border-left-color: var(--job-b); }
+  .feed li.pending { font-style: italic; }
+  .bottomrow { display: flex; gap: 14px; align-items: stretch; flex-wrap: wrap; margin-top: 20px; }
+  #summary { display: none; flex: 1; min-width: 380px; }
+  #summary .lbl { font-size: 11.5px; color: var(--muted); }
+  #summary .big { font-size: 32px; font-weight: 650; margin: 2px 0 8px; }
+  #summary p.l1 { color: var(--text-primary); font-weight: 600; font-size: 13.5px; }
+  #summary p { color: var(--text-secondary); font-size: 13px; margin-top: 4px; }
+  details.tbl { margin-top: 14px; color: var(--text-secondary); font-size: 13px; }
+  details.tbl table { border-collapse: collapse; margin-top: 8px; font-variant-numeric: tabular-nums; }
+  details.tbl th, details.tbl td { text-align: left; padding: 3px 12px 3px 0; border-bottom: 1px solid var(--grid); }
+  .foot { margin-top: 14px; color: var(--muted); font-size: 12px; max-width: 110ch; }
+  .tip { position: fixed; pointer-events: none; background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 9px; font-size: 12px; display: none; box-shadow: 0 2px 10px rgba(0,0,0,.12); z-index: 11; }
+  #convsec { flex: 0 1 720px; min-width: 420px; }
+  #convsec h2 { font-size: 14px; font-weight: 650; margin-bottom: 3px; }
+  #convsec .hint { color: var(--text-secondary); font-size: 12.5px; margin-bottom: 8px; }
+  #convsec .legend2 { display: flex; gap: 14px; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+  @media (max-width: 1000px) { .cols, .cols.pools { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="viz-root">
+<div class="wrap">
+  <header>
+    <h1>See Time-Slicing in Action</h1>
+    <div class="sub">Replays of real recorded runs — every curve, lock handoff, and snapshot/restore duration
+      comes from actual run telemetry.</div>
+  </header>
+
+  <div class="runbar">
+    <label for="runsel">Run</label>
+    <select id="runsel"></select>
+    <span class="meta" id="runmeta"></span>
+  </div>
+
+  <div class="controls" id="controls">
+    <button class="play" id="btn">&#9654; Play</button>
+    <label class="sub">Speed <select id="speed"></select></label>
+    <span class="clock" id="clock"></span>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="cols" id="cols"></div>
+
+  <div class="bottomrow">
+    <div id="convsec"></div>
+    <div class="panelcard" id="summary" style="margin-bottom:12px;">
+      <h2 style="font-size:14px; color:var(--text-primary); margin-bottom:2px;">Result</h2>
+      <div class="lbl" id="sum_lbl"></div>
+      <div class="big" id="sum_big"></div>
+      <p class="l1" id="sum_l1"></p>
+      <p id="sum_l2"></p>
+      <p id="sum_l3"></p>
+      <button class="play" id="replay" style="margin-top:12px;">&#8635; Replay</button>
+    </div>
+  </div>
+
+  <details class="tbl"><summary>All time-slice events (table view)</summary><div id="tblwrap"></div></details>
+  <p class="foot" id="foot"></p>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const DATA = /*__DATA__*/null;   // { runs: [ {label, meta:{...}, mode, ...} ] }
+
+const css = n => getComputedStyle(document.body).getPropertyValue(n).trim();
+const jobColor = j => j === 'A' ? css('--job-a') : j === 'B' ? css('--job-b') : css('--both');
+const fmtT = s => { s = Math.max(0, s|0); const m = (s/60)|0; return m + ':' + String(s%60).padStart(2,'0'); };
+const fmtMs = ms => ms >= 1000 ? (ms/1000).toFixed(1) + 's' : ms + 'ms';
+const tip = document.getElementById('tip');
+const $ = id => document.getElementById(id);
+
+// ---------- panel constructors ----------
+function ownerAt(windows, t) {
+  const holders = [];
+  for (const pool in windows)
+    for (const w of windows[pool])
+      if (t >= w.t0 && t < w.t1) { holders.push(w.job); break; }
+  if (!holders.length) return null;
+  return holders.every(j => j === holders[0]) ? holders[0] : 'BOTH';
+}
+
+function utilPanel(R, canvas, side, series, opts) {
+  const ctx = canvas.getContext('2d');
+  const nStrips = opts.strips ? Object.keys(side.windows).length : 0;
+  const reserved = nStrips || opts.reserve || 0;
+  const P = { l: (nStrips || opts.reserve) ? 58 : 34, r: 8, t: 8, b: 18, strip: 9 };
+  let W, H;
+  function size() {
+    const dpr = window.devicePixelRatio || 1;
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  size();
+  addEventListener('resize', () => { if (canvas.isConnected) { size(); draw(lastNow); } });
+  const X = t => P.l + (t / R.DUR) * (W - P.l - P.r);
+  const plotH = () => H - P.t - P.b - reserved * (P.strip + 3);
+  const Y = v => P.t + (1 - v / 105) * plotH();
+
+  let lastNow = 0;
+  function draw(now) {
+    lastNow = now;
+    const local = Math.min(now, side.duration_s);
+    ctx.clearRect(0, 0, W, H);
+    ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1;
+    for (const g of [0, 50, 100]) {
+      ctx.beginPath(); ctx.moveTo(P.l, Y(g)); ctx.lineTo(W - P.r, Y(g)); ctx.stroke();
+      ctx.fillStyle = css('--muted'); ctx.font = '10px system-ui'; ctx.textAlign = 'right';
+      ctx.fillText(g, P.l - 5, Y(g) + 3);
+    }
+    ctx.textAlign = 'center';
+    const tick = R.DUR > 7200 ? 1800 : 600;
+    for (let m = 0; m * tick <= R.DUR; m++)
+      ctx.fillText((m * tick / 60) + 'm', X(m * tick), H - P.b + 12);
+
+    let seg = [], segO;
+    const flush = () => {
+      if (seg.length < 2) { seg = []; return; }
+      const col = segO === null ? css('--idle') : segO === 'BOTH' ? css('--both') : jobColor(segO);
+      ctx.beginPath(); ctx.moveTo(seg[0][0], Y(0));
+      for (const [x, y] of seg) ctx.lineTo(x, y);
+      ctx.lineTo(seg[seg.length-1][0], Y(0)); ctx.closePath();
+      ctx.globalAlpha = 0.10; ctx.fillStyle = col; ctx.fill(); ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      ctx.strokeStyle = col; ctx.lineWidth = 2;
+      seg.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+      ctx.stroke();
+      seg = [];
+    };
+    let lastPt = null;
+    for (const [t, v] of series) {
+      if (t > local) break;
+      const o = opts.fixedOwner !== undefined ? opts.fixedOwner : ownerAt(side.windows, t);
+      if (seg.length && o !== segO) { seg.push([X(t), Y(v)]); flush(); }
+      if (!seg.length) segO = o;
+      seg.push([X(t), Y(v)]);
+      lastPt = [X(t), Y(v), o];
+    }
+    flush();
+    if (lastPt && local < side.duration_s) {
+      ctx.beginPath(); ctx.arc(lastPt[0], lastPt[1], 6, 0, 7); ctx.fillStyle = css('--surface-1'); ctx.fill();
+      ctx.beginPath(); ctx.arc(lastPt[0], lastPt[1], 4, 0, 7);
+      ctx.fillStyle = lastPt[2] === null ? css('--idle') : lastPt[2] === 'BOTH' ? css('--both') : jobColor(lastPt[2]);
+      ctx.fill();
+    }
+    if (nStrips) {
+      let sy = P.t + plotH() + 3;
+      for (const pool of Object.keys(side.windows)) {
+        for (const w of side.windows[pool]) {
+          if (w.t0 > local) break;
+          ctx.fillStyle = jobColor(w.job);
+          ctx.beginPath();
+          ctx.roundRect(X(w.t0), sy, Math.max(1, X(Math.min(w.t1, local)) - X(w.t0)), P.strip, 2);
+          ctx.fill();
+        }
+        if (nStrips > 1) {
+          ctx.fillStyle = css('--muted'); ctx.font = '10px system-ui'; ctx.textAlign = 'right';
+          ctx.fillText(pool, P.l - 6, sy + P.strip - 2);
+        }
+        sy += P.strip + 3;
+      }
+    }
+    if (local >= side.duration_s && side.duration_s < R.DUR) {
+      const x = X(side.duration_s);
+      ctx.strokeStyle = css('--muted'); ctx.setLineDash([4, 3]);
+      ctx.beginPath(); ctx.moveTo(x, P.t); ctx.lineTo(x, H - P.b); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = css('--muted'); ctx.textAlign = 'left'; ctx.font = '11px system-ui';
+      ctx.fillText('done', x + 5, P.t + 12);
+    } else {
+      const px = X(local);
+      ctx.strokeStyle = css('--baseline'); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(px, P.t); ctx.lineTo(px, H - P.b); ctx.stroke();
+    }
+  }
+  canvas.addEventListener('mousemove', ev => {
+    const r = canvas.getBoundingClientRect();
+    const t = (ev.clientX - r.left - P.l) / (W - P.l - P.r) * R.DUR;
+    if (t < 0 || t > Math.min(lastNow, side.duration_s)) { tip.style.display = 'none'; return; }
+    let best = null;
+    for (const [ts, v] of series) { if (ts > t) break; best = [ts, v]; }
+    if (!best) return;
+    const o = opts.fixedOwner !== undefined ? opts.fixedOwner : ownerAt(side.windows, best[0]);
+    tip.style.display = 'block';
+    tip.style.left = (ev.clientX + 14) + 'px'; tip.style.top = (ev.clientY + 10) + 'px';
+    tip.innerHTML = `<b>${fmtT(best[0])}</b> &middot; util ${best[1]}%` +
+      (o === null ? ' &middot; no lock held' : o === 'BOTH' ? ' &middot; pipelined: A + B' : ` &middot; Job ${o}`);
+  });
+  canvas.addEventListener('mouseleave', () => tip.style.display = 'none');
+  return { draw };
+}
+
+function poolPanel(R, canvas, side, pool) {
+  const ctx = canvas.getContext('2d');
+  const wins = side.windows[pool] || [];
+  const P = { l: 34, r: 8, t: 10, b: 18 };
+  let W, H;
+  function size() {
+    const dpr = window.devicePixelRatio || 1;
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  size();
+  addEventListener('resize', () => { if (canvas.isConnected) { size(); draw(lastNow); } });
+  const X = t => P.l + (t / R.DUR) * (W - P.l - P.r);
+  const barY = () => P.t + 14;
+  const barH = () => H - P.t - P.b - 24;
+
+  let lastNow = 0;
+  function draw(now) {
+    lastNow = now;
+    ctx.clearRect(0, 0, W, H);
+    ctx.textAlign = 'center'; ctx.fillStyle = css('--muted'); ctx.font = '10px system-ui';
+    for (let m = 0; m * 60 <= R.DUR; m++)
+      ctx.fillText(m + 'm', X(m * 60), H - 5);
+    ctx.fillStyle = css('--page');
+    ctx.beginPath(); ctx.roundRect(P.l, barY(), W - P.l - P.r, barH(), 5); ctx.fill();
+    for (const w of wins) {
+      if (w.t0 > now) break;
+      ctx.fillStyle = jobColor(w.job);
+      ctx.beginPath();
+      ctx.roundRect(X(w.t0) + 1, barY() + 2, Math.max(1.5, X(Math.min(w.t1, now)) - X(w.t0) - 2), barH() - 4, 3);
+      ctx.fill();
+    }
+    for (const e of side.events) {
+      if (e.t > now) break;
+      if (e.pool !== pool || (e.kind !== 'ckpt_done' && e.kind !== 'restore_done')) continue;
+      const x = X(e.t);
+      ctx.fillStyle = jobColor(e.job);
+      ctx.beginPath();
+      if (e.kind === 'ckpt_done') { ctx.moveTo(x-4, barY()-10); ctx.lineTo(x+4, barY()-10); ctx.lineTo(x, barY()-3); }
+      else { ctx.moveTo(x-4, barY()-3); ctx.lineTo(x+4, barY()-3); ctx.lineTo(x, barY()-10); }
+      ctx.closePath(); ctx.fill();
+    }
+    const px = X(Math.min(now, R.DUR));
+    ctx.strokeStyle = css('--baseline'); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(px, P.t); ctx.lineTo(px, H - P.b); ctx.stroke();
+  }
+  canvas.addEventListener('mousemove', ev => {
+    const r = canvas.getBoundingClientRect();
+    const t = (ev.clientX - r.left - P.l) / (W - P.l - P.r) * R.DUR;
+    if (t < 0 || t > lastNow) { tip.style.display = 'none'; return; }
+    const w = wins.find(w => t >= w.t0 && t < Math.min(w.t1, lastNow));
+    tip.style.display = 'block';
+    tip.style.left = (ev.clientX + 14) + 'px'; tip.style.top = (ev.clientY + 10) + 'px';
+    tip.innerHTML = w
+      ? `<b>${pool}</b> &middot; Job ${w.job} holds lock &middot; ${fmtT(w.t0)} &rarr; ${fmtT(Math.min(w.t1, lastNow))}`
+      : `<b>${pool}</b> &middot; no holder at ${fmtT(t)}`;
+  });
+  canvas.addEventListener('mouseleave', () => tip.style.display = 'none');
+  return { draw };
+}
+
+// ---------- run lifecycle ----------
+let R = null;
+
+function initRun(run) {
+  const RACE = run.mode === 'race';
+  R = { run, RACE,
+        DUR: RACE ? Math.max(run.baseline.duration_s, run.timeslice.duration_s) : run.timeslice.duration_s,
+        now: 0, playing: false, evIdx: 0, ckN: 0, opsN: 0, handoffs: 0, baseDone: false,
+        pending: {}, panels: [] };
+
+  $('runmeta').innerHTML = Object.values(run.meta).map(v => `<b>${v}</b>`).join('<span class="dot">&middot;</span>');
+
+  const speeds = RACE ? [120, 240, 360, 600] : [6, 12, 24, 48];
+  const def = RACE ? 240 : 12;
+  $('speed').innerHTML = speeds.map(s => `<option value="${s}" ${s===def?'selected':''}>${s}&times;</option>`).join('');
+
+  const legendHTML =
+    `<span><span class="key" style="background:var(--job-a)"></span>Job A</span>
+     <span style="margin-left:14px"><span class="key" style="background:var(--job-b)"></span>Job B</span>
+     <span style="margin-left:14px"><span class="key" style="background:var(--idle)"></span>no lock held</span>`;
+  $('legend').innerHTML = RACE ? '' : legendHTML;
+
+  const cols = $('cols');
+  if (RACE) {
+    const pm = run.pool_map || { '0': 'pool 0', '1': 'pool 1' };
+    const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+    cols.className = 'cols';
+    cols.innerHTML = `
+      <div>
+        <div class="colhead">Baseline <span class="tag">— 1 job, dedicated node</span></div>
+        <div class="panelcard"><h2>GPU 0 &middot; ${cap(pm['0'])} — utilization %</h2><canvas id="pb0" height="146"></canvas></div>
+        <div class="panelcard"><h2>GPU 1 &middot; ${cap(pm['1'])} — utilization %</h2><canvas id="pb1" height="146"></canvas></div>
+        <div class="tiles two">
+          <div class="tile"><div class="lbl" id="b_done_lbl">Job A running&hellip;</div><div class="val" id="b_done">0:00</div></div>
+          <div class="tile"><div class="lbl">2 jobs back-to-back would take</div><div class="val" id="b_proj">&ndash;</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="colhead">Time-sliced <span class="tag">— 2 jobs share it via checkpoint/restore</span></div>
+        <div class="panelcard"><h2>GPU 0 &middot; ${cap(pm['0'])} — utilization %</h2><canvas id="pt0" height="146"></canvas></div>
+        <div class="panelcard"><h2>GPU 1 &middot; ${cap(pm['1'])} — utilization %</h2><canvas id="pt1" height="146"></canvas></div>
+        <div class="tiles">
+          <div class="tile"><div class="lbl">Elapsed</div><div class="val" id="t_el">0:00</div></div>
+          <div class="tile"><div class="lbl">C/R swaps</div><div class="val" id="t_sw">0</div></div>
+          <div class="tile"><div class="lbl">Median snapshot</div><div class="val" id="t_ck">&ndash;</div></div>
+          <div class="tile"><div class="lbl">Median restore</div><div class="val" id="t_rs">&ndash;</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="colhead" id="asidehead"></div>
+        <aside class="side">
+          <h2>Orchestrator events</h2>
+          <div class="hint">Lock queue: which job is granted / yields each pool.</div>
+          <ul class="feed" id="feed_orch"></ul>
+          <h2 style="margin-top:14px">Snapshot agent events</h2>
+          <div class="hint">C/R execution with real measured durations.</div>
+          <ul class="feed" id="feed_agent"></ul>
+        </aside>
+      </div>`;
+    const poolSide = pool => ({ ...run.timeslice, windows: { [pool]: run.timeslice.windows[pool] || [] } });
+    R.panels = [
+      utilPanel(R, $('pb0'), run.baseline, run.baseline.duty_gpus['0'], { fixedOwner: 'A', strips: false, reserve: 1 }),
+      utilPanel(R, $('pb1'), run.baseline, run.baseline.duty_gpus['1'], { fixedOwner: 'A', strips: false, reserve: 1 }),
+      utilPanel(R, $('pt0'), poolSide(pm['0']), run.timeslice.duty_gpus['0'], { strips: true }),
+      utilPanel(R, $('pt1'), poolSide(pm['1']), run.timeslice.duty_gpus['1'], { strips: true }),
+    ];
+  } else {
+    cols.className = 'cols pools';
+    cols.innerHTML = `
+      <div>
+        <div class="colhead">Time-sliced node <span class="tag">— 2 jobs, dual-pool alternation</span></div>
+        <div class="panelcard"><h2>Trainer pool — lock ownership</h2><canvas id="pool0" height="120"></canvas></div>
+        <div class="panelcard"><h2>Sampler pool — lock ownership</h2><canvas id="pool1" height="120"></canvas></div>
+        <div class="tiles">
+          <div class="tile"><div class="lbl">Elapsed</div><div class="val" id="t_el">0:00</div></div>
+          <div class="tile"><div class="lbl">Lock handoffs</div><div class="val" id="t_sw">0</div></div>
+          <div class="tile"><div class="lbl">Agent ops</div><div class="val" id="t_ops">0</div></div>
+          <div class="tile"><div class="lbl">Jobs completed</div><div class="val" id="t_done">0 / 2</div></div>
+        </div>
+      </div>
+      <aside class="side">
+        <h2>Orchestrator events</h2>
+        <div class="hint">Lock queue: grants and yields per pool.</div>
+        <ul class="feed" id="feed_orch"></ul>
+        <h2 style="margin-top:14px">Snapshot agent events</h2>
+        <div class="hint">Snapshot/restore directives (no-ops in this run &mdash; see footnote).</div>
+        <ul class="feed" id="feed_agent"></ul>
+      </aside>`;
+    R.panels = [
+      poolPanel(R, $('pool0'), run.timeslice, 'trainers'),
+      poolPanel(R, $('pool1'), run.timeslice, 'samplers'),
+    ];
+  }
+
+  if (RACE) { const ah = $('asidehead'); if (ah) ah.innerHTML = legendHTML; }
+
+  // compact convergence chart (race only)
+  const sec = $('convsec');
+  if (RACE && run.rewards) {
+    sec.innerHTML = `
+      <div class="panelcard" style="height:100%;">
+        <h2 style="font-size:14px; color:var(--text-primary); margin-bottom:2px;">Convergence</h2>
+        <div class="hint">Mean reward per training step — both time-sliced jobs track the dedicated-GPU baseline.</div>
+        <div class="legend2">
+          <span><span class="key" style="background:var(--job-a)"></span>Job A</span>
+          <span><span class="key" style="background:var(--job-b)"></span>Job B</span>
+          <span><span class="key" style="background:var(--idle)"></span>Baseline</span>
+        </div>
+        <canvas id="conv" height="120"></canvas>
+      </div>`;
+    const canvas = $('conv'), ctx = canvas.getContext('2d');
+    function drawConv() {
+      if (!canvas.isConnected) return;
+      const dpr = window.devicePixelRatio || 1;
+      const W = canvas.clientWidth, H = canvas.clientHeight;
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      const P = { l: 34, r: 12, t: 8, b: 20 };
+      const X = s => P.l + (s - 1) / 9 * (W - P.l - P.r);
+      const Y = v => P.t + (1 - v / 0.8) * (H - P.t - P.b);
+      ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1; ctx.font = '10px system-ui';
+      for (let v = 0; v <= 0.8; v += 0.4) {
+        ctx.beginPath(); ctx.moveTo(P.l, Y(v)); ctx.lineTo(W - P.r, Y(v)); ctx.stroke();
+        ctx.fillStyle = css('--muted'); ctx.textAlign = 'right'; ctx.fillText(v.toFixed(1), P.l - 5, Y(v) + 3);
+      }
+      ctx.textAlign = 'center';
+      for (let s = 1; s <= 10; s++) ctx.fillText(s, X(s), H - 6);
+      for (const [k, col] of [['job-a', css('--job-a')], ['job-b', css('--job-b')], ['baseline', css('--idle')]]) {
+        const pts = run.rewards[k];
+        ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+        pts.forEach((p, i) => i ? ctx.lineTo(X(p.step), Y(p.reward)) : ctx.moveTo(X(p.step), Y(p.reward)));
+        ctx.stroke();
+        for (const p of pts) {
+          ctx.beginPath(); ctx.arc(X(p.step), Y(p.reward), 4.5, 0, 7); ctx.fillStyle = css('--surface-1'); ctx.fill();
+          ctx.beginPath(); ctx.arc(X(p.step), Y(p.reward), 3, 0, 7); ctx.fillStyle = col; ctx.fill();
+        }
+      }
+    }
+    drawConv(); addEventListener('resize', drawConv);
+  } else {
+    sec.innerHTML = '';
+  }
+
+  // table view
+  const rows = run.timeslice.events
+    .filter(e => ['acquired','yielded','ckpt_done','restore_done'].includes(e.kind))
+    .map(e => `<tr><td>${fmtT(e.t)}</td><td>Job ${e.job}</td><td>${e.pool}</td><td>${e.kind}</td>` +
+      `<td>${e.ms ? fmtMs(e.ms) : e.ckpt_ms ? fmtMs(e.ckpt_ms) : e.restore_ms ? fmtMs(e.restore_ms) : ''}</td></tr>`).join('');
+  $('tblwrap').innerHTML =
+    `<table><tr><th>t</th><th>job</th><th>pool</th><th>event</th><th>C/R time</th></tr>${rows}</table>`;
+
+  $('foot').textContent = run.foot;
+  $('btn').innerHTML = '&#9654; Play';
+  resetRun();
+}
+
+function addEntry(feed, e, txt, cls) {
+  const li = document.createElement('li');
+  li.className = 'job' + e.job + (cls ? ' ' + cls : '');
+  li.innerHTML = `<span class="t">${fmtT(e.t)}</span>${txt}`;
+  feed.prepend(li);
+  requestAnimationFrame(() => li.classList.add('show'));
+  while (feed.children.length > 40) feed.lastChild.remove();
+  return li;
+}
+
+function pushFeed(e) {
+  const feedOrch = $('feed_orch'), feedAgent = $('feed_agent');
+  const key = e.job + ':' + e.pool;
+  switch (e.kind) {
+    case 'acquired':
+      R.handoffs++;
+      addEntry(feedOrch, e, `Acquired: Job ${e.job} &middot; ${e.pool}` +
+        (e.wait_ms > 0 ? ` (waited ${fmtMs(e.wait_ms)})` : ''));
+      break;
+    case 'yielded':
+      addEntry(feedOrch, e, `Yielded: Job ${e.job} &middot; ${e.pool}`);
+      break;
+    case 'checkpointing':
+      R.pending[key] = addEntry(feedAgent, e, `&#9208; Snapshotting Job ${e.job} ${e.pool}&hellip;`, 'pending');
+      break;
+    case 'restoring':
+      R.pending[key] = addEntry(feedAgent, e, `&#9654; Restoring Job ${e.job} ${e.pool}&hellip;`, 'pending');
+      break;
+    case 'ckpt_done':
+      R.ckN++; R.opsN++;
+      if (R.pending[key]) {
+        const li = R.pending[key]; delete R.pending[key]; li.classList.remove('pending');
+        li.innerHTML = `<span class="t">${fmtT(e.t)}</span>&#10003; Snapshot Job ${e.job} ${e.pool}: ${fmtMs(e.ms)} &mdash; accelerators released`;
+      } else addEntry(feedAgent, e, `&#10003; Snapshot Job ${e.job} ${e.pool}` + (e.ms ? `: ${fmtMs(e.ms)}` : ' (no-op)'));
+      break;
+    case 'restore_done':
+      R.opsN++;
+      if (R.pending[key]) {
+        const li = R.pending[key]; delete R.pending[key]; li.classList.remove('pending');
+        li.innerHTML = `<span class="t">${fmtT(e.t)}</span>&#10003; Restore Job ${e.job} ${e.pool}: ${fmtMs(e.ms)} &mdash; state back on GPU`;
+      } else addEntry(feedAgent, e, `&#10003; Restore Job ${e.job} ${e.pool}` + (e.ms ? `: ${fmtMs(e.ms)}` : ' (no-op)'));
+      break;
+  }
+}
+
+function tiles() {
+  const S = R.run.summary;
+  $('t_el').textContent = fmtT(Math.min(R.now, R.run.timeslice.duration_s));
+  $('t_sw').textContent = R.RACE ? R.ckN : R.handoffs;
+  if (R.RACE) {
+    $('t_ck').textContent = R.ckN ? fmtMs(S.med_ckpt_ms) : '–';
+    $('t_rs').textContent = R.ckN ? fmtMs(S.med_restore_ms) : '–';
+    if (R.now >= R.run.baseline.duration_s) {
+      if (!R.baseDone) {
+        R.baseDone = true;
+        $('b_done_lbl').textContent = 'Job finished in';
+        $('b_done').textContent = S.base_min + ' min';
+        $('b_proj').textContent = (2 * S.base_min) + ' min';
+      }
+    } else {
+      $('b_done').textContent = fmtT(R.now);
+    }
+  } else {
+    $('t_ops').textContent = R.opsN;
+    $('t_done').textContent = (R.now >= R.DUR ? 2 : 0) + ' / 2';
+  }
+  $('clock').textContent = `${fmtT(R.now)} / ${fmtT(R.DUR)} run time`;
+}
+
+function frame(tsNow) {
+  if (!R.playing) return;
+  const dt = (tsNow - R.lastFrame) / 1000; R.lastFrame = tsNow;
+  R.now = Math.min(R.now + dt * +$('speed').value, R.DUR);
+  const evs = R.run.timeslice.events;
+  while (R.evIdx < evs.length && evs[R.evIdx].t <= R.now) pushFeed(evs[R.evIdx++]);
+  for (const p of R.panels) p.draw(R.now);
+  tiles();
+  if (R.now >= R.DUR) { R.playing = false; $('btn').innerHTML = '&#9654; Play'; finish(); return; }
+  requestAnimationFrame(frame);
+}
+
+function finish() {
+  const S = R.run.summary;
+  if (R.RACE) {
+    $('sum_lbl').textContent = 'GPU duty cycle, baseline → time-sliced';
+    $('sum_big').textContent = `${Math.round(S.duty_base)}% → ${Math.round(S.duty_ts)}%`;
+    $('sum_l1').textContent =
+      Object.entries(S.duty_gpu).map(([g, d]) => `GPU ${g}: ${Math.round(d[0])}% → ${Math.round(d[1])}%`).join('   ·   ');
+    $('sum_l2').textContent =
+      `Throughput ${S.speedup}× — 2 jobs in ${S.ts_min} min vs ${2*S.base_min} min back-to-back ` +
+      `(${S.swaps} C/R swaps · median snapshot ${fmtMs(S.med_ckpt_ms)} · median restore ${fmtMs(S.med_restore_ms)})`;
+    $('sum_l3').textContent =
+      `${S.cost_saving_pct}% fewer GPU-hours per job on the same hardware — reward curves match the baseline step for step.`;
+  } else {
+    $('sum_lbl').textContent = 'Run result';
+    $('sum_big').textContent = '2 / 2 jobs succeeded';
+    $('sum_l1').textContent =
+      `${S.handoffs} lock handoffs · ${S.snapshots + S.restores} agent operations · ${S.wall_min} min total`;
+    $('sum_l2').textContent =
+      'Clean alternation on both pools for the full run — the orchestrator promoted the waiting job on every yield.';
+    $('sum_l3').textContent = '';
+  }
+  $('summary').style.display = 'block';
+}
+
+function resetRun() {
+  R.now = 0; R.evIdx = 0; R.ckN = 0; R.opsN = 0; R.handoffs = 0; R.baseDone = false;
+  for (const k in R.pending) delete R.pending[k];
+  $('feed_orch').innerHTML = ''; $('feed_agent').innerHTML = '';
+  $('summary').style.display = 'none';
+  if (R.RACE) {
+    $('b_done_lbl').textContent = 'Job A running…';
+    $('b_done').textContent = '0:00';
+    $('b_proj').textContent = '–';
+  }
+  for (const p of R.panels) p.draw(0);
+  tiles();
+}
+
+$('btn').onclick = () => {
+  if (R.now >= R.DUR) resetRun();
+  R.playing = !R.playing;
+  $('btn').innerHTML = R.playing ? '&#9646;&#9646; Pause' : '&#9654; Play';
+  if (R.playing) { R.lastFrame = performance.now(); requestAnimationFrame(frame); }
+};
+$('replay').onclick = () => { resetRun(); $('btn').click(); };
+
+// ---------- run selector ----------
+const sel = $('runsel');
+sel.innerHTML = DATA.runs.map((r, i) => `<option value="${i}">${r.label}</option>`).join('');
+sel.onchange = () => { if (R) R.playing = false; initRun(DATA.runs[+sel.value]); };
+initRun(DATA.runs[0]);
+
+// ---------- capture hook (?run=IDX&t=SEC&end=1) ----------
+const qs = new URLSearchParams(location.search);
+if (qs.get('run')) { sel.value = qs.get('run'); initRun(DATA.runs[+sel.value]); }
+if (qs.get('t')) {
+  R.now = Math.min(parseFloat(qs.get('t')), R.DUR);
+  const evs = R.run.timeslice.events;
+  while (R.evIdx < evs.length && evs[R.evIdx].t <= R.now) pushFeed(evs[R.evIdx++]);
+  document.querySelectorAll('.feed li').forEach(li => li.classList.add('show'));
+  for (const p of R.panels) p.draw(R.now);
+  tiles();
+  if (qs.get('end')) finish();
+}
+</script>
+</body>
+</html>

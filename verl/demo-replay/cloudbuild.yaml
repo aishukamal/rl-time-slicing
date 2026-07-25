@@ -1,0 +1,28 @@
+steps:
+  - name: 'linuxserver/ffmpeg'
+    entrypoint: /bin/bash
+    args:
+      - -c
+      - |
+        set -e
+        for demo in verl slime; do
+          if [ -d frames-$demo ]; then
+            # MP4 (10fps input, smooth 30fps output, h264 for GitHub embed)
+            ffmpeg -y -framerate 10 -i frames-$demo/frame_%04d.png \
+              -vf "scale=1200:-2:flags=lanczos,fps=30" \
+              -c:v libx264 -pix_fmt yuv420p -crf 21 -movflags +faststart \
+              $demo-timeslice-demo.mp4
+            # GIF for README hero (900px, 8fps, palette-optimized, every 2nd frame)
+            ffmpeg -y -framerate 10 -i frames-$demo/frame_%04d.png \
+              -vf "select=not(mod(n\,2)),setpts=N/8/TB,scale=900:-1:flags=lanczos,palettegen=max_colors=128" palette-$demo.png
+            ffmpeg -y -framerate 10 -i frames-$demo/frame_%04d.png -i palette-$demo.png \
+              -lavfi "select=not(mod(n\,2)),setpts=N/8/TB,scale=900:-1:flags=lanczos [x]; [x][1:v] paletteuse=dither=bayer:bayer_scale=4" \
+              -r 8 $demo-timeslice-demo.gif
+          fi
+        done
+        ls -la *.mp4 *.gif
+artifacts:
+  objects:
+    location: 'gs://aishuk-test_cloudbuild/timeslice-demos/'
+    paths: ['*.mp4', '*.gif']
+timeout: 900s
