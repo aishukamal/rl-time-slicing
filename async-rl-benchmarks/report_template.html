@@ -263,6 +263,27 @@ the same rollouter-bound schedule.)</p>
 
 {{IMG:P4_TIMELINES|Phase 4: s=0 is a textbook anti-phase square wave with 3+ minute trainer gaps; at s=8 and s=∞ the rollout GPU pins at 100% while the trainer square-waves forever}}
 
+<h3>Scaling the lever: same run at max_response_length=16384</h3>
+
+<p>A follow-up validation run changed <em>only</em> the response cap (8192 → 16384), holding everything else
+fixed, to size idle blocks for the time-slicing PoC. Response length is confirmed as the lever — with one
+refinement: training time scales with sequence length too, so blocks grow sublinearly.</p>
+
+<table>
+<tr><th></th><th>s=8, 8K cap</th><th>s=8, 16K cap</th></tr>
+<tr><td>response_length mean</td><td>5.9K (cap-pinned)</td><td>8.2K (max pinned at 16384)</td></tr>
+<tr><td>Step cadence</td><td>223s</td><td><strong>407s</strong></td></tr>
+<tr><td>Trainer update</td><td>124s</td><td>185s (grows with seq length)</td></tr>
+<tr class="hl"><td>Trainer idle</td><td>45.5%, ~96s blocks</td><td><strong>59.6%, ~201s blocks (max 286s)</strong></td></tr>
+<tr><td>Rollout GPU util</td><td>99.2%</td><td>99.5%</td></tr>
+</table>
+
+<p>The imbalance law lands exactly: idle block = gen − train = 407 − 185 ≈ 201s measured. At realistic
+reasoning lengths the trainer is idle <strong>more than it is busy</strong> — and two such trainers
+(185s busy per 407s cycle) pack onto one shared GPU with slack, the basis of the time-slicing PoC.</p>
+
+{{IMG:P4_16K|16K validation: the trainer square-waves (59.6% idle, 3.3–4.8 min gaps) while the rollout GPU runs a solid ~100% for 88 minutes, dipping 1–2s only at weight syncs}}
+
 <h3>Phase 4 conclusions</h3>
 <ul>
 <li><strong>The trainer starves at every staleness value.</strong> The message queue never buffered a single sample in any run — a staleness budget only matters if the rollouter can get ahead, and a rollouter needing ~210s/batch against a ~124s consumer never gets ahead. s=8 and s=∞ are statistically identical.</li>
