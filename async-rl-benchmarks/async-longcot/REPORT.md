@@ -69,6 +69,25 @@ throughput imbalance.**
    the model learns; contexts grow across turns). Time-slicing harvests the residual bubble
    wherever it currently is.
 
+## Follow-up: 16K validation run (s=8, max_response_length=16384)
+
+Run to size trainer idle blocks for the time-slicing PoC (11 steps, zero crashes;
+`k8s-job-async-longcot-16k.yaml`, results `run_s8_16k_*`):
+
+| Metric | 8K run (s=8) | **16K run (s=8)** |
+|---|---|---|
+| Step cadence | 223s | **407s** (322-513s) |
+| Trainer update | 124s | **185s** (scales with seq length) |
+| Trainer idle | 45.5%, ~96s blocks | **59.6%, ~201s blocks (max 286s)** |
+| Rollout GPU util | 99.2% | **99.5%** |
+| response_length mean | 5.9K (cap-pinned) | **8.2K** (max pinned at 16384) |
+
+The imbalance law holds exactly: idle block = gen − train = 407 − 185 ≈ 201s measured. Two
+practical notes: update time is NOT flat in response length (grew 124→185s), and raising the cap
+only lengthens the >8K tail (mean grew 1.38×, not 2×). **PoC-relevant packing fact: two 185s
+trainers fit inside one 407s cycle with slack — 2 jobs can share 1 trainer GPU at ~91% packing
+with no step-time impact.**
+
 ## Artifacts
 
 `results/`: `run_{s0,s8,sinf}_{gpu_util.csv,train.log,experiment.log}`, `run_*_summary.json`,
