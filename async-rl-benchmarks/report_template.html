@@ -117,8 +117,8 @@ generation is the slower side, staleness does not bind at all.</div>
 
 {{IMG:P4_REGIME|The regime map: harvestable idle per GPU, workload balance × staleness policy (Phases 3 & 4, identical harness)}}
 
-<p><strong>Bottom line for time-slicing:</strong> the flagship community workload — R1/DAPO-style long
-chain-of-thought reasoning RL — leaves the trainer GPU idle 46–64% of the time in minute-plus periodic blocks
+<p><strong>Bottom line for time-slicing:</strong> the dominant open RL recipe family — DeepSeek-R1 / DAPO-style
+long chain-of-thought reasoning RL — leaves the trainer GPU idle 46–64% of the time in minute-plus periodic blocks
 under veRL's own async mode, regardless of staleness policy. On-policy modes additionally idle the rollout GPU in
 anti-phase. Only the divergent regime (unbounded staleness on a train-heavy workload) offers nothing to harvest.</p>
 
@@ -236,9 +236,10 @@ multi-hop QA answers are short, so the multi-turn structure adds latency but not
 
 <h2 id="phase4">6 · Phase 4 — Staleness sweep, gen-heavy workload <span class="pill">async-longcot/</span></h2>
 
-<p><strong>Question:</strong> the community's flagship RL workload is long chain-of-thought reasoning (R1/DAPO-style),
-where blogs consistently report generation dominating (3:1 to 10:1). On such a workload, can <em>any</em> staleness
-policy keep the trainer busy?</p>
+<p><strong>Question:</strong> the most-replicated open RL recipe family is long chain-of-thought reasoning RLVR —
+DeepSeek-R1 popularized it, DAPO is its standard open recipe, and it is the evaluation workload of the async-RL
+systems literature (AReaL, StreamRL, PipelineRL), which consistently reports generation dominating (3:1 to 10:1).
+On such a workload, can <em>any</em> staleness policy keep the trainer busy?</p>
 
 <p><strong>Setup:</strong> DeepSeek-R1-Distill-Qwen-1.5B on DAPO-Math-17k (in-tree <code>math_dapo</code> reward),
 single-turn, <code>max_response_length=8192</code>, same async harness and 1+1 H100 split as Phase 3, no tools.
@@ -269,7 +270,7 @@ Zero crashes, zero redeploys, across all three runs.</p>
 <tr><td>Sync <strong>colocated</strong> (any workload)</td><td>none reclaimable (~34% low-util but GPUs allocated & role-switching)</td><td>fragmented sub-minute slices</td><td>✗ — disaggregation is a prerequisite</td></tr>
 <tr class="hl"><td>On-policy disagg (sync RL, or async s=0) — <strong>any workload</strong></td><td>~50% of total capacity</td><td>anti-phase per-step blocks on both GPUs (27s–3.3 min, ratio-dependent)</td><td>✓✓ — richest target; schedule against the phase</td></tr>
 <tr><td>Bounded staleness, <strong>train-heavy</strong> workload</td><td>28–48% of rollout GPU</td><td>regular ~30s blocks, rollout side only</td><td>✓ — target the rollout GPU</td></tr>
-<tr class="hl"><td>Bounded or unbounded staleness, <strong>gen-heavy</strong> workload (long-CoT reasoning)</td><td>46% of trainer GPU</td><td>~96s blocks, one per step, immune to staleness</td><td>✓✓ — target the trainer GPU; the flagship real-world case</td></tr>
+<tr class="hl"><td>Bounded or unbounded staleness, <strong>gen-heavy</strong> workload (long-CoT reasoning)</td><td>46% of trainer GPU</td><td>~96s blocks, one per step, immune to staleness</td><td>✓✓ — target the trainer GPU; the dominant real-world recipe family</td></tr>
 <tr><td>Unbounded staleness, train-heavy workload</td><td>~1%</td><td>—</td><td>✗ — but also a divergent config nobody should run</td></tr>
 </table>
 
@@ -283,7 +284,8 @@ Zero crashes, zero redeploys, across all three runs.</p>
 </ul>
 
 <h3>One-line summary</h3>
-<div class="law">Realistic RL workloads — especially long-CoT reasoning, the community's flagship — leave one GPU
+<div class="law">Realistic RL workloads — especially R1/DAPO-style long-CoT reasoning, the most-replicated open
+recipe family — leave one GPU
 pool idle 28–64% of the time in large, periodic, predictable blocks under every on-policy and bounded-staleness
 configuration of veRL, with nothing tuned. That is precisely the idle that GPU time-slicing converts into throughput.</div>
 
