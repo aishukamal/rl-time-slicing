@@ -27,10 +27,21 @@ never below the throughput imbalance.*
 | 2 | [benchmark-deepresearch/](benchmark-deepresearch/) | MHQA multi-turn search agent (CMU deep-research), Qwen2.5-3B | sync colocated | long-tail is natural (gen 77→190s, ~34% idle) but colocated idle isn't reclaimable |
 | 3 | [async-multiturn/](async-multiturn/) | HotpotQA + Wikipedia search tool, Qwen2.5-3B (train-heavy) | async disagg, staleness 0/1/4/8/∞ | s=0: both GPUs anti-phase idle; s≥1: trainer pins 91%, idle moves to rollout GPU (~30s blocks) |
 | 4 | [async-longcot/](async-longcot/) | DAPO-Math-17k long CoT, R1-Distill-Qwen-1.5B (gen-heavy) | async disagg, staleness 0/8/∞ | trainer starves at EVERY staleness: 64% (s=0) / 46% (s=8 ≡ s=∞), queue never buffers |
+| 4b | [async-longcot/](async-longcot/) `run_s8_16k_*` | same as Phase 4 at 16K response cap | async disagg, s=8 | scaling validation: trainer 59.6% idle, 3.3-4.8 min blocks; 2 trainers pack on 1 GPU with slack |
+| 4c | [code-rlvr/](code-rlvr/) | Eurus-2 code + live test-execution rewards (prime_code), 16K | async disagg, s=8 | regime generalizes: trainer 52.8% idle, 4-6.7 min blocks; reward exec free (streams on rollouter CPUs) |
 | — | [disagg-deepresearch/](disagg-deepresearch/) | port of the Phase-2 workload into the PoC sync-disagg trainer | — | built (~2.6k lines, PLAN.md), shelved — sync-RL idle is already structural |
 
 Each phase directory contains its own `REPORT.md`, the deployable K8s job spec, 100ms GPU traces
 (`*.csv`), training logs, per-run summary JSON, and chart-generation scripts.
+
+## Time-slicing PoC handoffs
+
+Validated, self-contained build instructions in [poc-handoff/](poc-handoff/):
+- **PoC 1** — two sweep members of the math recipe, trainers time-sliced on one GPU (identical
+  periods, ~91% packing, 4 GPUs → 3): [POC1-sweep-trainer-timeslicing.md](poc-handoff/POC1-sweep-trainer-timeslicing.md)
+- **PoC 2** — math-RLVR + code-RLVR trainers time-sliced (heterogeneous periods 407s/619s,
+  0.45+0.45 busy fractions, staleness queue as collision shock-absorber):
+  [POC2-math-code-timeslicing.md](poc-handoff/POC2-math-code-timeslicing.md)
 
 ## Reproducing
 

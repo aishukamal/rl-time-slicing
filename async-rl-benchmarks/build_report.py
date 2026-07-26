@@ -16,6 +16,7 @@ IMAGES = {
     "P3_IDLE": f"{ROOT}/async-multiturn/sweep_idle_comparison.png",
     "P4_TIMELINES": f"{ROOT}/async-longcot/longcot_timelines.png",
     "P4_16K": f"{ROOT}/async-longcot/run_s8_16k_timeline.png",
+    "P4_CODE": f"{ROOT}/code-rlvr/run_s8_16k_timeline.png",
     "P4_REGIME": f"{ROOT}/async-longcot/regime_map.png",
 }
 

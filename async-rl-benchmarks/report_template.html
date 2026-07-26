@@ -284,6 +284,31 @@ reasoning lengths the trainer is idle <strong>more than it is busy</strong> — 
 
 {{IMG:P4_16K|16K validation: the trainer square-waves (59.6% idle, 3.3–4.8 min gaps) while the rollout GPU runs a solid ~100% for 88 minutes, dipping 1–2s only at weight syncs}}
 
+<h3>Generality: the other verifiable-reward family — code RLVR</h3>
+
+<p>To confirm the regime is a property of long-CoT RLVR generally (not of math specifically), the same
+configuration was run on competitive-programming code RL: same model and async harness, Eurus-2 code split,
+<strong>live test-case-execution rewards</strong> (verl's in-tree <code>prime_code</code>, executed in-pod;
+per-step scores 0.14–0.24 with real full/partial/zero passes). s=8, 16K cap, 10 steps, zero crashes.</p>
+
+<table>
+<tr><th></th><th>Code RLVR (s=8, 16K)</th><th>Math (s=8, 16K)</th></tr>
+<tr><td>response_length mean</td><td>11.4K (growing 10.5K→12.3K)</td><td>8.2K</td></tr>
+<tr><td>Step cadence</td><td>619s</td><td>407s</td></tr>
+<tr><td>Gen-wait / update</td><td>319s / 281s</td><td>210s / 185s</td></tr>
+<tr class="hl"><td>Trainer idle</td><td><strong>52.8%, blocks 245s mean / 399s max</strong></td><td>59.6%, blocks 201s / 286s</td></tr>
+<tr><td>verl trainer_idle_ratio</td><td>0.513</td><td>0.513 — identical</td></tr>
+<tr><td>Rollout GPU util</td><td>99.6%</td><td>99.5%</td></tr>
+</table>
+
+<p>Two additional findings: (1) in fully-async mode, reward computation streams on the rollouter's CPU
+workers, overlapped with generation — measured trainer-side reward cost ~20µs/step, so verifiable code
+execution is effectively free for the phase structure; (2) code responses run longer than math (11.4K vs
+8.2K mean), producing even larger idle blocks (~4–6.7 min). A math-RLVR + code-RLVR trainer pair
+(busy fractions 0.45 + 0.45) is a validated heterogeneous time-slicing target.</p>
+
+{{IMG:P4_CODE|Code RLVR at 16K: same square wave — trainer 52.8% idle in 4–6.7 min blocks, rollout GPU 99.6% for two hours, live test-execution rewards throughout}}
+
 <h3>Phase 4 conclusions</h3>
 <ul>
 <li><strong>The trainer starves at every staleness value.</strong> The message queue never buffered a single sample in any run — a staleness budget only matters if the rollouter can get ahead, and a rollouter needing ~210s/batch against a ~124s consumer never gets ahead. s=8 and s=∞ are statistically identical.</li>
