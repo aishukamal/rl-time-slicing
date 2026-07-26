@@ -107,7 +107,7 @@ not from tuning.</p>
   <div class="tile blue"><div class="n">46–64%</div><div class="l">trainer GPU idle on long-CoT reasoning RL — at <em>every</em> staleness setting</div></div>
   <div class="tile orange"><div class="n">1.6–3.3 min</div><div class="l">contiguous idle blocks, one per training step, perfectly periodic</div></div>
   <div class="tile aqua"><div class="n">0</div><div class="l">artificial throttling knobs in Phases 2–4</div></div>
-  <div class="tile"><div class="n">~0.7s</div><div class="l">NCCL weight sync — never the bottleneck</div></div>
+  <div class="tile"><div class="n">0.7–1.4s</div><div class="l">measured NCCL weight sync (0.2–1% of step) — the idle is real, not sync overhead</div></div>
 </div>
 
 <div class="law"><strong>The law all measurements obey:</strong> the slower pipeline side pins its GPU at ~90–99%;
@@ -153,7 +153,8 @@ required deliberately fighting the framework:</p>
 </table>
 
 <p><strong>Result:</strong> 16 training steps, 4 full sync cycles over ~2.5h — post-sync trainer idle gaps of
-<strong>5.3 / 3.1 / 3.9 / 2.5 minutes</strong>, ~20s collection waits otherwise.</p>
+<strong>5.3 / 3.1 / 3.9 / 2.5 minutes</strong>, ~20s collection waits otherwise. Weight sync itself: ~1s —
+the idle gaps are queue-flush + regeneration time, not transfer time.</p>
 
 {{IMG:P1_SQUARE|Phase 1: square-wave timeline reconstructed from logs — yellow bars are 2.5–5.3 min idle gaps after weight syncs at steps 4, 8, 12, 16}}
 {{IMG:P1_DUTY|Phase 1: GPU trace (iteration 1, same recipe) — trainer humps with gaps, sampler generation blocks, 45% anti-correlation}}
@@ -214,13 +215,15 @@ Tool use was genuine: ~5 turns/trajectory (max 16), EM reward climbing 0.17→0.
 multi-hop QA answers are short, so the multi-turn structure adds latency but not enough tokens to dominate.</p>
 
 <table>
-<tr><th>Config</th><th>Step</th><th>Trainer wait</th><th>Trainer GPU util / idle</th><th>Trainer idle blocks</th><th>Rollout GPU util / idle</th><th>Rollout idle blocks</th></tr>
-<tr class="hl"><td>s=0 (on-policy)</td><td>88s</td><td>26.3s</td><td>65% / 32%</td><td>38× ~27s (max 43s)</td><td>28% / 71%</td><td>39× ~60s (max 72s)</td></tr>
-<tr><td>s=1</td><td>72s</td><td>0.2s</td><td>91% / 4%</td><td>~2.5s sync gaps only</td><td>51% / 48%</td><td>17× ~32s</td></tr>
-<tr><td>s=4</td><td>72s</td><td>0.2s</td><td>91% / 4%</td><td>—</td><td>64% / 34%</td><td>15× ~28s</td></tr>
-<tr><td>s=8</td><td>73s</td><td>0.2s</td><td>90% / 5%</td><td>—</td><td>70% / 28%</td><td>13× ~27s</td></tr>
-<tr class="hl"><td>s=∞ (10000)</td><td>74s</td><td>0.2s</td><td>89% / 6%</td><td>—</td><td>96% / <strong>0.8%</strong></td><td><strong>zero</strong></td></tr>
+<tr><th>Config</th><th>Step</th><th>Trainer wait</th><th>Weight sync</th><th>Trainer GPU util / idle</th><th>Trainer idle blocks</th><th>Rollout GPU util / idle</th><th>Rollout idle blocks</th></tr>
+<tr class="hl"><td>s=0 (on-policy)</td><td>88s</td><td>26.3s</td><td>0.77s</td><td>65% / 32%</td><td>38× ~27s (max 43s)</td><td>28% / 71%</td><td>39× ~60s (max 72s)</td></tr>
+<tr><td>s=1</td><td>72s</td><td>0.2s</td><td>0.71s</td><td>91% / 4%</td><td>~2.5s sync gaps only</td><td>51% / 48%</td><td>17× ~32s</td></tr>
+<tr><td>s=4</td><td>72s</td><td>0.2s</td><td>0.75s</td><td>91% / 4%</td><td>—</td><td>64% / 34%</td><td>15× ~28s</td></tr>
+<tr><td>s=8</td><td>73s</td><td>0.2s</td><td>0.79s</td><td>90% / 5%</td><td>—</td><td>70% / 28%</td><td>13× ~27s</td></tr>
+<tr class="hl"><td>s=∞ (10000)</td><td>74s</td><td>0.2s</td><td>0.79s</td><td>89% / 6%</td><td>—</td><td>96% / <strong>0.8%</strong></td><td><strong>zero</strong></td></tr>
 </table>
+<p class="muted">Weight sync (NCCL, mean per step) is 0.71–0.79s of a 72–88s step — ~1% of the cycle. The idle blocks
+above are 27–72s: real pipeline idle, not sync overhead.</p>
 
 {{IMG:P3_IDLE|Phase 3: harvestable idle per GPU vs staleness — train-heavy workload}}
 {{IMG:P3_TIMELINES|Phase 3: the five utilization timelines — s=0 anti-phase square wave; rollout (orange) gaps shrink with staleness until they vanish at unbounded}}
@@ -238,7 +241,7 @@ multi-hop QA answers are short, so the multi-turn structure adds latency but not
 
 <p><strong>Question:</strong> the most-replicated open RL recipe family is long chain-of-thought reasoning RLVR —
 DeepSeek-R1 popularized it, DAPO is its standard open recipe, and it is the evaluation workload of the async-RL
-systems literature (AReaL, StreamRL, PipelineRL), which consistently reports generation dominating (3:1 to 10:1).
+systems literature (AReaL, StreamRL, PipelineRL), which consistently reports generation-dominated pipelines.
 On such a workload, can <em>any</em> staleness policy keep the trainer busy?</p>
 
 <p><strong>Setup:</strong> DeepSeek-R1-Distill-Qwen-1.5B on DAPO-Math-17k (in-tree <code>math_dapo</code> reward),
@@ -248,11 +251,15 @@ Gen-heaviness comes purely from CoT length: <strong>measured responses ~6.0K tok
 Zero crashes, zero redeploys, across all three runs.</p>
 
 <table>
-<tr><th>Config</th><th>Step</th><th>Trainer wait</th><th>Trainer GPU idle</th><th>Trainer idle blocks</th><th>Rollout GPU</th><th>Queue</th></tr>
-<tr class="hl"><td>s=0 (on-policy)</td><td>340s</td><td>214s</td><td><strong>63.8%</strong></td><td>14× <strong>~197s</strong> (max 231s)</td><td>36.5% idle (~118s blocks)</td><td>0</td></tr>
-<tr><td>s=8</td><td>223s</td><td>83s</td><td><strong>45.5%</strong></td><td>21× ~96s (max 126s)</td><td>99.2% util, zero blocks</td><td>0</td></tr>
-<tr class="hl"><td>s=∞ (10000)</td><td>224s</td><td>89s</td><td><strong>45.5%</strong> — identical to s=8</td><td>21× ~96s (max 126s)</td><td>99.3% util, zero blocks</td><td>0</td></tr>
+<tr><th>Config</th><th>Step</th><th>Trainer wait</th><th>Weight sync</th><th>Trainer GPU idle</th><th>Trainer idle blocks</th><th>Rollout GPU</th><th>Queue</th></tr>
+<tr class="hl"><td>s=0 (on-policy)</td><td>340s</td><td>214s</td><td>0.70s</td><td><strong>63.8%</strong></td><td>14× <strong>~197s</strong> (max 231s)</td><td>36.5% idle (~118s blocks)</td><td>0</td></tr>
+<tr><td>s=8</td><td>223s</td><td>83s</td><td>1.37s</td><td><strong>45.5%</strong></td><td>21× ~96s (max 126s)</td><td>99.2% util, zero blocks</td><td>0</td></tr>
+<tr class="hl"><td>s=∞ (10000)</td><td>224s</td><td>89s</td><td>1.19s</td><td><strong>45.5%</strong> — statistically identical to s=8</td><td>21× ~96s (max 126s)</td><td>99.3% util, zero blocks</td><td>0</td></tr>
 </table>
+<p class="muted">Weight sync (NCCL, mean per step) is 0.70–1.37s of a 223–340s step — 0.2–0.6% of the cycle. The
+96–197s idle blocks are real pipeline idle, not sync overhead. (s=8 and s=∞ are independent runs ~3h apart with
+distinct traces; their aggregate stats converge because the staleness budget never binds in either, so both execute
+the same rollouter-bound schedule.)</p>
 
 {{IMG:P4_TIMELINES|Phase 4: s=0 is a textbook anti-phase square wave with 3+ minute trainer gaps; at s=8 and s=∞ the rollout GPU pins at 100% while the trainer square-waves forever}}
 
@@ -279,7 +286,8 @@ Zero crashes, zero redeploys, across all three runs.</p>
 <li><strong>The imbalance law:</strong> the slower side pins its GPU; the faster side idles in per-step blocks of duration ≈ |gen − train|; staleness relocates idle onto the faster side but never below the throughput imbalance.</li>
 <li><strong>Workload class decides which side starves.</strong> Short-answer workloads (GSM8K, multi-hop QA) are train-heavy → rollout GPU idles. Long-CoT reasoning is gen-heavy → trainer GPU idles, at any staleness. Idle block size scales with response length / turn count / batch size — all legitimate workload parameters.</li>
 <li><strong>Staleness beyond 1 is pure loss</strong> in every measured case: step time saturates immediately (train-heavy: flat at s≥1; gen-heavy: flat at s≥8 ≈ s=∞), while data grows staler and queues deeper.</li>
-<li><strong>Weight sync is a non-issue</strong>: ~0.7s NCCL, in every configuration.</li>
+<li><strong>Weight sync is a non-issue — the idle is real.</strong> Measured NCCL param-sync means: 0.71–0.79s (Phase 3, all five configs) and 0.70–1.37s (Phase 4) against 72–340s steps — 0.2–1% of the cycle, versus idle blocks of 27–197s. In colocated mode (Phase 2) the analogous cost is the hybrid-engine switch (vLLM sleep/wake + weight reload, multi-second) — larger, but still not the source of the ~34% idle there.</li>
+<li><strong>External corroboration at frontier scale:</strong> SemiAnalysis's "RL Systems: Mind the Gap" (2026) reports every case study generation-bound on agentic SWE workloads at 100–256 GPU scale: trainer wait 30% (Qwen3-235B, 192 gen + 64 train H200s), 74% (GLM-5, 128+128), 30–60% (verl on GB300, 7,500s straggler tails), 60% (slime). Our Phase 4 measurements (46–64% trainer idle, straggler-bound batches, staleness unable to close the gap) are the same physics at 2-GPU scale.</li>
 <li><strong>Why async on-policy exists despite the bubble:</strong> disaggregation buys independent pool sizing, no hybrid-engine thrash, and streaming machinery — s=0 is an algorithm-fidelity choice (GRPO/DAPO degrade with stale data). The systems remedy, static pool right-sizing, is always stale in practice because the gen:train ratio drifts <em>within</em> a run (Phase 2: gen 77→190s over 16 steps; CoT lengths grow as models learn). <strong>Time-slicing is the dynamic complement: it harvests the residual bubble wherever it currently lives.</strong></li>
 </ul>
 
