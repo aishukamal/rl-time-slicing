@@ -1,0 +1,104 @@
+{
+  "label": "sinf",
+  "n_steps_total": 21,
+  "n_steps_steady": 20,
+  "skip_steps": 2,
+  "step_time_s": {
+    "mean": 224.349,
+    "min": 166.918,
+    "max": 265.171
+  },
+  "gen_s": {
+    "mean": 88.958,
+    "min": 50.248,
+    "max": 116.881
+  },
+  "update_actor_s": {
+    "mean": 125.022,
+    "min": 108.402,
+    "max": 138.533
+  },
+  "param_sync_s": {
+    "mean": 1.186,
+    "min": 0.966,
+    "max": 1.647
+  },
+  "trainer_collect_wait_s": {
+    "mean": 88.591,
+    "min": 49.942,
+    "max": 116.52
+  },
+  "mq_queue_size": {
+    "mean": 0.0,
+    "min": 0.0,
+    "max": 0.0
+  },
+  "trainer_idle_ratio": {
+    "mean": 0.393,
+    "min": 0.301,
+    "max": 0.477
+  },
+  "rollouter_idle_ratio": {
+    "mean": 0.0,
+    "min": 0.0,
+    "max": 0.0
+  },
+  "num_turns_mean": {
+    "mean": 2.0,
+    "min": 2.0,
+    "max": 2.0
+  },
+  "score_mean": {
+    "mean": -0.571,
+    "min": -0.766,
+    "max": -0.469
+  },
+  "stale_trajectory_processed": {
+    "mean": 3482.3,
+    "min": 394.0,
+    "max": 6660.0
+  },
+  "dropped_stale_samples": {
+    "mean": 0.0,
+    "min": 0.0,
+    "max": 0.0
+  },
+  "partial_ratio": {
+    "mean": 0.207,
+    "min": 0.168,
+    "max": 0.238
+  },
+  "response_length_mean": {
+    "mean": 5988.454,
+    "min": 5230.98,
+    "max": 6583.469
+  },
+  "gpus": {
+    "gpu0": {
+      "window_s": 4570.6,
+      "util_mean": 52.4,
+      "pct_idle_lt10": 45.5,
+      "pct_busy_ge90": 53.4,
+      "power_mean_w": 406.0,
+      "idle_blocks_ge2s": {
+        "count": 21,
+        "mean_s": 96.3,
+        "max_s": 126.0,
+        "total_s": 2021.0
+      }
+    },
+    "gpu1": {
+      "window_s": 4820.0,
+      "util_mean": 99.3,
+      "pct_idle_lt10": 0.6,
+      "pct_busy_ge90": 99.2,
+      "power_mean_w": 566.0,
+      "idle_blocks_ge2s": {
+        "count": 1,
+        "mean_s": 2.8,
+        "max_s": 2.8,
+        "total_s": 3.0
+      }
+    }
+  }
+}

@@ -1,0 +1,3796 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: disagg-deepresearch-scripts
+  namespace: default
+data:
+  gpu_monitor.sh: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+    OUTPUT="${1:?Usage: $0 <output.csv> [interval_ms]}"
+    INTERVAL_MS="${2:-100}"
+    echo "timestamp_ms,gpu_index,gpu_util_pct,mem_util_pct,power_w" > "$OUTPUT"
+    trap 'exit 0' SIGINT SIGTERM
+    SLEEP_S=$(python3 -c "print($INTERVAL_MS/1000)")
+    while true; do
+        ts=$(date +%s%3N)
+        nvidia-smi --query-gpu=index,utilization.gpu,utilization.memory,power.draw \
+                   --format=csv,noheader,nounits 2>/dev/null | \
+        while IFS=', ' read -r idx gpu mem pwr; do
+            echo "${ts},${idx},${gpu},${mem},${pwr}"
+        done >> "$OUTPUT"
+        sleep "$SLEEP_S"
+    done
+
+  local_search_server.py: |
+    #!/usr/bin/env python3
+    """Local Wikipedia BM25 search server matching Serper API format.
+
+    Identical to the one used by the colocated benchmark
+    (GPU-CR/benchmark-deepresearch/k8s-job.yaml) — runs in the
+    deepresearch-benchmark image (has pyserini + JDK), downloads the ~12GB
+    wikipedia-dpr-100w prebuilt index on first start.
+    """
+    import json
+    import os
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+
+    SEARCHER = None
+
+
+    def init_searcher():
+        global SEARCHER
+        print("Loading pyserini Wikipedia index (this may take a few minutes)...")
+        from pyserini.search.lucene import LuceneSearcher
+        SEARCHER = LuceneSearcher.from_prebuilt_index('wikipedia-dpr-100w')
+        if SEARCHER is None:
+            raise RuntimeError("Failed to load pyserini prebuilt index wikipedia-dpr-100w")
+        print("Search index loaded. Ready to serve.")
+
+
+    class SearchHandler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length)
+            try:
+                data = json.loads(body)
+                query = data.get('q', '')
+                num_results = data.get('num', 10)
+            except Exception:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b'{"error": "invalid json"}')
+                return
+
+            results = []
+            if SEARCHER and query:
+                hits = SEARCHER.search(query, k=num_results)
+                for hit in hits:
+                    doc = SEARCHER.doc(hit.docid)
+                    raw = json.loads(doc.raw()) if doc.raw() else {}
+                    contents = raw.get('contents', doc.raw() or '')
+                    if not isinstance(contents, str):
+                        contents = str(contents)
+                    title = raw.get('title', '')
+                    # DPR-100w format: contents = "Title"\npassage text
+                    if not title and contents.startswith('"'):
+                        first, _, rest = contents.partition('\n')
+                        title = first.strip('"')
+                        contents = rest or contents
+                    if not title:
+                        title = str(hit.docid)
+                    snippet = contents[:500]
+                    results.append({
+                        'title': title,
+                        'link': f'https://en.wikipedia.org/wiki/{title.replace(" ", "_")}',
+                        'snippet': snippet,
+                        'date': '',
+                        'source': 'wikipedia'
+                    })
+
+            response = json.dumps({
+                'searchParameters': {'q': query},
+                'organic': results
+            })
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(response.encode())
+
+        def log_message(self, format, *args):
+            pass
+
+
+    if __name__ == '__main__':
+        port = int(os.environ.get('SEARCH_PORT', '8877'))
+        init_searcher()
+        server = HTTPServer(('0.0.0.0', port), SearchHandler)
+        print(f"Search server running on port {port}")
+        server.serve_forever()
+
+  setup_and_run_disagg.sh: |
+    #!/usr/bin/env bash
+    # Disaggregated deep-research benchmark — main container entrypoint.
+    # 1 trainer GPU (FSDP) + 1 sampler GPU (server-mode vLLM), CMU multi-turn
+    # rollout in the sampler phase, local Wikipedia search sidecar on :8877.
+    set -xeuo pipefail
+
+    # On ANY exit, kill background children (gpu monitor). Otherwise they hold
+    # the stdout pipe to tee open and the container hangs instead of surfacing
+    # the failure in pod status.
+    trap 'kill $(jobs -p) 2>/dev/null || true' EXIT
+
+    RESULTS_DIR="/workspace/results"
+    MODEL_PATH="/workspace/models/Qwen2.5-3B-Instruct"
+    SEARCH_PORT=8877
+    # Pinned commits — the port was written and API-verified against these exact
+    # trees. Do NOT float to HEAD (AgentLoopManager/CheckpointEngineManager APIs
+    # drift; see timeslice-deepresearch docstrings).
+    VERL_COMMIT="a35908ca3c9632859c58d6a2855d858918ae21dc"
+    CMU_COMMIT="9c311053d607d9c63d3f148f03f712cc6469a52d"
+
+    mkdir -p "$RESULTS_DIR" "$RESULTS_DIR/rl_logs"
+
+    echo "=== Phase 1: Runtime deps ==="
+    # torchdata: StatefulDataLoader (same runtime install the PoC's RayCluster
+    # init-container does). openai: env-side LLM-judge client (fails fast on the
+    # dummy key -> score 0, matching the colocated baseline). Neither touches torch.
+    python3 -m pip install --no-cache-dir torchdata openai 2>&1 | tail -2
+    python3 -c "import torchdata.stateful_dataloader, openai; print('runtime deps OK')"
+
+    echo "=== Phase 2: Pinned verl clone + pod patches ==="
+    if [ ! -d /opt/verl ]; then
+        git clone --filter=blob:none https://github.com/volcengine/verl.git /opt/verl
+    fi
+    git -C /opt/verl fetch origin "$VERL_COMMIT" || git -C /opt/verl fetch origin
+    git -C /opt/verl checkout "$VERL_COMMIT"
+    # Same live patches deploy_verl.sh applies to worker pods:
+    # layered_summon / peft_merge may be missing on DetachActorWorker.
+    sed -i 's/layered_summon=self\.layered_summon/layered_summon=getattr(self, "layered_summon", False)/g' \
+        /opt/verl/verl/workers/engine_workers.py
+    sed -i 's/if not self\.peft_merge/if not getattr(self, "peft_merge", False)/g' \
+        /opt/verl/verl/workers/engine_workers.py
+    # Make sure the image's preinstalled verl can't shadow the pinned clone.
+    python3 -m pip uninstall -y verl 2>/dev/null | tail -1 || true
+
+    echo "=== Phase 3: Assemble timeslice-deepresearch code tree ==="
+    # The code ConfigMap uses flat keys with '--' as the path separator
+    # (ConfigMap keys cannot contain '/'; '__' would collide with __init__.py).
+    rm -rf /opt/timeslice && mkdir -p /opt/timeslice
+    for f in /workspace/code/*; do
+        name="$(basename "$f")"
+        dest="/opt/timeslice/${name//--//}"
+        mkdir -p "$(dirname "$dest")"
+        cp "$f" "$dest"
+    done
+    find /opt/timeslice -name "*.py" | wc -l
+
+    echo "=== Phase 4: MHQA question data from pinned CMU repo ==="
+    CMU_DIR=/opt/cmu-deepresearch
+    if [ ! -d "$CMU_DIR/.git" ]; then
+        mkdir -p "$CMU_DIR" && cd "$CMU_DIR"
+        git init -q
+        git remote add origin https://github.com/cxcscmu/verl-agent-deepresearch.git
+        git fetch --depth 1 origin "$CMU_COMMIT"
+        git checkout -q FETCH_HEAD
+    fi
+    DATA_SRC="$CMU_DIR/agent_system/environments/env_package/deepresearch/deepresearch/data/deepresearch_mhqa"
+    DATA_DST="/opt/timeslice/agent_system/environments/env_package/deepresearch/deepresearch/data/deepresearch_mhqa"
+    mkdir -p "$DATA_DST"
+    cp "$DATA_SRC"/*.json "$DATA_DST/"
+    ls -la "$DATA_DST"
+
+    echo "=== Phase 5: Download model ==="
+    python3 -c "
+    from huggingface_hub import snapshot_download
+    snapshot_download('Qwen/Qwen2.5-3B-Instruct', local_dir='$MODEL_PATH')
+    print('Model download complete')
+    "
+
+    echo "=== Phase 6: Wait for search sidecar (:$SEARCH_PORT) ==="
+    python3 - << 'PYWAIT'
+    import json, time, urllib.request
+    url = "http://localhost:8877/search"
+    deadline = time.time() + 2400  # 12GB index download on first run
+    while time.time() < deadline:
+        try:
+            req = urllib.request.Request(
+                url, data=json.dumps({"q": "capital of France"}).encode(),
+                headers={"Content-Type": "application/json"})
+            body = urllib.request.urlopen(req, timeout=10).read()
+            organic = json.loads(body).get("organic", [])
+            print(f"Search server ready, {len(organic)} results for sanity query")
+            print(str(body[:300]))
+            raise SystemExit(0)
+        except SystemExit:
+            raise
+        except Exception:
+            time.sleep(5)
+    raise SystemExit("FATAL: search sidecar not ready after 2400s")
+    PYWAIT
+
+    echo "=== Phase 7: Prepare parquet (sizing + raw_prompt vehicle) ==="
+    python3 /opt/timeslice/prepare_deepresearch_data.py \
+        --train_json "$DATA_DST/train.json" \
+        --val_json "$DATA_DST/val.json" \
+        --out_dir /workspace/data \
+        --train_data_size 128 \
+        --val_data_size 64
+
+    echo "=== Phase 8: Start GPU monitor (100ms) ==="
+    bash /workspace/scripts/gpu_monitor.sh "$RESULTS_DIR/gpu_util.csv" 100 &
+    MONITOR_PID=$!
+    date +%s%3N > "$RESULTS_DIR/start_ts"
+
+    echo "=== Phase 9: Training ==="
+    echo "  Model: Qwen2.5-3B-Instruct | Layout: 1 trainer GPU + 1 sampler GPU (TP=1)"
+    echo "  Multi-turn: env.max_steps=6, env_num=8, group_n=4 (32 concurrent envs)"
+    echo "  Data: MHQA, train_data_size=128 -> 16 steps"
+    nvidia-smi
+
+    export PYTHONUNBUFFERED=1
+    export HYDRA_FULL_ERROR=1
+    export TIMESLICE_DISABLED=1
+    export TIMESLICE_JOB_ID=job-disagg
+    export VERL_ROOT=/opt/verl
+    export PYTHONPATH="/opt/verl:/opt/timeslice:${PYTHONPATH:-}"
+    export SEARCH_URL="http://localhost:$SEARCH_PORT/search"
+    export DEEPRESEARCH_TOKENIZER_PATH="$MODEL_PATH"
+    export DEEPRESEARCH_LOG_ROOT="$RESULTS_DIR"
+    export LOG_DIR="$RESULTS_DIR/rl_logs"
+    export OPENAI_API_KEY="dummy-not-used"
+    export GOOGLE_API_KEY="dummy-not-used"
+    export GEMINI_API_KEY="dummy-not-used"
+
+    # hydra searchpath in one_step_off_ppo_trainer.yaml is CWD-relative
+    cd /opt/verl
+    python3 /opt/timeslice/main_ppo_timeslice_sync.py \
+        data.train_files=/workspace/data/train.parquet \
+        data.val_files=/workspace/data/val.parquet \
+        data.train_batch_size=8 \
+        data.val_batch_size=16 \
+        data.max_prompt_length=10000 \
+        data.max_response_length=1024 \
+        data.return_raw_chat=True \
+        data.truncation=left \
+        actor_rollout_ref.model.path="$MODEL_PATH" \
+        actor_rollout_ref.hybrid_engine=False \
+        actor_rollout_ref.actor.strategy=fsdp \
+        actor_rollout_ref.model.enable_gradient_checkpointing=True \
+        actor_rollout_ref.actor.optim.lr=5e-7 \
+        actor_rollout_ref.actor.optim.lr_warmup_steps_ratio=0.1 \
+        actor_rollout_ref.actor.ppo_mini_batch_size=32 \
+        actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=2 \
+        actor_rollout_ref.actor.use_kl_loss=False \
+        actor_rollout_ref.actor.entropy_coeff=0.001 \
+        actor_rollout_ref.rollout.name=vllm \
+        actor_rollout_ref.rollout.mode=async \
+        actor_rollout_ref.rollout.n=1 \
+        actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
+        actor_rollout_ref.rollout.gpu_memory_utilization=0.8 \
+        actor_rollout_ref.rollout.max_model_len=12288 \
+        actor_rollout_ref.rollout.max_num_batched_tokens=12288 \
+        actor_rollout_ref.rollout.enable_chunked_prefill=True \
+        actor_rollout_ref.rollout.temperature=1.0 \
+        actor_rollout_ref.rollout.top_p=0.95 \
+        actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=4 \
+        actor_rollout_ref.rollout.free_cache_engine=False \
+        algorithm.adv_estimator=grpo \
+        algorithm.rollout_correction.bypass_mode=False \
+        trainer.n_gpus_per_node=1 \
+        trainer.nnodes=1 \
+        rollout.n_gpus_per_node=1 \
+        rollout.nnodes=1 \
+        trainer.total_epochs=1 \
+        trainer.save_freq=-1 \
+        trainer.test_freq=-1 \
+        trainer.val_before_train=False \
+        trainer.logger=console \
+        trainer.project_name=disagg-deepresearch \
+        trainer.experiment_name=qwen3b-mhqa-disagg \
+        +env.env_name=deepresearch \
+        +env.dataset=deepresearch_mhqa \
+        +env.max_steps=6 \
+        +env.rollout.n=4 \
+        +env.seed=0 \
+        +env.use_explicit_thinking=True \
+        +env.is_evaluation=False \
+        +env.use_critique=False \
+        +env.use_rule_reward=False \
+        +env.rule_reward_coef=0 \
+        +env.use_dense_reward=False \
+        +env.rule_number=5 \
+        2>&1 | tee "$RESULTS_DIR/train.log" || {
+            echo "WARNING: Training failed"
+            date +%s%3N > "$RESULTS_DIR/end_ts"
+            kill "$MONITOR_PID" 2>/dev/null || true
+            echo "=== Partial results ==="
+            wc -l "$RESULTS_DIR/gpu_util.csv" || true
+            echo "=== GPU trace dump (gzip+base64, prefix GPUCSV:) ==="
+            echo "GPUCSV-BEGIN md5=$(md5sum "$RESULTS_DIR/gpu_util.csv" | cut -d' ' -f1)"
+            gzip -c "$RESULTS_DIR/gpu_util.csv" | base64 -w 3000 | sed 's/^/GPUCSV:/' || true
+            echo "GPUCSV-END"
+            sleep 7200
+            exit 1
+        }
+
+    date +%s%3N > "$RESULTS_DIR/end_ts"
+    kill "$MONITOR_PID" 2>/dev/null || true
+
+    echo "=== Per-GPU summary ==="
+    python3 -c "
+    import csv
+    from collections import defaultdict
+    traces = defaultdict(list)
+    with open('$RESULTS_DIR/gpu_util.csv') as f:
+        for row in csv.DictReader(f):
+            traces[int(row['gpu_index'])].append(float(row['gpu_util_pct']))
+    for gi in sorted(traces.keys()):
+        u = traces[gi]
+        n = len(u)
+        mean_u = sum(u)/n
+        idle = sum(1 for v in u if v <= 15)/n
+        busy = sum(1 for v in u if v >= 50)/n
+        print(f'GPU {gi}: mean={mean_u:.1f}% idle={idle:.1%} busy={busy:.1%} samples={n}')
+    "
+
+    echo "=== Training complete ==="
+    echo "GPU trace: $(wc -l < $RESULTS_DIR/gpu_util.csv) samples"
+
+    # Insurance: dump the raw GPU trace to stdout as gzip+base64 so Cloud
+    # Logging preserves it even if the live kubectl-cp window is missed.
+    echo "=== GPU trace dump (gzip+base64, prefix GPUCSV:) ==="
+    echo "GPUCSV-BEGIN md5=$(md5sum "$RESULTS_DIR/gpu_util.csv" | cut -d' ' -f1)"
+    gzip -c "$RESULTS_DIR/gpu_util.csv" | base64 -w 3000 | sed 's/^/GPUCSV:/' || true
+    echo "GPUCSV-END"
+
+    echo "=== Metrics JSONL dump ==="
+    cat "$RESULTS_DIR"/rl_logs/metrics_*.jsonl 2>/dev/null || true
+
+    echo "=== Keeping pod alive for result collection ==="
+    sleep 7200
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: disagg-deepresearch-code
+  namespace: default
+data:
+  main_ppo_timeslice_sync.py: |
+    """
+    main_ppo_timeslice_sync.py
+    ===========================
+    Sync disaggregated timeslice entry point — deep-research port.
+
+    Seeded from rl-time-slicing/verl/main_ppo_timeslice_sync.py
+    (with the latent import bug fixed: verl_timeslice_sync_modular_trainer ->
+    verl_timeslice_sync_trainer).
+
+    Uses verl's one_step_off_policy recipe to get separate actor_wg and rollout_wg
+    on separate GPUs with NCCL weight sync. Replaces the async training loop with
+    a clean sync loop in SyncTimesliceTrainer.
+
+    Deep-research additions (activated when +env.env_name=deepresearch is set):
+      - builds the CMU Ray env actors (make_envs) and TrajectoryCollector and
+        passes them into SyncTimesliceTrainer -> multi-turn rollout in the
+        sampler phase
+      - disables the streaming reward loop inside the agent loop workers (the
+        per-turn batches carry no reward_model/data_source keys; rewards come
+        from the env + EpisodeRewardManager instead)
+      - TIMESLICE_* env vars are optional (TIMESLICE_DISABLED=1 runs the pure
+        disagg benchmark with no orchestrator)
+
+    Architecture:
+      GPU 0: rollout worker (vLLM, server mode) — sampler pool
+      GPU 1: actor worker (FSDP)                — trainer pool
+
+    Usage (deep-research):
+      python3 main_ppo_timeslice_sync.py \
+        actor_rollout_ref.hybrid_engine=False \
+        trainer.n_gpus_per_node=1 trainer.nnodes=1 \
+        rollout.n_gpus_per_node=1 rollout.nnodes=1 \
+        +env.env_name=deepresearch +env.dataset=deepresearch_mhqa \
+        +env.max_steps=6 +env.rollout.n=4 ...
+    """
+
+    import os
+    import sys
+
+    sys.path.insert(0, os.path.dirname(__file__))
+
+    import ray
+    import hydra
+    from omegaconf import DictConfig, OmegaConf
+
+    from verl_timeslice_sync_trainer import SyncTimesliceTrainer
+    from gpu_client import GpuClient
+
+
+    def _is_deepresearch(config) -> bool:
+      try:
+        env_cfg = config.get("env", None)
+        return bool(env_cfg) and "deepresearch" in str(env_cfg.get("env_name", "")).lower()
+      except Exception:
+        return False
+
+
+    @ray.remote(num_cpus=1)
+    class SyncTimesliceTaskRunner:
+      """TaskRunner for sync disaggregated timeslice training.
+
+      Uses one_step_off_policy's worker setup (separate actor_wg + rollout_wg)
+      but replaces the async training loop with SyncTimesliceTrainer.fit().
+      """
+
+      def run(self, config):
+        import socket
+
+        print(f'[SyncTimesliceTaskRunner] hostname={socket.gethostname()}')
+
+        from verl.utils.fs import copy_to_local
+        from verl.utils import hf_tokenizer, hf_processor
+        from verl.utils.dataset.rl_dataset import collate_fn
+        # moved out of verl.trainer.main_ppo on verl main (pinned a35908ca)
+        from verl.trainer.ppo.utils import create_rl_dataset, create_rl_sampler
+        from torchdata.stateful_dataloader import StatefulDataLoader
+
+        # Timeslice env vars are optional: with TIMESLICE_DISABLED=1 the GpuClient
+        # calls are no-ops and no orchestrator/daemon stack is needed.
+        job_id = os.environ.get('TIMESLICE_JOB_ID', 'job-disagg')
+        pool_sampler = os.environ.get('TIMESLICE_POOL_SAMPLER', 'sampler')
+        pool_trainer = os.environ.get('TIMESLICE_POOL_TRAINER', 'trainer')
+
+        deepresearch_mode = _is_deepresearch(config)
+
+        # ── Model and tokenizer ───────────────────────────────────────────
+        local_path = copy_to_local(
+            config.actor_rollout_ref.model.path,
+            use_shm=config.actor_rollout_ref.model.get('use_shm', False),
+        )
+        trust_remote_code = config.data.get('trust_remote_code', False)
+        tokenizer = hf_tokenizer(local_path, trust_remote_code=trust_remote_code)
+        processor = hf_processor(
+            local_path, trust_remote_code=trust_remote_code, use_fast=True
+        )
+
+        # ── Datasets ──────────────────────────────────────────────────────
+        # For deep-research the parquet is only a sizing + raw_prompt/data_source
+        # vehicle: the actual questions come from the env's own JSON dataset.
+        train_dataset = create_rl_dataset(
+            config.data.train_files,
+            config.data,
+            tokenizer,
+            processor,
+            is_train=True,
+        )
+        val_dataset = create_rl_dataset(
+            config.data.val_files, config.data, tokenizer, processor, is_train=False
+        )
+        train_sampler = create_rl_sampler(config.data, train_dataset)
+
+        train_dataloader = StatefulDataLoader(
+            dataset=train_dataset,
+            batch_size=config.data.train_batch_size,
+            sampler=train_sampler,
+            collate_fn=collate_fn,
+            drop_last=True,
+        )
+        val_dataloader = StatefulDataLoader(
+            dataset=val_dataset,
+            batch_size=config.data.val_batch_size or len(val_dataset),
+            collate_fn=collate_fn,
+            drop_last=False,
+        )
+
+        # ── Worker groups (one_step_off_policy setup) ─────────────────────
+        from verl.experimental.separation.utils import create_resource_pool_manager, create_role_worker_mapping
+        from verl.experimental.one_step_off_policy.ray_trainer import OneStepOffRayTrainer
+        from verl.experimental.separation.engine_workers import DetachActorWorker
+        from verl.experimental.agent_loop.agent_loop import AgentLoopWorker
+
+        original_detach_init = DetachActorWorker.__init__
+        def timeslice_detach_init(self, *args, **kwargs):
+          original_detach_init(self, *args, **kwargs)
+          from gpu_client import GpuClient
+          job_id = os.environ.get('TIMESLICE_JOB_ID', 'job-disagg')
+          pool = os.environ.get('TIMESLICE_POOL_TRAINER', 'trainer')
+          GpuClient(workload_id=f'{job_id}-{pool}', pool=pool)
+
+        DetachActorWorker.__init__ = timeslice_detach_init
+
+        original_agent_init = AgentLoopWorker.__init__
+        def timeslice_agent_init(self, *args, **kwargs):
+          original_agent_init(self, *args, **kwargs)
+          from gpu_client import GpuClient
+          job_id = os.environ.get('TIMESLICE_JOB_ID', 'job-disagg')
+          pool = os.environ.get('TIMESLICE_POOL_SAMPLER', 'sampler')
+          GpuClient(workload_id=f'{job_id}-{pool}', pool=pool)
+
+        AgentLoopWorker.__init__ = timeslice_agent_init
+
+        if deepresearch_mode:
+          # The streaming reward loop scores every generated sample inside the
+          # agent loop worker using reward_model/data_source keys that the CMU
+          # per-turn batches do not carry (rewards come from the env instead),
+          # and — worse — when it is enabled the agent loop does NOT propagate
+          # input non-tensor fields back into the output batch. Force the
+          # AgentLoopManager to be built without reward loop handles.
+          original_init_mgr = OneStepOffRayTrainer._init_async_rollout_manager
+
+          def patched_init_mgr(trainer_self):
+            class _NoRewardLoop:
+              reward_loop_workers = None
+
+            real_manager = trainer_self.reward_loop_manager
+            trainer_self.reward_loop_manager = _NoRewardLoop()
+            try:
+              original_init_mgr(trainer_self)
+            finally:
+              trainer_self.reward_loop_manager = real_manager
+
+          OneStepOffRayTrainer._init_async_rollout_manager = patched_init_mgr
+
+        config.actor_rollout_ref.rollout.nnodes = 1
+        config.actor_rollout_ref.rollout.n_gpus_per_node = 1
+
+        role_worker_mapping, ray_worker_group_cls = create_role_worker_mapping(config)
+        resource_pool_manager = create_resource_pool_manager(config, role_worker_mapping.keys())
+
+        # Register the workload shell from the Head Actor before workers boot up
+        GpuClient(workload_id=f'{job_id}-trainer', pool=pool_trainer).register(pids=[])
+        GpuClient(workload_id=f'{job_id}-sampler', pool=pool_sampler).register(pids=[])
+
+        one_step_trainer = OneStepOffRayTrainer(
+            config=config,
+            tokenizer=tokenizer,
+            processor=processor,
+            role_worker_mapping=role_worker_mapping,
+            resource_pool_manager=resource_pool_manager,
+            ray_worker_group_cls=ray_worker_group_cls,
+            train_dataset=train_dataset,
+            val_dataset=val_dataset,
+            collate_fn=collate_fn,
+            train_sampler=train_sampler,
+            device_name=config.trainer.device,
+        )
+
+        # Initialize workers under BOTH locks to prevent arbitrary VRAM collisions
+        # during Ray Actor startup (since vLLM allocates VRAM eagerly).
+        gpu_trainer = GpuClient(workload_id=f'{job_id}-trainer', pool=pool_trainer)
+        gpu_sampler = GpuClient(workload_id=f'{job_id}-sampler', pool=pool_sampler)
+        gpu_trainer.acquire_gpu()
+        gpu_sampler.acquire_gpu()
+        try:
+          one_step_trainer.init_workers()
+          # SHORTCUT FOR VERL POC: Now that vLLM and FSDP have spawned on the GPUs,
+          # let the node daemon crawl the host to resolve PIDs (no-op when disabled).
+          gpu_trainer.update_pids(pids=['bypass_pod_logic'])
+          gpu_sampler.update_pids(pids=['bypass_pod_logic'])
+        except Exception as e:
+          # Only yield if initialization spectacularly crashes
+          gpu_trainer.yield_gpu()
+          gpu_sampler.yield_gpu()
+          raise e
+
+        # ── Deep-research env actors + trajectory collector ───────────────
+        traj_collector = None
+        envs = None
+        val_envs = None
+        if deepresearch_mode:
+          from agent_system.environments import make_envs
+          from agent_system.multi_turn_rollout import TrajectoryCollector
+
+          print('[SyncTimesliceTaskRunner] building deepresearch env actors '
+                f'(env_num={config.data.train_batch_size}, '
+                f'group_n={config.env.rollout.n})', flush=True)
+          envs, val_envs = make_envs(config)
+          traj_collector = TrajectoryCollector(
+              config=config, tokenizer=tokenizer, processor=processor
+          )
+
+        # ── Timeslice trainer ─────────────────────────────────────────────
+        trainer = SyncTimesliceTrainer(
+            config=config,
+            tokenizer=tokenizer,
+            processor=processor,
+            one_step_trainer=one_step_trainer,
+            train_dataloader=train_dataloader,
+            val_dataloader=val_dataloader,
+            job_id=job_id,
+            pool_sampler=pool_sampler,
+            pool_trainer=pool_trainer,
+            traj_collector=traj_collector,
+            envs=envs,
+            val_envs=val_envs,
+        )
+        import asyncio
+        asyncio.run(trainer.fit())
+
+
+    # Root of the verl REPO clone (the dir that contains the verl/ package).
+    # Default preserves the original cluster layout (/data/verl/timeslice/ next to
+    # /data/verl/verl/); the K8s job sets VERL_ROOT=/opt/verl explicitly.
+    # NOTE: the one_step_off yaml has a hydra searchpath of file://verl/trainer/config
+    # which resolves against CWD — run this script with CWD at $VERL_ROOT.
+    _VERL_ROOT = os.environ.get(
+        'VERL_ROOT',
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'),
+    )
+
+
+    @hydra.main(
+        config_path=os.path.join(
+            _VERL_ROOT,
+            'verl',
+            'experimental',
+            'one_step_off_policy',
+            'config',
+        ),
+        config_name='one_step_off_ppo_trainer',
+        version_base=None,
+    )
+    def main(config: DictConfig):
+      from verl.experimental.reward_loop import migrate_legacy_reward_impl
+      from verl.utils.device import auto_set_device
+
+      auto_set_device(config)
+      config = migrate_legacy_reward_impl(config)
+
+      if not ray.is_initialized():
+        ray_init_kwargs = config.ray_kwargs.get('ray_init', {})
+        ray.init(**OmegaConf.to_container(ray_init_kwargs))
+
+      runner = SyncTimesliceTaskRunner.remote()
+      ray.get(runner.run.remote(config))
+      print("\n[RL_JOB_COMPLETED]\n", flush=True)
+
+
+    if __name__ == '__main__':
+      main()
+
+  verl_timeslice_sync_trainer.py: |
+    """verl_timeslice_sync_trainer.py
+
+    ================================
+    Sync disaggregated RL loop with timeslice integration — deep-research port.
+
+    Seeded from rl-time-slicing/verl/verl_timeslice_sync_trainer.py. In addition
+    to the original single-turn GSM8K path, this copy supports the CMU
+    verl-agent-deepresearch multi-turn rollout loop in the sampler phase:
+
+      per step:
+        1. weight sync   : checkpoint_manager.update_weights (NCCL)      [both GPUs]
+        2. generate      : TrajectoryCollector.multi_turn_loop           [sampler GPU]
+                           (per turn: AgentLoopManager.generate_sequences
+                            for the WHOLE batch + Ray env actors step,
+                            search I/O against the local Wikipedia server)
+        3. rewards/adv   : EpisodeRewardManager + GRPO outcome advantage [CPU]
+        4. train         : old_log_prob + update_actor                   [trainer GPU]
+
+    The timeslice boundaries are unchanged: the sampler lease covers the whole
+    multi-turn loop (generation + search I/O), the trainer lease covers
+    old_log_prob + update + the next weight sync. With TIMESLICE_DISABLED=1 the
+    GpuClient calls are no-ops (pure disagg benchmark, no orchestrator).
+
+    Used by: main_ppo_timeslice_sync.py
+    """
+
+    import datetime
+    import json
+    import os
+    import sys
+    import time
+
+
+    def ts_print(*args, **kwargs):
+      ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+      print(f"[{ts}]", *args, flush=True, **kwargs)
+
+
+    sys.path.insert(0, os.path.dirname(__file__))
+
+    import ray
+    from gpu_client import GpuClient
+
+
+    class AgentLoopRolloutAdapter:
+      """Sync facade over verl main's AgentLoopManager for CMU's per-turn calls.
+
+      The CMU multi-turn loop calls `actor_rollout_wg.generate_sequences(batch)`
+      synchronously once per turn. verl main's AgentLoopManager.generate_sequences
+      is an @auto_await coroutine: when invoked from a plain sync frame it runs
+      the coroutine to completion itself (fresh event loop in a worker thread if
+      one is already running), so this adapter just forwards the call.
+
+      The per-turn batch built by TrajectoryCollector.preprocess_batch already
+      contains the `raw_prompt` chat that verl main's SingleTurnAgentLoop
+      re-tokenizes (same tokenizer + template => same ids CMU used for the
+      training tensors).
+      """
+
+      def __init__(self, async_rollout_manager, get_global_steps):
+        self._mgr = async_rollout_manager
+        self._get_global_steps = get_global_steps
+
+      def generate_sequences(self, batch):
+        batch.meta_info["global_steps"] = self._get_global_steps()
+        return self._mgr.generate_sequences(batch)
+
+
+    class SyncTimesliceTrainer:
+      """Self-contained sync disaggregated trainer with timeslice integration.
+
+      Uses verl's one_step_off_policy worker classes (which already have
+      separate actor_wg and rollout_wg with NCCL weight sync).
+
+      When constructed with a `traj_collector` + `envs`, the sampler phase runs
+      the CMU deep-research multi-turn loop instead of a single generate call;
+      the resulting per-(env, turn) training batch REPLACES the dataloader batch
+      (CMU semantics), and rewards come from EpisodeRewardManager (episode reward
+      broadcast to the last response token of every row).
+      """
+
+      def __init__(
+          self,
+          config,
+          tokenizer,
+          processor,
+          one_step_trainer,
+          train_dataloader,
+          val_dataloader,
+          job_id: str,
+          pool_sampler: str = "sampler",
+          pool_trainer: str = "trainer",
+          traj_collector=None,
+          envs=None,
+          val_envs=None,
+      ):
+
+        self.config = config
+        self.tokenizer = tokenizer
+        self.one_step_trainer = one_step_trainer
+        self.train_dataloader = train_dataloader
+        self.val_dataloader = val_dataloader
+
+        # Multi-turn (deep-research) extras — all optional; None => original
+        # single-turn behavior.
+        self.traj_collector = traj_collector
+        self.envs = envs
+        self.val_envs = val_envs
+        self.multi_turn = traj_collector is not None and envs is not None
+        self.episode_reward_manager = None
+        if self.multi_turn:
+          from agent_system.reward_manager import EpisodeRewardManager
+          self.episode_reward_manager = EpisodeRewardManager(
+              tokenizer=tokenizer, num_examine=1, normalize_by_length=False
+          )
+        self.rollout_adapter = AgentLoopRolloutAdapter(
+            one_step_trainer.async_rollout_manager,
+            lambda: self.one_step_trainer.global_steps,
+        )
+
+        self.sampler_gpu = GpuClient(
+            workload_id=f"{job_id}-sampler", pool=pool_sampler
+        )
+        self.trainer_gpu = GpuClient(
+            workload_id=f"{job_id}-trainer", pool=pool_trainer
+        )
+
+      async def _sync_weights(self):
+        import time
+
+        t0_sync = time.perf_counter()
+        await self.one_step_trainer.checkpoint_manager.update_weights(
+            self.one_step_trainer.global_steps
+        )
+        # AgentLoopManager.clear_kv_cache() was removed upstream — the pinned
+        # CheckpointEngineManager.update_weights already releases/rebuilds the
+        # kv cache around the NCCL sync. Keep a guarded call for older trees.
+        clear_kv = getattr(
+            self.one_step_trainer.async_rollout_manager, "clear_kv_cache", None
+        )
+        if clear_kv is not None:
+          await clear_kv()
+        return round((time.perf_counter() - t0_sync) * 1000)
+
+      async def _generate(self, batch):
+        if self.multi_turn:
+          return await self._generate_multi_turn(batch)
+        return await self._generate_single_turn(batch)
+
+      async def _generate_single_turn(self, batch):
+        """Original PoC path: one generate call for the repeated batch (GSM8K)."""
+        import time
+        import uuid
+        import numpy as np
+        from verl.trainer.ppo.ray_trainer import compute_response_mask
+
+        t0_gen = time.perf_counter()
+        batch.non_tensor_batch["uid"] = np.array(
+            [str(uuid.uuid4()) for _ in range(len(batch.batch))], dtype=object
+        )
+        gen_batch = self.one_step_trainer._get_gen_batch(batch)
+        gen_batch.meta_info["global_steps"] = self.one_step_trainer.global_steps
+
+        batch_repeat = gen_batch.repeat(
+            repeat_times=self.config.actor_rollout_ref.rollout.n, interleave=True
+        )
+        gen_batch_output = (
+            await self.one_step_trainer.async_rollout_manager.generate_sequences(
+                batch_repeat
+            )
+        )
+        gen_ms = round((time.perf_counter() - t0_gen) * 1000)
+
+        # Concatenate prompt + generated output
+        batch_repeat = batch.repeat(
+            repeat_times=self.config.actor_rollout_ref.rollout.n, interleave=True
+        )
+        batch = batch_repeat.union(gen_batch_output)
+
+        if "response_mask" not in batch.batch:
+          batch.batch["response_mask"] = compute_response_mask(batch)
+
+        return batch, gen_ms
+
+      async def _generate_multi_turn(self, batch):
+        """Deep-research path: CMU multi-turn env loop on the sampler GPU.
+
+        The dataloader batch only provides `raw_prompt`/`data_source` and batch
+        sizing — the questions come from the env's own JSON dataset. The returned
+        per-(env, turn) batch REPLACES the dataloader batch wholesale (CMU
+        semantics), then gets padded to a divisor of the train batch layout.
+        """
+        import time
+        import asyncio
+        from verl.trainer.ppo.ray_trainer import compute_response_mask
+        from agent_system.multi_turn_rollout import adjust_batch
+
+        t0_gen = time.perf_counter()
+
+        gen_batch = batch  # needs: input_ids (sizing), raw_prompt, data_source
+        gen_batch.meta_info["global_steps"] = self.one_step_trainer.global_steps
+
+        # The loop is synchronous (per-turn generate + ray.get on env actors);
+        # run it off the event loop thread so heartbeats/logging stay alive.
+        loop = asyncio.get_running_loop()
+        final_batch = await loop.run_in_executor(
+            None,
+            lambda: self.traj_collector.multi_turn_loop(
+                gen_batch=gen_batch,
+                actor_rollout_wg=self.rollout_adapter,
+                envs=self.envs,
+                is_train=True,
+            ),
+        )
+        gen_ms = round((time.perf_counter() - t0_gen) * 1000)
+
+        ts_print(
+            f"[SyncTimesliceTrainer] multi-turn rollout done: {len(final_batch)}"
+            " training rows"
+        )
+
+        # Variable batch size (Σ episode lengths) → pad to a divisor of the
+        # mini/micro batch layout (mode="copy" duplicates random rows).
+        final_batch = adjust_batch(self.config, final_batch, mode="copy")
+
+        # CMU recomputes the response mask from the attention mask (per-turn rows
+        # are single-turn generations, so this matches the agent-loop mask).
+        final_batch.batch["response_mask"] = compute_response_mask(final_batch)
+
+        return final_batch, gen_ms
+
+      def _compute_rewards_and_advantages(self, batch):
+        from verl.trainer.ppo import core_algos
+
+        if self.multi_turn:
+          # Episode reward (broadcast onto every row of the trajectory by
+          # gather_rollout_data) → last valid response token of each row.
+          reward_tensor = self.episode_reward_manager(batch)
+          batch.batch["token_level_scores"] = reward_tensor
+          batch.batch["token_level_rewards"] = reward_tensor
+          reward_extra_infos_dict = {}
+        else:
+          from verl.trainer.ppo.reward import extract_reward
+
+          if self.one_step_trainer.use_rm and "rm_scores" not in batch.batch.keys():
+            batch_reward = self.one_step_trainer._compute_reward_colocate(batch)
+            batch = batch.union(batch_reward)
+
+          reward_tensor, reward_extra_infos_dict = extract_reward(batch)
+          batch.batch["token_level_rewards"] = reward_tensor
+
+        adv, returns = core_algos.compute_grpo_outcome_advantage(
+            token_level_rewards=batch.batch["token_level_rewards"],
+            response_mask=batch.batch["response_mask"],
+            index=batch.non_tensor_batch.get("uid"),
+        )
+        batch.batch["advantages"] = adv
+        batch.batch["returns"] = returns
+        return batch, reward_tensor, reward_extra_infos_dict
+
+      def _compute_old_log_probs(self, batch):
+        rollout_corr_config = self.config.algorithm.get("rollout_correction", None)
+        bypass_recomputing_logprobs = (
+            rollout_corr_config and rollout_corr_config.get("bypass_mode", False)
+        )
+
+        if bypass_recomputing_logprobs:
+          from verl.trainer.ppo.rollout_corr_helper import apply_bypass_mode
+
+          apply_bypass_mode(
+              batch=batch,
+              rollout_corr_config=rollout_corr_config,
+              policy_loss_config=self.config.actor_rollout_ref.actor.policy_loss,
+          )
+        else:
+          old_log_prob, _ = self.one_step_trainer._compute_old_log_prob(batch)
+          batch = batch.union(old_log_prob)
+        return batch
+
+      def _train(self, batch):
+        import time
+
+        t0_train = time.perf_counter()
+        actor_output = self.one_step_trainer._update_actor(batch)
+        train_ms = round((time.perf_counter() - t0_train) * 1000)
+        return actor_output, train_ms
+
+      def _record_metrics(
+          self,
+          metrics_file,
+          curr_step,
+          train_ms,
+          gen_ms,
+          sync_ms,
+          actor_output,
+          reward_tensor,
+          reward_extra_infos_dict,
+          extra=None,
+      ):
+        import json
+        import numpy as np
+
+        loss, kl, clipfrac, grad_norm, lr = 0.0, 0.0, 0.0, 0.0, 0.0
+
+        if actor_output and hasattr(actor_output, "meta_info"):
+          metrics = actor_output.meta_info.get("metrics", {})
+          loss = float(np.mean(metrics.get("actor/loss", [0.0])))
+          kl = float(np.mean(metrics.get("actor/ppo_kl", [0.0])))
+          clipfrac = float(np.mean(metrics.get("actor/pg_clipfrac", [0.0])))
+          grad_norm = float(np.mean(metrics.get("actor/grad_norm", [0.0])))
+          lr = float(metrics.get("actor/lr", [0.0])[0])
+
+        mean_reward = 0.0
+        if reward_tensor is not None:
+          mean_reward = float(reward_tensor.sum(-1).mean().item())
+
+        acc = (
+            float(np.mean(reward_extra_infos_dict.get("acc", [0.0])))
+            if "acc" in reward_extra_infos_dict
+            else 0.0
+        )
+
+        metric_record = {
+            "step": curr_step,
+            "train_ms": train_ms,
+            "gen_ms": gen_ms,
+            "sync_ms": sync_ms,
+            "mean_reward": mean_reward,
+            "acc": acc,
+            "loss": loss,
+            "kl": kl,
+            "grad_norm": grad_norm,
+            "clipfrac": clipfrac,
+            "lr": lr,
+        }
+        if extra:
+          metric_record.update(extra)
+
+        with open(metrics_file, "a") as f:
+          f.write(json.dumps(metric_record) + "\n")
+
+      def _multi_turn_batch_stats(self, batch):
+        """Episode stats for the metrics JSONL (multi-turn only)."""
+        import numpy as np
+
+        stats = {"rows": len(batch)}
+        ntb = batch.non_tensor_batch
+        if "episode_lengths" in ntb:
+          stats["mean_episode_len"] = float(np.mean(ntb["episode_lengths"].astype(np.float64)))
+        if "episode_rewards" in ntb:
+          stats["mean_episode_reward"] = float(np.mean(ntb["episode_rewards"].astype(np.float64)))
+        if "is_action_valid" in ntb:
+          stats["valid_action_ratio"] = float(np.mean(ntb["is_action_valid"].astype(np.float64)))
+        return stats
+
+      async def fit(self):
+        from verl import DataProto
+        import os, time
+
+        pause_file = "/tmp/timeslice_pause"
+
+        self.one_step_trainer.metrics = {
+            "training/global_step": self.one_step_trainer.global_steps,
+            "training/epoch": self.one_step_trainer.epoch,
+        }
+        self.one_step_trainer.timing_raw = {}
+
+        log_dir = os.environ.get("LOG_DIR", "/data/rl_logs")
+        os.makedirs(log_dir, exist_ok=True)
+        job_id = self.trainer_gpu.workload_id.split("-trainer")[0]
+        metrics_file = os.path.join(log_dir, f"metrics_{job_id}.jsonl")
+
+        if os.path.exists(metrics_file):
+          os.remove(metrics_file)
+
+        for epoch in range(self.config.trainer.total_epochs):
+          for batch_dict in self.train_dataloader:
+            ts_print(
+                "[DEBUG] Fetched batch for step"
+                f" {self.one_step_trainer.global_steps + 1}"
+            )
+            batch = DataProto.from_single_dict(batch_dict)
+
+            # ── Step 1: Sync weights ──────────────────
+            self.trainer_gpu.acquire_gpu()
+            self.sampler_gpu.acquire_gpu()
+            sync_ms = await self._sync_weights()
+            self.trainer_gpu.yield_gpu()
+
+            # ── Step 2: Generate (multi-turn env loop when enabled) ──
+            batch, gen_ms = await self._generate(batch)
+            self.sampler_gpu.yield_gpu()
+
+            # ── Step 3: Rewards & Advantages (CPU) ─
+            batch, reward_tensor, reward_extra_infos_dict = (
+                self._compute_rewards_and_advantages(batch)
+            )
+
+            # ── Step 4 & 5: Old Log Probs & Train ─
+            self.trainer_gpu.acquire_gpu()
+            batch = self._compute_old_log_probs(batch)
+            actor_output, train_ms = self._train(batch)
+
+            # NOTE: We don't yield trainer here!
+            # It rolls seamlessly into Step 1 of the next loop.
+
+            self.one_step_trainer.global_steps += 1
+            curr_step = self.one_step_trainer.global_steps
+            ts_print(f"[SyncTimesliceTrainer] step {curr_step} done")
+
+            self._record_metrics(
+                metrics_file,
+                curr_step,
+                train_ms,
+                gen_ms,
+                sync_ms,
+                actor_output,
+                reward_tensor,
+                reward_extra_infos_dict,
+                extra=self._multi_turn_batch_stats(batch) if self.multi_turn else None,
+            )
+
+            if (
+                self.one_step_trainer.total_training_steps > 0
+                and self.one_step_trainer.global_steps
+                >= self.one_step_trainer.total_training_steps
+            ):
+              ts_print(
+                  "[SyncTimesliceTrainer] reached max steps"
+                  f" {self.one_step_trainer.global_steps}"
+              )
+              self.trainer_gpu.yield_gpu()
+              return
+
+        self.trainer_gpu.yield_gpu()
+
+  gpu_client.py: |
+    """gpu_client.py — orchestrator client library
+
+    acquire_gpu() uses a poll-based approach instead of a single long-lived
+    HTTP connection. This avoids timeout issues when waiting for the lock:
+      1. POST /acquire_accelerators — returns immediately with status
+         "queued" (lock not yet available) or "ok" (lock acquired)
+      2. If "queued": poll GET /acquire_status?workload_id=X every few seconds
+      3. Repeat until "ok" or timeout
+
+    This is more resilient than holding a single HTTP connection open for
+    minutes while waiting for another workload to yield.
+    """
+
+    import functools, logging, os, requests, time
+    from typing import Callable, List, Optional
+    from config import RL_ORCH_PORT
+
+    log = logging.getLogger("gpu_client")
+
+    POLL_INTERVAL = 3  # seconds between status polls
+    DEFAULT_TIMEOUT = 7200  # 2 hours — more than enough for any cold start
+
+    # Set TIMESLICE_DISABLED=1 to run without the timeslice orchestrator stack
+    # (baseline disagg benchmark: all acquire/yield/register calls become no-ops).
+    def _timeslice_disabled() -> bool:
+      return os.environ.get("TIMESLICE_DISABLED", "0") in ("1", "true", "True")
+
+
+    class GpuClient:
+
+      def __init__(
+          self,
+          workload_id: str,
+          pool: str,
+          orch_host: str = None,
+          timeout: int = DEFAULT_TIMEOUT,
+      ):
+        host = orch_host or os.environ.get("ORCHESTRATOR_HOST", "localhost")
+        port = int(os.environ.get("ORCH_PORT", str(RL_ORCH_PORT)))
+        self.base = f"http://{host}:{port}"
+        self.workload_id = workload_id
+        self.pool = pool
+        self.timeout = timeout
+
+      def register(self, pids: List[str]) -> dict:
+        """Register with orchestrator, retrying until it's reachable."""
+        if _timeslice_disabled():
+          return {"status": "disabled"}
+        deadline = time.time() + 120  # wait up to 2 min for orchestrator
+        attempt = 0
+        while True:
+          attempt += 1
+          try:
+            r = requests.post(
+                f"{self.base}/register_workload",
+                json={
+                    "workload_id": self.workload_id,
+                    "pool": self.pool,
+                    "pids": pids,
+                },
+                timeout=(5, 10),
+            )  # (connect, read)
+            r.raise_for_status()
+            result = r.json()
+            log.info(f"[{self.workload_id}] registered pool={self.pool}")
+            return result
+          except Exception as e:
+            if time.time() > deadline:
+              raise RuntimeError(
+                  f"[{self.workload_id}] could not reach orchestrator "
+                  f"after {attempt} attempts: {e}"
+              )
+            log.warning(
+                f"[{self.workload_id}] orchestrator not ready "
+                f"(attempt {attempt}), retrying in 3s... ({e})"
+            )
+            time.sleep(3)
+
+      def update_pids(self, pids: List[str]) -> dict:
+        if _timeslice_disabled():
+          return {"status": "disabled"}
+        r = requests.post(
+            f"{self.base}/update_pids",
+            json={"workload_id": self.workload_id, "pids": pids},
+            timeout=30,
+        )
+        r.raise_for_status()
+        log.info(f"[{self.workload_id}] updated pids={pids}")
+        return r.json()
+
+      def yield_gpu(self) -> dict:
+        """Release GPU lock — fast, always returns quickly."""
+        if _timeslice_disabled():
+          return {"status": "disabled"}
+        r = requests.post(
+            f"{self.base}/yield_accelerators",
+            json={"workload_id": self.workload_id},
+            timeout=120,
+        )
+        r.raise_for_status()
+        result = r.json()
+        log.info(
+            f"[{self.workload_id}] yielded evict_ms={result.get('evict_ms', 0)}"
+        )
+        return result
+
+      def acquire_gpu(self) -> dict:
+        """Acquire GPU lock — polls until granted.
+
+        Sends a non-blocking request, then polls for status. Avoids long-lived HTTP
+        connections that time out.
+        """
+        if _timeslice_disabled():
+          return {"status": "disabled"}
+        t0 = time.time()
+
+        # Non-blocking enqueue — returns immediately
+        r = requests.post(
+            f"{self.base}/enqueue_acquire",
+            json={"workload_id": self.workload_id},
+            timeout=30,
+        )
+        r.raise_for_status()
+        result = r.json()
+
+        if result.get("status") == "ok":
+          # Got it immediately (lock was free)
+          log.info(f"[{self.workload_id}] acquired immediately")
+          return result
+
+        # Poll until granted
+        log.info(f"[{self.workload_id}] queued for pool={self.pool}, polling...")
+        while True:
+          elapsed = time.time() - t0
+          if elapsed > self.timeout:
+            raise TimeoutError(
+                f"[{self.workload_id}] timed out waiting for GPU lock after"
+                f" {elapsed:.0f}s"
+            )
+
+          time.sleep(POLL_INTERVAL)
+
+          r = requests.get(
+              f"{self.base}/acquire_status",
+              params={"workload_id": self.workload_id},
+              timeout=10,
+          )
+          r.raise_for_status()
+          result = r.json()
+
+          if result.get("status") == "ok":
+            elapsed = time.time() - t0
+            log.info(f"[{self.workload_id}] acquired after {elapsed:.0f}s wait")
+            return result
+
+          if result.get("status") == "error":
+            raise RuntimeError(f"[{self.workload_id}] acquire failed: {result}")
+
+          # status == "queued" — keep polling
+          if int(elapsed) % 30 == 0:
+            log.info(
+                f"[{self.workload_id}] still waiting for GPU lock"
+                f" ({elapsed:.0f}s)..."
+            )
+
+      def gpu_step(self, func: Optional[Callable] = None):
+        """Decorator: acquire before, yield after."""
+
+        def decorator(f):
+          @functools.wraps(f)
+          def wrapper(*args, **kwargs):
+            self.acquire_gpu()
+            try:
+              return f(*args, **kwargs)
+            finally:
+              self.yield_gpu()
+
+          return wrapper
+
+        return decorator(func) if func is not None else decorator
+
+  config.py: |
+    """config.py — all tuneable parameters, read from env vars"""
+
+    import os
+
+    # ── Model ────────────────────────────────────────────────────────────────────
+    MODEL_PATH = os.environ.get("MODEL_PATH", "/data/model")
+    MODEL_NAME = "qwen"
+
+    # ── Ports ────────────────────────────────────────────────────────────────────
+    RL_ORCH_PORT = int(os.environ.get("ORCH_PORT", "9000"))
+    RL_DAEMON_PORT = int(os.environ.get("DAEMON_PORT", "9001"))
+    RL_TRAINER_A_PORT = int(os.environ.get("RL_TRAINER_A_PORT", "8200"))
+    RL_TRAINER_B_PORT = int(os.environ.get("RL_TRAINER_B_PORT", "8201"))
+    RL_SAMPLER_VLLM_PORT = int(os.environ.get("SAMPLER_PORT", "8100"))
+    RL_SAMPLER_A_PORT = int(os.environ.get("RL_SAMPLER_A_PORT", "8300"))
+    RL_SAMPLER_B_PORT = int(os.environ.get("RL_SAMPLER_B_PORT", "8301"))
+
+    # ── GPU pool assignment ───────────────────────────────────────────────────────
+    # Pool names map to a CUDA device index visible in each pod/process
+    RL_TRAINER_GPU = int(os.environ.get("TRAINER_GPU", "0"))
+    RL_SAMPLER_GPU = int(os.environ.get("SAMPLER_GPU", "1"))
+
+    # ── RL hyperparameters ───────────────────────────────────────────────────────
+    N_RL_STEPS = int(os.environ.get("N_RL_STEPS", "10"))
+    GROUP_SIZE = int(os.environ.get("GROUP_SIZE", "8"))  # G per prompt
+    PROMPTS_PER_STEP = int(os.environ.get("PROMPTS_PER_STEP", "4"))
+    MAX_NEW_TOKENS = int(os.environ.get("MAX_NEW_TOKENS", "2048"))
+    TEMPERATURE = float(os.environ.get("TEMPERATURE", "0.8"))
+    LR = float(os.environ.get("LR", "1e-6"))
+    KL_COEF = float(os.environ.get("KL_COEF", "0.01"))  # beta in willccbb
+    MAX_SEQ_LEN = int(
+        os.environ.get("MAX_SEQ_LEN", "2560")
+    )  # 2048 gen + ~512 prompt
+    GRAD_CLIP = float(os.environ.get("GRAD_CLIP", "0.1"))  # willccbb uses 0.1
+
+    # ── Swap ─────────────────────────────────────────────────────────────────────
+    CUDA_CKPT_BIN = os.environ.get(
+        "CUDA_CKPT_BIN", "/usr/local/bin/cuda-checkpoint"
+    )
+    # MODE: "timeslice" = with context switches | "baseline" = no context switches
+    MODE = os.environ.get("MODE", "timeslice")
+
+    # ── Dataset ──────────────────────────────────────────────────────────────────
+    DATASET_PATH = os.environ.get("DATASET_PATH", "/data/gsm8k_prompts.json")
+
+    # ── Weight transfer ───────────────────────────────────────────────────────────
+    WEIGHT_DIR = os.environ.get("WEIGHT_DIR", "/data/weights_transfer")
+
+    # ── vLLM ─────────────────────────────────────────────────────────────────────
+    VLLM_GPU_UTIL = float(os.environ.get("VLLM_GPU_UTIL", "0.25"))
+    VLLM_MAX_MODEL_LEN = int(os.environ.get("VLLM_MAX_MODEL_LEN", "4096"))
+
+    # ── Logging ──────────────────────────────────────────────────────────────────
+    LOG_DIR = os.environ.get("LOG_DIR", "/data/rl_logs")
+    METRICS_FILE = os.environ.get("METRICS_FILE", "/data/rl_metrics.jsonl")
+
+    # ── Weight sync ─────────────────────────────────────────────────────────────
+    # Set to "nccl" to enable GPU-to-GPU NCCL weight transfer after each train step.
+    # Set to "off" to skip weight transfer (sampler uses original model weights).
+    WEIGHT_SYNC = os.environ.get("WEIGHT_SYNC", "off")  # "nccl" | "off"
+    NCCL_MASTER_PORT = int(os.environ.get("NCCL_MASTER_PORT", "29600"))
+
+
+    # ── LoRA ────────────────────────────────────────────────────────────────────
+    LORA_R = int(os.environ.get("LORA_R", "16"))
+    LORA_ALPHA = int(os.environ.get("LORA_ALPHA", "64"))
+    LORA_DROPOUT = float(os.environ.get("LORA_DROPOUT", "0.05"))
+
+  prepare_deepresearch_data.py: |
+    """Standalone port of CMU's examples/data_preprocess/deep_research_data_prepare.py.
+
+    Converts the deepresearch env JSON question files to the parquet format
+    verl main's RLHFDataset expects. The parquet only feeds batch sizing +
+    raw_prompt/data_source — the multi-turn loop pulls the actual questions from
+    the env's own JSON dataset (DeepResearchEnvironmentManager._load_dataset).
+
+    Usage:
+      python3 prepare_deepresearch_data.py \
+          --train_json .../data/deepresearch_mhqa/train.json \
+          --val_json   .../data/deepresearch_mhqa/val.json \
+          --out_dir    /workspace/data \
+          --train_data_size 128 --val_data_size 64
+    """
+
+    import argparse
+    import json
+    import os
+
+
+    def _map_to_rl_sample(example: dict, split: str) -> dict:
+        question = example.get("question", "")
+        return {
+            "data_source": "webwalker",
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": question,
+                }
+            ],
+            "ability": "agent",
+            "extra_info": {
+                "split": split,
+                "id": str(example.get("id")),
+                # Keep answer in extra_info for potential evaluation usage
+                "answer": str(example.get("answer")),
+            },
+        }
+
+
+    def _convert(json_path: str, split: str, cap: int | None) -> list[dict]:
+        with open(json_path) as f:
+            rows = json.load(f)
+        if cap is not None:
+            rows = rows[: min(cap, len(rows))]
+        return [_map_to_rl_sample(r, split) for r in rows]
+
+
+    if __name__ == "__main__":
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--train_json", type=str, required=True)
+        parser.add_argument("--val_json", type=str, required=True)
+        parser.add_argument("--out_dir", type=str, default="dummy_data/text")
+        parser.add_argument("--train_data_size", type=int, default=None)
+        parser.add_argument("--val_data_size", type=int, default=None)
+        args = parser.parse_args()
+
+        os.makedirs(args.out_dir, exist_ok=True)
+
+        import pandas as pd
+
+        train_rows = _convert(args.train_json, "train", args.train_data_size)
+        val_rows = _convert(args.val_json, "validation", args.val_data_size)
+
+        train_out = os.path.join(args.out_dir, "train.parquet")
+        val_out = os.path.join(args.out_dir, "val.parquet")
+        pd.DataFrame(train_rows).to_parquet(train_out)
+        pd.DataFrame(val_rows).to_parquet(val_out)
+
+        print(f"Train size: {len(train_rows)} -> {train_out}")
+        print(f"Val size: {len(val_rows)} -> {val_out}")
+
+  agent_system--__init__.py: |
+    # Vendored subset of cxcscmu/verl-agent-deepresearch (commit 9c311053) for the
+    # disaggregated deep-research benchmark. Only the deepresearch environment,
+    # the vanilla multi-turn rollout loop, and the episode reward manager are
+    # kept; critique/GiGPO/rule-reward and the other environments (and their
+    # langchain/google dependency trees) are stripped.
+
+  agent_system--environments--__init__.py: |
+    from agent_system.environments.base import EnvironmentManagerBase
+    from agent_system.environments.env_manager import DeepResearchEnvironmentManager, make_envs
+
+  agent_system--environments--base.py: |
+    # Copyright 2025 Nanyang Technological University (NTU), Singapore
+    # and the verl-agent (GiGPO) team.
+    #
+    # Licensed under the Apache License, Version 2.0 (the "License");
+    # you may not use this file except in compliance with the License.
+    # You may obtain a copy of the License at
+    #
+    #     http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing, software
+    # distributed under the License is distributed on an "AS IS" BASIS,
+    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    # See the License for the specific language governing permissions and
+    # limitations under the License.
+    #
+    # Vendored from cxcscmu/verl-agent-deepresearch (commit 9c311053); the unused
+    # prompts wildcard import was dropped.
+
+    from typing import List, Tuple, Dict, Any
+    import torch
+    import numpy as np
+    import os
+    from collections import defaultdict
+
+
+    def to_numpy(data):
+        if isinstance(data, torch.Tensor):
+            data = data.detach().cpu().numpy()
+        elif isinstance(data, np.ndarray):
+            pass
+        elif isinstance(data, (int, float, bool, Tuple, List)):
+            data = np.array(data)
+        else:
+            raise ValueError(f"Unsupported type: {type(data)})")
+        return data
+
+
+    class EnvironmentManagerBase:
+        def __init__(self, envs, projection_f, config):
+            """
+            Initialize the environment manager.
+
+            Parameters:
+            - envs: The environment instance, usually a vectorized environment containing multiple sub-environments.
+            - projection_f: A function that maps text actions to environment actions.
+            - config: Configuration object.
+            """
+            self.envs = envs
+            self.projection_f = projection_f
+            self.config = config
+
+        def reset(self) -> Dict[str, Any]:
+            """
+            Reset all environments and return the initial observations.
+            """
+            obs, infos = self.envs.reset()
+            return {'text': None, 'image': obs, 'anchor': None}, infos
+
+        def step(self, text_actions: List[str]):
+            """
+            Execute text actions and return the next state, rewards, done flags,
+            and additional information.
+            """
+            actions, valids = self.projection_f(text_actions)
+            next_obs, rewards, dones, infos = self.envs.step(actions)
+
+            next_observations = {
+                'text': None,
+                'image': next_obs,
+                'anchor': None,
+            }
+            # add action_valid to infos
+            for i, info in enumerate(infos):
+                info['is_action_valid'] = to_numpy(valids[i])
+
+            rewards = to_numpy(rewards)
+            dones = to_numpy(dones)
+
+            return next_observations, rewards, dones, infos
+
+        def build_text_obs(self,) -> List[str]:
+            """Build the text observation for the agent."""
+            pass
+
+        def close(self) -> None:
+            """Close the environment and release resources."""
+            self.envs.close()
+
+        def success_evaluator(self, *args, **kwargs) -> Dict[str, np.ndarray]:
+            """
+            Evaluate if the episodes are successful or not.
+            (Default) implementation is to check info['won'] of the last step.
+            """
+            total_infos = kwargs['total_infos']
+            total_batch_list = kwargs['total_batch_list']
+            batch_size = len(total_batch_list)
+
+            success = defaultdict(list)
+
+            for bs in range(batch_size):
+                self._process_batch(bs, total_batch_list, total_infos, success)
+
+            assert len(success['success_rate']) == batch_size
+
+            return {key: np.array(value) for key, value in success.items()}
+
+        def _process_batch(self, batch_idx, total_batch_list, total_infos, success):
+            for i in reversed(range(len(total_batch_list[batch_idx]))):
+                batch_item = total_batch_list[batch_idx][i]
+                if batch_item['active_masks']:
+                    info = total_infos[batch_idx][i]
+                    won_value = float(info['won'])
+                    success['success_rate'].append(won_value)
+                    return
+
+  agent_system--environments--env_manager.py: |
+    # Copyright 2025 Nanyang Technological University (NTU), Singapore
+    # and the verl-agent (GiGPO) team.
+    #
+    # Licensed under the Apache License, Version 2.0 (the "License");
+    # you may not use this file except in compliance with the License.
+    # You may obtain a copy of the License at
+    #
+    #     http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing, software
+    # distributed under the License is distributed on an "AS IS" BASIS,
+    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    # See the License for the specific language governing permissions and
+    # limitations under the License.
+    #
+    # Vendored from cxcscmu/verl-agent-deepresearch (commit 9c311053).
+    # Only DeepResearchEnvironmentManager and the deepresearch branch of
+    # make_envs are kept (alfworld/sokoban/webshop/appworld/gym_cards managers
+    # and the SimpleMemory dependency are stripped).
+
+    from typing import List, Dict, Any
+    from functools import partial
+    import os
+    import json
+
+    from agent_system.environments.base import EnvironmentManagerBase, to_numpy
+
+
+    class DeepResearchEnvironmentManager(EnvironmentManagerBase):
+        def __init__(self, envs, projection_f, env_name, dataset_name, is_train, is_evaluation):
+            super().__init__(envs, projection_f, env_name)
+            self.last_finished_idx = 0
+            self.is_train = is_train
+            self.is_evaluation = is_evaluation
+            self._load_dataset(dataset_name)
+
+        def reset(self) -> Dict[str, Any]:
+            # assign the next unfinished question to the envs
+            questions = []
+            question_ids = []
+
+            if self.envs.mode == "qa":
+                ground_truths = []
+            else:
+                ground_truths = None
+
+            for i in range(self.envs.env_num):  # env_num different questions for each env
+                if self.last_finished_idx >= len(self.dataset):
+                    # reset cycle
+                    for item in self.dataset:
+                        item['finished'] = False
+                    self.last_finished_idx = 0
+
+                assert self.last_finished_idx < len(self.dataset), \
+                    f"last_finished_idx ({self.last_finished_idx}) >= dataset length ({len(self.dataset)})"
+
+                if not self.dataset[self.last_finished_idx]['finished']:
+                    question = self.dataset[self.last_finished_idx]['question']
+                    question_id = self.dataset[self.last_finished_idx]['id']
+                    questions.append(question)
+                    question_ids.append(question_id)
+                    if self.envs.mode == "qa":  # qa with ground truth
+                        ground_truths.append(self.dataset[self.last_finished_idx]['answer'])
+                    self.dataset[self.last_finished_idx]['finished'] = True
+                    self.last_finished_idx += 1
+
+            print(f'question_ids: {question_ids}', flush=True)
+            obs, infos = self.envs.reset(questions, question_ids, ground_truths)
+            observations = {'text': obs, 'image': None, 'anchor': obs}
+            return observations, infos
+
+        def step(self, text_actions: List[str]):
+            actions, valids, original_responses = self.projection_f(text_actions)
+            observations, rewards, dones, infos = self.envs.step(
+                original_responses=original_responses, actions=actions)
+
+            # add action_valid to infos
+            for i, info in enumerate(infos):
+                info['is_action_valid'] = to_numpy(valids[i])
+
+            rewards = to_numpy(rewards)
+            dones = to_numpy(dones)
+
+            next_observations = {'text': observations, 'image': None, 'anchor': observations}
+
+            return next_observations, rewards, dones, infos
+
+        def _load_dataset(self, dataset_name):
+            """Load the question dataset shipped with the env package."""
+            dataset_dir = os.path.join(
+                os.path.dirname(__file__),
+                f"env_package/deepresearch/deepresearch/data/{dataset_name}")
+            if not os.path.exists(dataset_dir):
+                raise ValueError(f"Dataset directory {dataset_dir} does not exist")
+
+            if self.is_train:
+                data_path = os.path.join(dataset_dir, "train.json")
+            elif self.is_evaluation:
+                data_path = os.path.join(dataset_dir, "test.json")
+            else:
+                data_path = os.path.join(dataset_dir, "val.json")
+
+            with open(data_path, "r") as f:
+                self.dataset = json.load(f)
+            for item in self.dataset:
+                item['finished'] = False
+
+
+    def make_envs(config):
+        """Create environments — deepresearch only in this vendored copy."""
+        if not isinstance(config.env.rollout.n, int):
+            raise ValueError("config.env.rollout.n should be an integer")
+        group_n = config.env.rollout.n if config.env.rollout.n > 0 else 1
+
+        if "deepresearch" not in config.env.env_name.lower():
+            raise ValueError(
+                f"Environment {config.env.env_name} not supported — this vendored "
+                f"copy only ships the deepresearch environment")
+
+        from agent_system.environments.env_package.deepresearch import (
+            build_deepresearch_envs, deepresearch_projection)
+        max_steps = config.env.max_steps
+        is_evaluation = config.env.is_evaluation
+        use_explicit_thinking = config.env.use_explicit_thinking
+        _envs = build_deepresearch_envs(
+            dataset_name='train', seed=config.env.seed,
+            env_num=config.data.train_batch_size, group_n=group_n,
+            max_steps=max_steps, use_explicit_thinking=use_explicit_thinking)
+        _val_envs = build_deepresearch_envs(
+            dataset_name='val', seed=config.env.seed + 1000,
+            env_num=config.data.val_batch_size, group_n=1,
+            max_steps=max_steps, use_explicit_thinking=use_explicit_thinking)
+
+        projection_f = partial(deepresearch_projection)
+        envs = DeepResearchEnvironmentManager(
+            _envs, projection_f, config.env.env_name, config.env.dataset,
+            is_train=True, is_evaluation=is_evaluation)
+        val_envs = DeepResearchEnvironmentManager(
+            _val_envs, projection_f, config.env.env_name, config.env.dataset,
+            is_train=False, is_evaluation=is_evaluation)
+
+        return envs, val_envs
+
+  agent_system--environments--env_package--__init__.py: |
+    # (intentionally empty)
+
+  agent_system--environments--env_package--deepresearch--__init__.py: |
+    from .projection import deepresearch_projection
+    from .envs import build_deepresearch_envs
+
+  agent_system--environments--env_package--deepresearch--envs.py: |
+    # Vendored from cxcscmu/verl-agent-deepresearch (commit 9c311053).
+    # Changes: gym dependency dropped (plain class — nothing from gym.Env was
+    # used), logs/outputs root made overridable via DEEPRESEARCH_LOG_ROOT so the
+    # tree can live on a read-only mount.
+
+    import ray
+    from agent_system.environments.env_package.deepresearch.deepresearch import DeepResearchEnv
+    import numpy as np
+    import os
+    import shutil
+    import sys
+    from datetime import datetime
+
+
+    @ray.remote(num_cpus=0.125)
+    class DeepResearchWorker:
+        """
+        Ray remote actor that replaces the worker function.
+        Each actor holds its own independent instance of DeepResearchEnv.
+        """
+
+        def __init__(self, config):
+            """Initialize the DeepResearch environment in this worker"""
+            self.env = DeepResearchEnv(config)
+
+        def step(self, original_response, action):
+            """Execute a step in the environment"""
+            obs, reward, done, info = self.env.step(original_response, action)
+            return obs, reward, done, info
+
+        def reset(self, question, question_id, rollout_idx, ground_truth, critique):
+            """Reset the environment with given question"""
+            obs, info = self.env.reset(question, question_id, rollout_idx, ground_truth, critique)
+            return obs, info
+
+
+    class DeepResearchMultiProcessEnv:
+        """
+        Each question/trajectory has its own DeepResearchEnv
+        """
+
+        def __init__(self,
+                     dataset_name,
+                     seed,
+                     env_num,
+                     group_n,
+                     config):
+            """
+            - dataset_name: name of the dataset to use
+            - seed: Random seed for reproducibility
+            - env_num: Number of different environments
+            - group_n: Number of same environments in each group (for GRPO)
+            - config: env configuration dictionary
+            """
+            self.dataset_name = dataset_name
+            self.group_n = group_n
+            self.env_num = env_num
+            self.num_processes = env_num * group_n  # real number of different environments
+            self.config = config
+            self.mode = config['mode']
+            self.use_critique = config['use_critique']
+            np.random.seed(seed)
+
+            sys.stderr.write(
+                f"Init DeepResearchMultiProcessEnv, env_num: {env_num}, "
+                f"group_n: {group_n}, num_processes: {env_num * group_n}\n")
+
+            # Create Ray remote actors instead of processes
+            self.workers = []
+            for i in range(self.num_processes):
+                worker = DeepResearchWorker.remote(self.config)
+                self.workers.append(worker)
+
+        def step(self, original_responses, actions):
+            """
+            Perform step in parallel.
+            :param original_responses: list of original responses, length must match self.num_processes
+            :param actions: list, length must match self.num_processes
+            :return: obs_list, reward_list, done_list, info_list
+            """
+            assert len(actions) == self.num_processes
+            assert len(original_responses) == self.num_processes
+
+            # Send step commands to all workers
+            futures = []
+            for worker, original_response, action in zip(self.workers, original_responses, actions):
+                future = worker.step.remote(original_response, action)
+                futures.append(future)
+
+            # Collect results
+            results = ray.get(futures)
+            obs_list, reward_list, done_list, info_list = [], [], [], []
+            for obs, reward, done, info in results:
+                obs_list.append(obs)
+                reward_list.append(reward)
+                done_list.append(done)
+                info_list.append(info)
+
+            print(f"Step {len(futures)} workers (env_num={self.env_num}, "
+                  f"group_n={self.group_n}, dataset_name={self.dataset_name})", file=sys.stderr)
+
+            return obs_list, reward_list, done_list, info_list
+
+        def reset(self, questions, question_ids, ground_truths=None, critiques=None):
+            """
+            Perform reset in parallel. Each question is assigned to group_n workers.
+            """
+            assert len(questions) == self.env_num
+
+            # Send reset commands to all workers
+            futures = []
+            for i, worker in enumerate(self.workers):
+                question_idx = i // self.group_n
+                rollout_idx = i % self.group_n
+                question = questions[question_idx]
+                question_id = question_ids[question_idx]
+                ground_truth = ground_truths[question_idx] if ground_truths is not None else None
+                critique = critiques[question_idx] if critiques is not None else None
+                future = worker.reset.remote(question, question_id, rollout_idx, ground_truth, critique)
+                futures.append(future)
+
+            # Collect results
+            print(f"Reset {len(futures)} workers (env_num={self.env_num}, "
+                  f"group_n={self.group_n}, dataset_name={self.dataset_name})", file=sys.stderr)
+            results = ray.get(futures)
+            obs_list = []
+            info_list = []
+            for obs, info in results:
+                obs_list.append(obs)
+                info_list.append(info)
+            return obs_list, info_list
+
+        def close(self):
+            """Clean up Ray actors"""
+            for worker in self.workers:
+                ray.kill(worker)
+            self.workers.clear()
+
+
+    def build_deepresearch_envs(
+            dataset_name,
+            seed=0,
+            env_num=1,
+            group_n=1,
+            max_steps=15,
+            use_explicit_thinking=False,
+            use_critique=False):
+
+        time_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        default_root = os.path.join(os.path.dirname(__file__), "../../../../")
+        log_root = os.environ.get("DEEPRESEARCH_LOG_ROOT", default_root)
+        log_dir = os.path.join(log_root, f"deepresearch_logs/{dataset_name}/{time_str}")
+        answer_dir = os.path.join(log_root, f"deepresearch_outputs/{dataset_name}/{time_str}")
+
+        # Clear log and answer directories
+        if os.path.exists(log_dir):
+            shutil.rmtree(log_dir)
+        if os.path.exists(answer_dir):
+            shutil.rmtree(answer_dir)
+        os.makedirs(log_dir, exist_ok=True)
+        os.makedirs(answer_dir, exist_ok=True)
+
+        config = {
+            "verbose": False,
+            "log_dir": log_dir,
+            "answer_dir": answer_dir,
+            "max_turns": max_steps,
+            "num_docs": 1,
+            "num_docs_to_read": 1,
+            "search_reminder_turn": 3,
+            "final_report_reminder_turn": max_steps - 3,
+            "max_context_length": 8000,
+            "mode": "qa",  # "qa" or "report"
+            "search_engine": "serper",
+            "use_explicit_thinking": use_explicit_thinking,
+            "use_critique": use_critique,
+        }
+
+        print(f"building DeepResearchMultiProcessEnv with config: {config}", file=sys.stderr)
+
+        return DeepResearchMultiProcessEnv(dataset_name, seed, env_num, group_n, config)
+
+  agent_system--environments--env_package--deepresearch--projection.py: |
+    import torch
+    import random
+    import re
+    from typing import List
+    from datetime import datetime
+
+    # Define action types for DeepResearch environment
+    ACTIONS = ["search", "answer", "plan", "scripts", "summary"]
+
+    def deepresearch_projection(model_responses: List[str]):
+        """
+        A function to process the actions.
+        actions: the list of actions(model's actual response) to be processed, it is a list of strings.
+        Expected format:
+            <think>some reasoning...</think><action>up/down/left/right/still</action>
+        Returns:
+            actions: the list of actions(model's actual response) to be processed, it is a list of strings.
+            valids: the list of valid actions, it is a list of integers.
+            original_responses: the list of original responses, it is a list of strings.
+        """
+
+        valids = [0] * len(model_responses)
+        actions = [""] * len(model_responses)
+        original_responses = [""] * len(model_responses)
+
+        for i in range(len(model_responses)):
+            original_str = model_responses[i]  # keep the original string
+            action, valid = _split_response(original_str)
+            actions[i] = action
+            valids[i] = valid
+            original_responses[i] = original_str
+
+        return actions, valids, original_responses
+
+    def _split_response(model_response):
+            """Split model response into thought process and action, and check if the action is valid.
+            Args:
+                model_response: response from the model
+            Returns:
+                action: action to be executed, with correct format
+                valid: whether the action is valid
+                response_with_thought: response with thought process
+            """
+            import sys
+
+            # split the thought process and the response
+            think_pattern = r'<think>(.*?)</think>'
+            think_match = re.search(think_pattern, model_response, re.DOTALL)
+
+            if think_match:
+                thought = think_match.group(1).strip()
+                think_end_pos = think_match.end()
+                response = model_response[think_end_pos:].strip()
+            else:
+                thought = ""
+                response = model_response.strip()
+
+            action = _postprocess_response(response)
+
+            if action is None:
+                return None, 0
+            else:
+                return action, 1
+
+
+    def _postprocess_response(response):
+            """Make sure the response is in the correct format.
+            Args:
+                response: response text
+            Returns:
+                processed response, if the format is not correct, return None
+            """
+            if response is None:
+                return None
+
+            # Count occurrences of each tag
+            tag_counts = {}
+            for action in ACTIONS:
+                start_tag = f'<{action}>'
+                end_tag = f'</{action}>'
+                start_count = response.count(start_tag)
+                end_count = response.count(end_tag)
+                tag_counts[action] = {'start': start_count, 'end': end_count}
+
+            # no summary action involved, normal case
+            if tag_counts['summary']['start'] == 0:
+                # Validate tag format rules
+
+                # check for <information> or </information> tag, this should not appear in the response
+                if '<information>' in response or '</information>' in response:
+                    return None
+
+                valid_actions = []
+                for action in ACTIONS:
+                    start_count = tag_counts[action]['start']
+                    end_count = tag_counts[action]['end']
+
+                    # Tags must appear in pairs and at most once
+                    if start_count != end_count or start_count > 1:
+                        return None
+
+                    # If this action's tags appeared once, record as valid action
+                    if start_count == 1:
+                        valid_actions.append(action)
+
+                # Only one action is allowed per response
+                if len(valid_actions) != 1:
+                    return None
+
+                # Extract content between valid action tags
+                action = valid_actions[0]
+                pattern = f'<{action}>(.*?)</{action}>'
+                match = re.search(pattern, response, re.DOTALL)
+                if match:
+                    content = match.group(1).strip()
+                    return f'<{action}>{content}</{action}>'
+
+            # special case for summary action, because the content in summary contains other tags
+            else:
+                # begin tag and end tag should only appear once
+                if tag_counts['summary']['start'] != 1 or tag_counts['summary']['end'] != 1:
+                    return None
+
+                # Find the first occurrence of <summary>
+                start_idx = response.find('<summary>')
+                # Find the last occurrence of </summary>
+                end_idx = response.rfind('</summary>')
+
+                # start_idx should be at the beginning of the response, and end_idx should be at the end of the response
+                if start_idx != 0 or end_idx != len(response) - len('</summary>'):
+                    return None
+
+                # Extract content between the first <summary> and last </summary>
+                content = response[start_idx + len('<summary>'):end_idx].strip()
+                return f'<summary>{content}</summary>'
+
+
+            return None
+
+  agent_system--environments--env_package--deepresearch--deepresearch--__init__.py: |
+    from .env import DeepResearchEnv
+
+  agent_system--environments--env_package--deepresearch--deepresearch--env.py: |
+    '''
+    parameters in config:
+    - is long report
+    - verbose
+    - log_dir
+    - answer_dir
+    - max_turns
+    - num_docs (number of docs to retrieve)
+    - num_docs_to_read (number of docs to fully expand)
+    '''
+
+
+    import numpy as np
+    import re, os, requests, copy, argparse, json, traceback, sys
+    from datetime import datetime
+    from collections import defaultdict
+    # from openai import OpenAI  # stripped: unused in env.py (reward path imports lazily)
+
+    from agent_system.environments.prompts import *
+    from .retrieval import query_clueweb, query_serper
+    from .reward.evaluation.reward_fn import evaluation_reward_fn
+    from .utils import tokenize
+
+    ACTIONS = ["search", "answer", "plan", "scripts", "summary"]
+    MAX_CONTEXT_LENGTH = 8000
+
+    class DeepResearchEnv():
+
+        def __init__(self, config):
+            self.config = config  # Save config for copy method and other uses
+            self.verbose = config['verbose']
+            self.log_dir = config['log_dir']
+            self.answer_dir = config['answer_dir']
+            self.max_steps = config['max_turns']
+            self.mode = config['mode'] # "qa" or "report"
+            self.use_explicit_thinking = config['use_explicit_thinking']
+            self.use_critique = config['use_critique']
+            self.rewards = []
+            self.done = False
+            self.search_engine = config['search_engine']
+            os.makedirs(self.log_dir, exist_ok=True)
+            os.makedirs(self.answer_dir, exist_ok=True)
+
+        def reset(self, question, question_id, rollout_idx, ground_truth, critique):
+            prompt_wo_critique = ''
+            if self.mode == "qa":
+                if self.use_explicit_thinking:
+                    if self.use_critique:
+                        prompt = short_answer_prompt_explicit_thinking_with_critique.format(question=question, critique=critique)
+                        prompt_wo_critique = short_answer_prompt_explicit_thinking.format(question=question)
+                    else:
+                        prompt = short_answer_prompt_explicit_thinking.format(question=question)
+                else:
+                    if self.use_critique:
+                        prompt = short_answer_prompt_internal_thinking_with_critique.format(question=question, critique=critique)
+                        prompt_wo_critique = short_answer_prompt_internal_thinking.format(question=question)
+                    else:
+                        prompt = short_answer_prompt_internal_thinking.format(question=question)
+                self.state = prompt
+            elif self.mode == "report":
+                self.state = report_prompt.format(question=question)
+            else:
+                raise NotImplementedError(f"mode must be 'qa' or 'report', but got {self.mode}")
+
+            self.original_prompt = self.state
+            self.original_prompt_wo_critique = prompt_wo_critique
+            self.question = question
+            self.question_id = question_id
+            self.rollout_idx = rollout_idx
+            self.ground_truth = ground_truth
+            self.critique = critique
+            self.turn_id = 0
+            self.summary_history = "" # history generated by summary actions
+            self.need_format_reminder = False # whether need format reminder prompt
+            self.rewards = []
+            self.done = False
+            self.info = {
+               "question": question, # question text
+               "question_id": question_id, # question id
+               "ground_truth": ground_truth, # ground truth answer
+               "consecutive_search_cnt": 0, # number of consecutive search actions performed for each sample
+               "search_cnt": 0, # number of total search actions performed for each sample
+               "script_cnt": 0, # number of total script actions performed for each sample
+               "summary_cnt": 0, # number of total summary actions performed for each sample
+               "context_cnt": [], # list of context length in each turn for each sample
+               "won": False, # whether the task is successful
+               "environment_feedback": "", # environment observation for each step (not the full input)
+               "input_wo_critique": prompt_wo_critique, # input without critique, for critique mode
+               "trajectory_content": "", # trajectory content for critique mode
+            }
+            return self.state, self.info
+
+
+        def step(self, original_response, action):
+            """
+            - Step the environment with the given action.
+            - Check if the action is effective (whether player moves in the env).
+            Args:
+                original_response: original model response
+                action: action to be executed. None if no valid action parsed.
+            Returns:
+                next_input: next turn's model input
+                reward: reward
+                done: whether the task is done
+                info: info
+
+            """
+            # if the task is done, no need to step
+            if self.done:
+                return "", 0, True, self.info
+
+            # Create log file paths
+            trajectory_log = os.path.join(self.log_dir, f"trajectory_{self.question_id}_{self.rollout_idx}.md")
+            search_log = os.path.join(self.log_dir, f"search_{self.question_id}_{self.rollout_idx}.log")
+
+            self._record_trajectory(self.state, original_response, trajectory_log)
+            context_length = tokenize(self.state) + tokenize(original_response)
+            self.info['context_cnt'].append(context_length)
+
+            # execute actions (search or answer) and get observations
+            done, need_update_history, next_obs = self._execute_response(
+                action, self.config["num_docs"], search_log
+            )
+            self.info['environment_feedback'] = next_obs
+            self.info['trajectory_content'] += f"### Step {self.turn_id + 1}:\n\n#### Agent output: {original_response}\n\n#### Environment Feedback: {next_obs}\n\n"
+            next_input = self._update_input(action, original_response, next_obs, need_update_history)
+
+            if self.use_critique:
+                input_wo_critique = next_input.replace(self.original_prompt, self.original_prompt_wo_critique)
+            else:
+                input_wo_critique = next_input
+            self.info['input_wo_critique'] = input_wo_critique
+
+            ### get step reward
+            if done or self.turn_id + 1 >= self.max_steps:
+                answer = self._compose_final_output(original_response)
+                if done:
+                    if self.config['mode'] == "qa":
+                        reward = evaluation_reward_fn(self.question_id, self.question, answer, mode=self.config['mode'], ground_truth=self.ground_truth)
+                    else:
+                        reward = evaluation_reward_fn(self.question_id, self.question, answer, mode=self.config['mode'])
+                    self.done = True
+                else:
+                    reward = 0
+                self.info['won'] = reward > 0.9 # won if final answer is correct
+            else:
+                reward = 0
+
+            self.turn_id += 1
+            self.rewards.append(reward)
+            if self.done:
+                self._log_result(answer)
+            return next_input, reward, done, self.info
+
+
+        def copy(self):
+            """Create a deep copy of the environment."""
+            new_self = DeepResearchEnv(self.config)
+
+            # Copy all instance variables
+            new_self.state = self.state
+            new_self.original_prompt = self.original_prompt
+            new_self.question = self.question
+            new_self.turn_id = self.turn_id
+            new_self.summary_history = self.summary_history
+            new_self.need_format_reminder = self.need_format_reminder
+
+            # Deep copy the info and rewards
+            new_self.rewards = copy.deepcopy(self.rewards)
+            new_self.info = copy.deepcopy(self.info)
+
+            return new_self
+
+        def _execute_response(self, action, num_docs, search_log, do_search=True):
+            """
+            Args:
+                action: action to be executed, None if format is not correct
+                num_docs: number of docs to retrieve
+                search_log: file to log search output
+                do_search: whether to perform search
+            Returns:
+                done: whether the task is done
+                need_update_history: whether need to update the history to agent summary
+                next_obs: next observation
+            """
+
+            if action is None:
+                self.need_format_reminder = True
+                next_obs = 'A invalid action, cannot be executed.'
+                return False, False, next_obs
+
+            action, content = self._parse_action(action)
+            next_obs = ''
+            done = False
+            need_update_history = False
+
+            search_query = content if action == 'search' else ''
+
+            if do_search and search_query != '':
+                search_results = self._search(search_query, num_docs, search_log)
+            else:
+                search_results = ''
+
+            if action == "answer":
+                done = True
+                next_obs = f'answer generated, the process is done.'
+            elif action == 'search':
+                self.info['search_cnt'] += 1
+                self.info['consecutive_search_cnt'] += 1
+                observation = f'<information>{search_results}</information>'
+                next_obs = observation
+            elif action == 'plan':
+                self.info['consecutive_search_cnt'] = 0
+            elif action == 'scripts':
+                self.info['consecutive_search_cnt'] = 0
+                self.info['script_cnt'] += 1
+            elif action == 'summary':
+                next_obs = 'You performed a summary action in this turn. The content of this action is ignored since your history turns information has been updated according to it.\n'
+                self.info['consecutive_search_cnt'] = 0
+                self.info['summary_cnt'] += 1
+                self.summary_history = content
+                need_update_history = True
+            else:
+                raise ValueError(f"Invalid action: {action}")
+
+            return done, need_update_history, next_obs
+
+        def _parse_action(self, action):
+            """Parse the action to get the action type and content.
+            Args:
+                action: action, format ensured by postprocess_response
+            Returns:
+                action_type: action type
+                content: action content
+            """
+            # Find the first occurrence of '<' and '>' to extract action_type
+            start_tag_open = action.find('<')
+            start_tag_close = action.find('>', start_tag_open)
+            if start_tag_open == -1 or start_tag_close == -1:
+                raise ValueError(f"Invalid action format: {action}")
+
+            action_type = action[start_tag_open + 1:start_tag_close]
+
+            # Find the last occurrence of '</' and '>' to locate the closing tag
+            end_tag_open = action.rfind('</')
+            end_tag_close = action.rfind('>', end_tag_open)
+            if end_tag_open == -1 or end_tag_close == -1:
+                raise ValueError(f"Invalid action format: {action}")
+
+            # Extract content between the first '>' and last '</'
+            content = action[start_tag_close + 1:end_tag_open].strip()
+
+            return action_type, content
+
+        def _record_trajectory(self, input, response, trajectory_log):
+            """Record the trajectory of the agent.
+            Args:
+                input: input
+                response: response
+                trajectory_log: path to trajectory log file
+            """
+            # if trajectory_log does not exist or is empty, write the header
+            if not os.path.exists(trajectory_log) or os.path.getsize(trajectory_log) == 0:
+                with open(trajectory_log, 'w', encoding='utf-8') as f:
+                    f.write(f"## Question: {self.question}\n\n")
+                    f.write(f"## Ground Truth: {self.ground_truth}\n\n")
+
+            with open(trajectory_log, 'a', encoding='utf-8') as f:
+                time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                f.write(f"## Turn {self.turn_id} {time}\n\n")
+
+                input_length = tokenize(input)
+                response_length = tokenize(response)
+
+                # Create patterns for all action types and truncate long contents
+                for action in ['search', 'answer', 'plan', 'scripts', 'information']:
+                    pattern = f'<{action}>(.*?)</{action}>'
+
+                    def truncate_action_content(match):
+                        """Truncate action content if it's too long"""
+                        full_content = match.group(1)  # Content between action tags
+                        if len(full_content) > 100:
+                            truncated_content = full_content[:100] + '...'
+                            return f'<{action}>{truncated_content}</{action}>'
+                        else:
+                            return match.group(0)  # Return original if short enough
+
+                    input_short = re.sub(pattern, truncate_action_content, input, flags=re.DOTALL)
+
+                f.write(f"### Input:\n**length={input_length}**\n{input_short}\n\n")
+                f.write(f"### Response:\n**length={response_length}**\n{response}\n\n--------------------------------\n\n")
+
+        def _update_input(self, action, cur_response, next_obs, need_update_history):
+            """Update the input with the history.
+            Args:
+                cur_response: current response with thought
+                next_obs: next observation
+                need_update_history: whether update the history to agent summary
+            Returns:
+                updated input
+            """
+            input = self.state
+            if self.need_format_reminder: # there is no valid action in this turn, need format reminder prompt
+                context = f"[Turn {self.turn_id}]:\n{cur_response}\n\n"
+                context += format_reminder_prompt
+                new_input = input + context
+                self.need_format_reminder = False
+            else:
+                if need_update_history:
+                    context = f"[Turn 0 - Turn {self.turn_id - 1}]:\n{self.summary_history}\n\n"
+                    context += f"[Turn {self.turn_id}]:\n{next_obs}\n\n"
+                    new_input = self.original_prompt + context
+                else:
+                    context = f"[Turn {self.turn_id}]:\n{cur_response}\n{next_obs}\n\n"
+                    new_input = input + context
+
+            # add reminder for search and final report
+            if self.info['consecutive_search_cnt'] > self.config["search_reminder_turn"]:
+                new_input += f'\nNote: You have performed {self.info["consecutive_search_cnt"]} search actions. Please consider update your report scripts or output the final report. If you still want to search, make sure you check history search results and DO NOT perform duplicate search.'
+            if self.turn_id > self.config["final_report_reminder_turn"]:
+                new_input += f'\nNote: You have performed {self.turn_id + 1} turns. Please consider output the final report. If you still want to search, make sure you check history search results and DO NOT perform duplicate search.'
+
+            # add summary reminder prompt if context is too long
+            input_length = tokenize(new_input)
+            if input_length > MAX_CONTEXT_LENGTH:
+                new_input += summary_reminder_prompt
+
+            self.state = new_input
+            return new_input
+
+        def _compose_final_output(self, response):
+            try:
+                if '<answer>' in response and '</answer>' in response:
+                    answer_start = response.find('<answer>') + len('<answer>')
+                    answer_end = response.find('</answer>')
+                    if answer_start < answer_end:
+                        return response[answer_start:answer_end].strip()
+                    else:
+                        return 'did not find answer'
+                else:
+                    return 'did not find answer'
+            except Exception as e:
+                return f'did not find answer'
+
+        def _log_result(self, answer):
+            answer_file = f"{self.answer_dir}/result_{self.question_id}_{self.rollout_idx}.json"
+            with open(answer_file, 'w', encoding='utf-8') as f:
+                result = {
+                    "answer": answer,
+                    "ground_truth": self.ground_truth,
+                    "rewards": self.rewards,
+                    "reward_sum": sum(self.rewards),
+                    "turns": self.turn_id,
+                    "search count": self.info['search_cnt'],
+                    "script count": self.info['script_cnt'],
+                    "summary count": self.info['summary_cnt'],
+                    "context lengths": self.info['context_cnt']
+                    }
+                json.dump(result, f, indent=4)
+
+        def _search(self, query, num_docs, search_log):
+            if self.search_engine == 'clueweb':
+                documents = query_clueweb(query, num_docs=num_docs)
+            elif self.search_engine == 'serper':
+                documents = query_serper(query)
+            else:
+                raise ValueError(f"Invalid search engine: {self.search_engine}")
+            info_retrieved = "\n\n".join(documents)
+
+            if self.verbose:
+                with open(search_log, 'a', encoding='utf-8') as f:
+                    f.write(f"[turn={self.turn_id}]\n")
+                    f.write(f"query:\n{query}\n\n")
+                    f.write(f"info_retrieved:\n{info_retrieved}\n\n\n")
+            return info_retrieved
+
+  agent_system--environments--env_package--deepresearch--deepresearch--retrieval.py: |
+    # Vendored from cxcscmu/verl-agent-deepresearch (commit 9c311053).
+    # Changes for the disaggregated benchmark:
+    #   - query_serper points at the local pyserini Wikipedia search server
+    #     (Serper-compatible API) via SEARCH_URL (default http://localhost:8877/search)
+    #     instead of google.serper.dev — no API key header needed.
+    #   - clueweb path, dotenv/diskcache/aiohttp imports dropped (unused).
+
+    import requests
+    import json
+    import time
+    import sys
+    import os
+    import random
+    from collections import deque
+    import threading
+
+    MAX_RETRIES = 20
+    RETRY_DELAY = 2
+
+    serper_time_log = "/tmp/serper_time_log.txt"
+    serper_error_log = "/tmp/serper_error_log.txt"
+
+
+    class RateLimiter:
+        """
+        Simple in-process sliding window rate limiting: at most max_calls calls in
+        any 1-second window. Thread-safe.
+        """
+        def __init__(self, max_calls: int, per_seconds: float = 1.0):
+            self.max_calls = max_calls
+            self.per = per_seconds
+            self.calls = deque()  # store timestamps
+            self.lock = threading.Lock()
+
+        def acquire(self):
+            while True:
+                with self.lock:
+                    now = time.time()
+                    # clean up calls outside the window
+                    while self.calls and now - self.calls[0] >= self.per:
+                        self.calls.popleft()
+
+                    if len(self.calls) < self.max_calls:
+                        self.calls.append(now)
+                        return
+
+                    # otherwise, wait for the oldest call to expire
+                    sleep_for = self.per - (now - self.calls[0])
+
+                if sleep_for > 0:
+                    time.sleep(sleep_for)
+                else:
+                    time.sleep(0.001)
+
+
+    # Global rate limiter: 100 QPS
+    SERPER_RATE_LIMITER = RateLimiter(max_calls=100, per_seconds=1.0)
+
+
+    def query_clueweb(query, num_docs=10):
+        raise NotImplementedError(
+            "clueweb retrieval was stripped from this vendored copy — "
+            "use search_engine='serper' (local Wikipedia BM25 server)")
+
+
+    def query_serper(query: str):
+        # Local Serper-format search server (pyserini BM25 over wikipedia-dpr-100w)
+        url = os.environ.get("SEARCH_URL", "http://localhost:8877/search")
+        headers = {
+            'Content-Type': 'application/json',
+        }
+        q = (query or "").strip()
+        data = {
+            "q": q,
+            "num": 10,
+            "extendParams": {
+                "country": "en",
+                "page": 1,
+            },
+        }
+
+        if not q:
+            print(f"'{query}' is a blank query.", file=sys.stderr)
+            return [f"'{query}' is a blank query."]
+
+        response = None
+        max_attempts = 10
+        for i in range(max_attempts):
+            try:
+                SERPER_RATE_LIMITER.acquire()
+                response = requests.post(url, headers=headers, data=json.dumps(data), timeout=30)
+                break
+            except Exception as e:
+                if i == max_attempts - 1:
+                    with open(serper_error_log, "a") as f:
+                        time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                        f.write(f"{time_str} Search attempt failed after {i + 1} attempts, "
+                                f"query: {q}, error: {repr(e)}\n")
+                    print(f"Search attempt failed after {i + 1} attempts, query: {q}, "
+                          f"error: {repr(e)}", file=sys.stderr)
+                    return ["Search timeout, return None, Please try again later."]
+                else:
+                    time.sleep(random.uniform(0.5, 2))
+
+        if response is None or response.status_code != 200:
+            status = None if response is None else response.status_code
+            body = ""
+            try:
+                body = (response.text or "")[:200].replace("\n", " ") if response is not None else "<no response>"
+            except Exception:
+                body = "<unavailable>"
+            print(f"Search HTTP error, status={status}, query: {q}, body: {body}", file=sys.stderr)
+            with open(serper_error_log, "a") as f:
+                time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                f.write(f"{time_str} Search HTTP error, status={status}, query: {q}, body: {body}\n")
+            return ["Search timeout, return None, Please try again later."]
+
+        try:
+            results = response.json()
+        except Exception as e:
+            print(f"Search JSON decode error, query: {q}, error: {repr(e)}", file=sys.stderr)
+            with open(serper_error_log, "a") as f:
+                time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                f.write(f"{time_str} Search JSON decode error, query: {q}, error: {repr(e)}\n")
+            return ["Search timeout, return None, Please try again later."]
+
+        if not isinstance(results, dict) or "organic" not in results:
+            print(f"Search parse issue: 'organic' not in results, query: {q}", file=sys.stderr)
+            return [f"No results found for '{query}'. Try with a more general query."]
+
+        try:
+            web_snippets = list()
+            idx = 0
+            for page in results["organic"]:
+                idx += 1
+                date_published = ""
+                if "date" in page:
+                    date_published = "\nDate published: " + page["date"]
+
+                source = ""
+                if "source" in page:
+                    source = "\nSource: " + page["source"]
+
+                snippet = ""
+                if "snippet" in page:
+                    snippet = "\n" + page["snippet"]
+
+                redacted_version = f"{idx}. [{page['title']}]({page['link']}){date_published}{source}\n{snippet}"
+                redacted_version = redacted_version.replace("Your browser can't play this video.", "")
+                web_snippets.append(redacted_version)
+
+            if not web_snippets:
+                return [f"No results found for '{query}'. Try with a more general query."]
+
+            content = (f"A search for '{query}' found {len(web_snippets)} results:\n\n"
+                       f"## Web Results\n" + "\n\n".join(web_snippets))
+            return [content]
+        except Exception:
+            return [f"No results found for '{query}'. Try with a more general query."]
+
+  agent_system--environments--env_package--deepresearch--deepresearch--utils.py: |
+    # Vendored from cxcscmu/verl-agent-deepresearch (commit 9c311053).
+    # The upstream file loads a hardcoded CMU cluster path
+    # (/data/group_data/cx_group/behavior_priming/Qwen3/Qwen3-8B). This copy loads
+    # the tokenizer lazily from DEEPRESEARCH_TOKENIZER_PATH (set to the training
+    # model path in the job script) and falls back to a chars/4 estimate if no
+    # tokenizer can be loaded — tokenize() is only used for context-length
+    # accounting (summary reminder at 8000 tokens), not for training tensors.
+
+    import os
+
+    _tokenizer = None
+    _tokenizer_failed = False
+
+
+    def _get_tokenizer():
+        global _tokenizer, _tokenizer_failed
+        if _tokenizer is not None or _tokenizer_failed:
+            return _tokenizer
+        model_name = os.environ.get("DEEPRESEARCH_TOKENIZER_PATH")
+        if not model_name:
+            _tokenizer_failed = True
+            return None
+        try:
+            from transformers import AutoTokenizer
+            _tokenizer = AutoTokenizer.from_pretrained(model_name)
+        except Exception as e:  # pragma: no cover
+            import sys
+            print(f"[deepresearch.utils] failed to load tokenizer from {model_name}: {e}; "
+                  f"falling back to len//4 estimate", file=sys.stderr)
+            _tokenizer_failed = True
+        return _tokenizer
+
+
+    def tokenize(input):
+        tok = _get_tokenizer()
+        if tok is None:
+            return len(input) // 4
+        return len(tok.encode(input))
+
+  agent_system--environments--env_package--deepresearch--deepresearch--reward--__init__.py: |
+    # (intentionally empty)
+
+  agent_system--environments--env_package--deepresearch--deepresearch--reward--evaluation--__init__.py: |
+    # (intentionally empty)
+
+  agent_system--environments--env_package--deepresearch--deepresearch--reward--evaluation--afm_eval.py: |
+    # Vendored from cxcscmu/verl-agent-deepresearch (commit 9c311053).
+    # Changes: dotenv dropped (plain env var), OpenAI client created lazily so a
+    # missing `openai` package or missing key degrades to score 0 instead of
+    # crashing the env actor at import time. With the dummy OPENAI_API_KEY used
+    # for GPU-trace benchmarks all judged calls fail -> score 0 for every row,
+    # matching the colocated baseline behavior.
+
+    import json
+    import os
+    import time
+
+    _client = None
+    _client_failed = False
+
+
+    def _get_client():
+        global _client, _client_failed
+        if _client is not None or _client_failed:
+            return _client
+        try:
+            from openai import OpenAI
+            _client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), timeout=180)
+        except Exception as e:  # pragma: no cover
+            import sys
+            print(f"[afm_eval] OpenAI client unavailable ({e}); all judge scores will be 0",
+                  file=sys.stderr)
+            _client_failed = True
+        return _client
+
+
+    llm_prompt = """
+    Please determine if the predicted answer is SEMANTICALLY equivalent to the labeled answer.
+    Question:  {question}
+    Labeled Answer:  {gt_answer}
+    Predicted Answer: {pred_answer}
+
+    {{
+    "rationale": "your rationale for the judgement, as a text",
+    "judgement": "your judgement result, can only be 'correct' or 'incorrect'
+    }}
+    """
+
+
+    def retry_predict(model, prompt, developer_prompt=None):
+        client = _get_client()
+        if client is None:
+            return ""
+        messages = []
+        if developer_prompt:
+            messages.append({
+                "role": "system",
+                "content": developer_prompt
+            })
+        messages.append({
+            "role": "user",
+            "content": prompt
+        })
+        max_retries = 5
+        for attempt in range(max_retries):
+            try:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    temperature=0.2,
+                    max_tokens=8192,
+                    top_p=0.9,
+                    frequency_penalty=0,
+                    presence_penalty=0
+                )
+                content = response.choices[0].message.content.strip()
+                if content:
+                    return content
+            except Exception:
+                if attempt < max_retries - 1:
+                    time.sleep(1 * (2 ** attempt))  # Exponential backoff
+        return ""
+
+
+    def decode_response(response):
+        try:
+            if isinstance(response, str):
+                return json.loads(response)
+            return response
+        except Exception:
+            return {"judgement": "incorrect"}
+
+
+    def evaluate_afm_answer(question, answer, ground_truth):
+        llm_evaluation_prompt = llm_prompt.format(
+            question=question,
+            gt_answer=ground_truth,
+            pred_answer=answer
+        )
+        output = retry_predict(
+            "gpt-4o-mini",
+            llm_evaluation_prompt,
+            developer_prompt="You are an evaluation assistant."
+        )
+        json_output = decode_response(output)
+        if (json_output and isinstance(json_output, dict) and
+                "judgement" in json_output and
+                json_output['judgement'].lower() == "correct"):
+            score = 1
+        else:
+            score = 0
+        return score
+
+  agent_system--environments--env_package--deepresearch--deepresearch--reward--evaluation--reward_fn.py: |
+    # Vendored from cxcscmu/verl-agent-deepresearch (commit 9c311053).
+    # Only the qa mode (AFM LLM-judge) survives — the report-mode evaluators
+    # (eval_kpr_async / eval_quality_async) and the webwalker evaluator were
+    # stripped: they pull the openai/langchain dependency trees and are unused by
+    # the MHQA benchmark.
+
+    from .afm_eval import evaluate_afm_answer
+
+
+    def evaluation_reward_fn(query_id, question, answer, mode, ground_truth=None, options=None):
+        if mode == 'report':
+            raise NotImplementedError(
+                "report mode evaluators were stripped from this vendored copy")
+        elif mode == "qa":
+            score = evaluate_afm_answer(question, answer, ground_truth)
+            return score
+
+  agent_system--environments--prompts--__init__.py: |
+    # Only the deepresearch prompts are vendored (other env prompt modules dropped).
+    from .deepresearch import *
+
+  agent_system--environments--prompts--deepresearch.py: |
+    ### Short Answer Mode
+
+
+    short_answer_prompt_internal_thinking_base = """Your are a research assistant with the ability to perform web searches to answer questions. You can answer a question with many turns of search and reasoning.
+
+    Based on the history information, you need to suggest the next action to complete the task.
+    You will be provided with:
+    1. Your history search attempts: query in format <search> query </search> and the returned search results in <information> and </information>.
+    2. The question to answer.
+
+    IMPORTANT: You must strictly adhere to the following rules:
+    1. Choose ONLY ONE action from the list below for each response, DO NOT perform more than one action per step.
+    2. Follow the exact syntax format for the selected action, DO NOT create or use any actions other than those listed.
+    3. **Don't do duplicate search.** Pay attention to the history search results.
+
+    Valid actions:
+    1. <search> query </search>: search the web for information if you consider you lack some knowledge.
+    2. <answer> answer </answer>: output the final answer if you consider you are able to answer the question. The answer should be short and concise. No justification is needed.
+    3. <summary> important parts of the history turns </summary>: summarize the history turns. Reflect the search queries and search results in you history turns, and keep the information you consider important for answering the question and generating your report. Still keep the tag structure, keep search queries between <search> and </search>, and keep search results between <information> and </information>. The history turn information for your subsequent turns will be updated accoring to this summary action.
+
+    Format:
+    You should pay attention to the format of your output. You can choose **ONLY ONE** of the following actions:
+        - If You want to search, You should put the query between <search> and </search>.
+        - If You want to summarize the history turns, You should put the summary between <summary> and </summary>.
+        - If You want to give the final answer, You should put the answer between <answer> and </answer>.
+        You can only use ONE action per response.
+
+    Note: text between <information></information> is the search results from search engine after you perform a search action, **DO NOT** include any information in <information></information> in your output.
+
+    Question: {question}
+    """
+
+    short_answer_prompt_explicit_thinking_base = """Your are a research assistant with the ability to perform web searches to answer questions. You can answer a question with many turns of search and reasoning.
+
+    Based on the history information, you need to suggest the next action to complete the task.
+    You will be provided with:
+    1. Your history search attempts: query in format <search> query </search> and the returned search results in <information> and </information>.
+    2. The question to answer.
+
+    IMPORTANT: You must strictly adhere to the following rules:
+    1. Choose ONLY ONE action from the list below for each response, DO NOT perform more than one action per step.
+    2. Follow the exact syntax format for the selected action, DO NOT create or use any actions other than those listed.
+    3. **Don't do duplicate search.** Pay attention to the history search results.
+
+    Valid actions:
+    1. <search> query </search>: search the web for information if you consider you lack some knowledge.
+    2. <answer> answer </answer>: output the final answer if you consider you are able to answer the question. The answer should be short and concise. No justification is needed.
+    3. <summary> important parts of the history turns </summary>: summarize the history turns. Reflect the search queries and search results in you history turns, and keep the information you consider important for answering the question and generating your report. Still keep the tag structure, keep search queries between <search> and </search>, and keep search results between <information> and </information>. The history turn information for your subsequent turns will be updated accoring to this summary action.
+
+    Output instructions:
+    First, you should think step-by-step about the question and the history turns.
+    Then you should choose **ONLY ONE** of the following actions:
+    - If You want to search, You should put the query between <search> and </search>.
+    - If You want to summarize the history turns, You should put the summary between <summary> and </summary>.
+    - If You want to give the final answer, You should put the answer between <answer> and </answer>.
+    You can only use ONE action per response.
+
+    Format:
+    Thinking Process: [thinking process]
+    Action: [action]
+
+    Example:
+    Thinking Process: I need to answer the question...
+    Action: <search> query </search>
+
+    Note: text between <information></information> is the search results from search engine after you perform a search action, **DO NOT** include any information in <information></information> in your search action.
+
+    Question: {question}
+    """
+
+    history_turns_base = """
+    History Turns: (empty if this is the first turn)
+    """
+
+    ### Report Mode
+
+    report_prompt_base = """You are a research assistant with the ability to perform web searches to write a comprehensive scientific research article in markdown format. You will be given a question, and you will need to write a report on the question. You can use search tools to find relevant information.
+    You don't need to write the report in one turn. You can search and revise your report multiple times. When you consider you need some new information, you can perform a search action. When you want to update, generate, or revise your report scripts, you can perform a scripts action. When you consider you have enough information, you can output the final report.
+
+    Based on the history information, you need to suggest the next action to complete the task.
+    You will be provided with:
+    1. Your history turns information: it might contains your previous plan, report scripts, search results. For search results, queries are in format <search> query </search> and the returned search results in <information> and </information>.
+    2. The question to answer.
+
+    IMPORTANT: You must strictly adhere to the following rules:
+    1. Choose ONLY ONE action from the list below for each response, DO NOT perform more than one action per step.
+    2. Follow the exact syntax format for the selected action, DO NOT create or use any actions other than those listed.
+    3. **Don't do duplicate search.** Pay attention to the history search results.
+    4. **Do not always perform the search action. You must consider the history search results and update your report scripts.**
+
+    Valid actions:
+    1. <search> query </search>: search the web for information if you consider you lack some knowledge.
+    2. <plan> plan </plan>: plan the report in your first turn.
+    3. <scripts> revised or newly generated report scripts </scripts>: revise former report scripts, or newly generate report scripts.
+    4. <summary> important parts of the history turns </summary>: summarize the history turns. Reflect the plan, scripts, search queries, and search results in you history turns, and keep the information you consider important for answering the question and generating your report. Still keep the tag structure, keep plan between <plan> and </plan>, keep scripts between <scripts> and </scripts>, keep search queries between <search> and </search>, and keep search results between <information> and </information>. The history turn information for your subsequent turns will be updated accoring to this summary action.
+    5. <answer> final report </answer>: output the final report.
+
+    Format:
+    You should pay attention to the format of my response. You can choose one of the following actions:
+        - If You want to search, You should put the query between <search> and </search>.
+        - If You want to make a plan, You should put the plan between <plan> and </plan>.
+        - If You want to write scripts, You should put the scripts between <scripts> and </scripts>.
+        - If You want to summarize the history turns, You should put the summary between <summary> and </summary>.
+        - If You want to give the final report, You should put the report between <answer> and </answer>.
+        You can only use ONE action per response.
+
+    Note: text between <information></information> is the search results from search engine after you perform a search action, **DO NOT** include any information in <information></information> in your output.
+
+    Question: {question}
+    """
+
+    ### Shared Prompt
+
+    format_reminder_prompt = """You generated an invalid action in your previous turn. Please pay attention to your output format.
+    """
+
+    summary_reminder_prompt = """
+        You have performed a long history of turns. Consider summarize the content of each history turn.
+    """
+
+    ### Critique Prompt
+
+
+    refinement_prompt = """
+    You are also given some critique lessons for answering the question. Please take them into consideration but **DO NOT** mention them in your thinking process. You should not explicitly mention that your are provided with the critique in any of your output, **include the thinking process**. Just use these lessons to improve your answer but do not explicitly mentioned that you are using external lessons in your output.
+    Critique Lessons:
+    {critique}
+    """
+
+    ### Final Prompt
+    short_answer_prompt_internal_thinking = short_answer_prompt_internal_thinking_base + history_turns_base
+    short_answer_prompt_explicit_thinking = short_answer_prompt_explicit_thinking_base + history_turns_base
+    short_answer_prompt_internal_thinking_with_critique = short_answer_prompt_internal_thinking_base + refinement_prompt + history_turns_base
+    short_answer_prompt_explicit_thinking_with_critique = short_answer_prompt_explicit_thinking_base + refinement_prompt + history_turns_base
+    report_prompt = report_prompt_base + history_turns_base
+    report_prompt_with_critique = report_prompt_base + refinement_prompt + history_turns_base
+
+  agent_system--reward_manager--__init__.py: |
+    from .episode import EpisodeRewardManager
+
+  agent_system--reward_manager--episode.py: |
+    # Copyright 2025 Nanyang Technological University (NTU), Singapore
+    # and the verl-agent (GiGPO) team.
+    #
+    # Licensed under the Apache License, Version 2.0 (the "License");
+    # you may not use this file except in compliance with the License.
+    # You may obtain a copy of the License at
+    #
+    #     http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing, software
+    # distributed under the License is distributed on an "AS IS" BASIS,
+    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    # See the License for the specific language governing permissions and
+    # limitations under the License.
+
+    from verl import DataProto
+    import torch
+    import numpy as np
+
+    class EpisodeRewardManager:
+        """The reward manager.
+        """
+
+        def __init__(self, tokenizer, num_examine, normalize_by_length=False) -> None:
+            self.tokenizer = tokenizer
+            self.num_examine = num_examine  # the number of batches of decoded responses to print to the console
+            self.normalize_by_length = normalize_by_length
+
+        def __call__(self, data: DataProto, return_dict=False):
+            """We will expand this function gradually based on the available datasets"""
+
+            # If there is rm score, we directly return rm score. Otherwise, we compute via rm_score_fn
+            if "rm_scores" in data.batch.keys():
+                if return_dict:
+                    return {"reward_tensor": data.batch["rm_scores"]}
+                else:
+                    return data.batch["rm_scores"]
+
+            reward_tensor = torch.zeros_like(data.batch['responses'], dtype=torch.float32)
+
+            already_print_data_sources = {}
+
+            for i in range(len(data)):
+                data_item = data[i]  # DataProtoItem
+
+                prompt_ids = data_item.batch['prompts']
+
+                prompt_length = prompt_ids.shape[-1]
+
+                valid_prompt_length = data_item.batch['attention_mask'][:prompt_length].sum()
+                valid_prompt_ids = prompt_ids[-valid_prompt_length:]
+
+                response_ids = data_item.batch['responses']
+                valid_response_length = data_item.batch['attention_mask'][prompt_length:].sum()
+                valid_response_ids = response_ids[:valid_response_length]
+
+                # decode
+                prompt_str = self.tokenizer.decode(valid_prompt_ids, skip_special_tokens=False)
+                response_str = self.tokenizer.decode(valid_response_ids, skip_special_tokens=False)
+
+                # ground_truth = data_item.non_tensor_batch['reward_model']['ground_truth']
+
+                data_source = data_item.non_tensor_batch['data_source']
+
+                extra_info = data_item.non_tensor_batch.get('extra_info', None)
+                multi_modal_inputs = data_item.non_tensor_batch.get('multi_modal_inputs', None)
+                if multi_modal_inputs is not None:
+                    pixel_values = multi_modal_inputs['pixel_values']
+                    image_grid_thw = multi_modal_inputs['image_grid_thw']
+
+
+                episode_rewards = data_item.non_tensor_batch['episode_rewards']
+                episode_lengths = data_item.non_tensor_batch['episode_lengths']
+
+                if self.normalize_by_length:
+                    score = episode_rewards / episode_lengths
+                else:
+                    score = episode_rewards
+                reward_tensor[i, valid_response_length - 1] = torch.tensor(score, dtype=torch.float32, device=prompt_ids.device)
+
+                if data_source not in already_print_data_sources:
+                    already_print_data_sources[data_source] = 0
+
+                if already_print_data_sources[data_source] < self.num_examine and np.random.random() < 0.1:
+                    already_print_data_sources[data_source] += 1
+                    print("[prompt]", prompt_str)
+                    print("[response]", response_str)
+                    print("[score]", score)
+
+            if return_dict:
+                return {
+                    "reward_tensor": reward_tensor,
+                    "reward_extra_info": {},
+                }
+            else:
+                return reward_tensor
+
+  agent_system--multi_turn_rollout--__init__.py: |
+    from .rollout_loop import TrajectoryCollector
+    from .utils import adjust_batch
+
+  agent_system--multi_turn_rollout--rollout_loop.py: |
+    # Copyright 2025 Nanyang Technological University (NTU), Singapore
+    # and the verl-agent (GiGPO) team.
+    #
+    # Licensed under the Apache License, Version 2.0 (the "License");
+    # you may not use this file except in compliance with the License.
+    # You may obtain a copy of the License at
+    #
+    #     http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing, software
+    # distributed under the License is distributed on an "AS IS" BASIS,
+    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    # See the License for the specific language governing permissions and
+    # limitations under the License.
+    #
+    # Vendored from cxcscmu/verl-agent-deepresearch (commit 9c311053),
+    # agent_system/multi_turn_rollout/rollout_loop.py, with the following changes
+    # for the disaggregated PoC port (verl main):
+    #   - critique / rule-reward loops and their imports removed (drops the
+    #     langchain + google dependency tree entirely)
+    #   - GiGPO hybrid-batch helpers removed (unused in vanilla mode)
+    #   - DataProto.truncate no longer exists on verl main: the eval-mode branch
+    #     uses select_idxs instead
+    #   - qwen2_vl.get_rope_index import made optional (text-only workload)
+    #   - filter_groups / critique / rule-reward config flags read defensively so
+    #     the loop runs on the stock one_step_off config with only +env.* additions
+
+    import torch
+    import numpy as np
+    from verl import DataProto
+    from verl.utils.dataset.rl_dataset import collate_fn
+    from verl.utils.model import compute_position_id_with_mask
+    import verl.utils.torch_functional as verl_F
+    from transformers import PreTrainedTokenizer
+    import uuid
+
+    try:  # multimodal only — not used by the deepresearch text workload
+        from verl.models.transformers.qwen2_vl import get_rope_index
+    except Exception:  # pragma: no cover
+        get_rope_index = None
+
+    from agent_system.multi_turn_rollout.utils import (
+        process_image,
+        to_list_of_dict,
+        torch_to_numpy,
+        filter_group_data,
+    )
+    from agent_system.environments import EnvironmentManagerBase
+    from typing import List, Dict
+    import time
+
+
+    def _cfg_get(node, key, default=None):
+        """Defensive config getter for OmegaConf nodes that may be missing."""
+        try:
+            val = node.get(key, default) if hasattr(node, "get") else getattr(node, key, default)
+        except Exception:
+            return default
+        return default if val is None else val
+
+
+    class TrajectoryCollector:
+        def __init__(self, config, tokenizer: PreTrainedTokenizer, processor=None):
+            """
+            Initialize the TrajectoryProcessor class.
+
+            Parameters:
+                config: Configuration object containing data processing settings
+                tokenizer (PreTrainedTokenizer): Tokenizer for text encoding and decoding
+                processor: Image processor for multimodal inputs
+            """
+            self.config = config
+            self.tokenizer = tokenizer
+            self.processor = processor
+
+        def preprocess_single_sample(
+            self,
+            item: int,
+            gen_batch: DataProto,
+            obs: Dict,
+        ):
+            """
+            Process a single observation sample, organizing environment observations
+            (text and/or images) into a format processable by the model.
+
+            Parameters:
+                item (int): Sample index in the batch
+                gen_batch (DataProto): Batch data containing original prompts
+                obs (Dict): Environment observation, may contain 'text', 'image', 'anchor' keys
+
+            Returns:
+                dict: Contains processed input data such as input_ids, attention_mask, etc.
+            """
+            raw_prompt = gen_batch.non_tensor_batch['raw_prompt'][item]
+            data_source = gen_batch.non_tensor_batch['data_source'][item]
+
+            # Get observation components
+            obs_texts = obs.get('text', None)
+            obs_images = obs.get('image', None)
+            obs_anchors = obs.get('anchor', None)
+            obs_text = obs_texts[item] if obs_texts is not None else None
+            obs_image = obs_images[item] if obs_images is not None else None
+            obs_anchor = obs_anchors[item] if obs_anchors is not None else None
+            is_multi_modal = obs_image is not None
+
+            _obs_anchor = torch_to_numpy(obs_anchor, is_object=True) if isinstance(obs_anchor, torch.Tensor) else obs_anchor
+
+            # Build chat structure
+            obs_content = ''
+            if obs_text is not None:
+                obs_content += obs_text
+
+            chat = np.array([{
+                "content": obs_content,
+                "role": "user",
+            }])
+
+            # Apply chat template
+            prompt_with_chat_template = self.tokenizer.apply_chat_template(
+                chat,
+                add_generation_prompt=True,
+                tokenize=False
+            )
+
+            # Initialize return dict
+            row_dict = {}
+
+            # Process multimodal data
+            if is_multi_modal:
+                assert get_rope_index is not None, "qwen2_vl.get_rope_index unavailable on this verl commit"
+                raw_prompt = prompt_with_chat_template.replace('<image>', '<|vision_start|><|image_pad|><|vision_end|>')
+                row_dict['multi_modal_data'] = {'image': [process_image(obs_image)]}
+                image_inputs = self.processor.image_processor(row_dict['multi_modal_data']['image'], return_tensors='pt')
+                image_grid_thw = image_inputs['image_grid_thw']
+                row_dict['multi_modal_inputs'] = {key: val for key, val in image_inputs.items()}
+                if image_grid_thw is not None:
+                    merge_length = self.processor.image_processor.merge_size**2
+                    index = 0
+                    while '<image>' in prompt_with_chat_template:
+                        prompt_with_chat_template = prompt_with_chat_template.replace(
+                            '<image>',
+                            '<|vision_start|>' + '<|placeholder|>' * (image_grid_thw[index].prod() // merge_length) +
+                            '<|vision_end|>',
+                            1,
+                        )
+                        index += 1
+
+                    prompt_with_chat_template = prompt_with_chat_template.replace('<|placeholder|>',
+                                                                                  self.processor.image_token)
+            else:
+                raw_prompt = prompt_with_chat_template
+
+            input_ids, attention_mask = verl_F.tokenize_and_postprocess_data(
+                prompt=prompt_with_chat_template,
+                tokenizer=self.tokenizer,
+                max_length=self.config.data.max_prompt_length,
+                pad_token_id=self.tokenizer.pad_token_id,
+                left_pad=True,
+                truncation=self.config.data.truncation,
+            )
+
+            if is_multi_modal:
+                position_ids = get_rope_index(
+                    self.processor,
+                    input_ids=input_ids[0],
+                    image_grid_thw=image_grid_thw,
+                    attention_mask=attention_mask[0],
+                )  # (3, seq_len)
+            else:
+                position_ids = compute_position_id_with_mask(attention_mask)
+
+            raw_prompt_ids = self.tokenizer.encode(raw_prompt, add_special_tokens=False)
+            if len(raw_prompt_ids) > self.config.data.max_prompt_length:
+                if self.config.data.truncation == "left":
+                    raw_prompt_ids = raw_prompt_ids[-self.config.data.max_prompt_length:]
+                elif self.config.data.truncation == "right":
+                    raw_prompt_ids = raw_prompt_ids[: self.config.data.max_prompt_length]
+                elif self.config.data.truncation == "middle":
+                    left_half = self.config.data.max_prompt_length // 2
+                    right_half = self.config.data.max_prompt_length - left_half
+                    raw_prompt_ids = raw_prompt_ids[:left_half] + raw_prompt_ids[-right_half:]
+                elif self.config.data.truncation == "error":
+                    raise RuntimeError(
+                        f"Prompt length {len(raw_prompt_ids)} is longer than {self.config.data.max_prompt_length}."
+                    )
+
+            # Build final output dict
+            row_dict.update({
+                'input_ids': input_ids[0],
+                'attention_mask': attention_mask[0],
+                'position_ids': position_ids[0],
+                'raw_prompt_ids': raw_prompt_ids,
+                'anchor_obs': _obs_anchor,
+                'index': item,
+                'data_source': data_source
+            })
+
+            if self.config.data.get('return_raw_chat', False):
+                row_dict['raw_prompt'] = chat.tolist()
+
+            return row_dict
+
+        def preprocess_batch(
+            self,
+            gen_batch: DataProto,
+            obs: Dict,
+        ) -> DataProto:
+            """
+            Process a batch of observation samples, converting environment
+            observations into model-processable format.
+            """
+            batch_size = len(gen_batch.batch['input_ids'])
+            processed_samples = []
+
+            for item in range(batch_size):
+                processed = self.preprocess_single_sample(
+                    item=item,
+                    gen_batch=gen_batch,
+                    obs=obs,
+                )
+                processed_samples.append(processed)
+
+            # Aggregate batch data
+            batch = collate_fn(processed_samples)
+
+            # Create DataProto with preserved metadata
+            new_batch = DataProto.from_single_dict(
+                data=batch,
+                meta_info=gen_batch.meta_info
+            )
+
+            return new_batch
+
+        def gather_rollout_data(
+                self,
+                total_batch_list: List[List[Dict]],
+                episode_rewards: np.ndarray,
+                episode_lengths: np.ndarray,
+                success: Dict[str, np.ndarray],
+                traj_uid: np.ndarray,
+                ) -> DataProto:
+            """
+            Collect and organize trajectory data: flatten all active (env, turn)
+            rows into one training batch and broadcast the episode statistics onto
+            every row.
+            """
+            batch_size = len(total_batch_list)
+
+            episode_rewards_mean = np.mean(episode_rewards)
+            episode_rewards_min = np.min(episode_rewards)
+            episode_rewards_max = np.max(episode_rewards)
+
+            episode_lengths_mean = np.mean(episode_lengths)
+            episode_lengths_min = np.min(episode_lengths)
+            episode_lengths_max = np.max(episode_lengths)
+
+            success_rate = {}
+            for key, value in success.items():
+                success_rate[key] = np.mean(value)
+
+            effective_batch = []
+            for bs in range(batch_size):
+                for data in total_batch_list[bs]:
+                    assert traj_uid[bs] == data['traj_uid'], "data is not from the same trajectory"
+                    if data['active_masks']:
+                        # episode_rewards
+                        data['episode_rewards'] = episode_rewards[bs]
+                        data['episode_rewards_mean'] = episode_rewards_mean
+                        data['episode_rewards_min'] = episode_rewards_min
+                        data['episode_rewards_max'] = episode_rewards_max
+                        # episode_lengths
+                        data['episode_lengths'] = episode_lengths[bs]
+                        data['episode_lengths_mean'] = episode_lengths_mean
+                        data['episode_lengths_min'] = episode_lengths_min
+                        data['episode_lengths_max'] = episode_lengths_max
+                        # success_rate
+                        for key, value in success_rate.items():
+                            data[key] = value
+
+                        effective_batch.append(data)
+
+            # Convert trajectory data to DataProto format
+            gen_batch_output = DataProto.from_single_dict(
+                data=collate_fn(effective_batch)
+            )
+            return gen_batch_output
+
+        def vanilla_multi_turn_loop(
+                self,
+                gen_batch: DataProto,
+                actor_rollout_wg,
+                envs: EnvironmentManagerBase,
+                ) -> DataProto:
+            """
+            Collects trajectories through parallel agent-environment rollout.
+
+            Note: like the CMU reference implementation, this generates for the
+            WHOLE batch every turn (finished trajectories included); rows for done
+            envs are dropped later via active_masks. This is intentional to stay
+            apples-to-apples with the colocated baseline.
+            """
+            # Initial observations from the environment
+            obs, infos = envs.reset()
+
+            # Initialize trajectory collection
+            lenght_obs = len(obs['text']) if obs['text'] is not None else len(obs['image'])
+            env_rollout_n = _cfg_get(self.config.env.rollout, 'n', 0)
+            if len(gen_batch.batch) != lenght_obs:
+                if env_rollout_n > 0 and envs.is_train:
+                    # train mode, rollout n trajectories for each question
+                    gen_batch = gen_batch.repeat(repeat_times=env_rollout_n, interleave=True)
+                else:
+                    # evaluation mode, truncate the gen_batch to the length of obs.
+                    # DataProto.truncate was removed on verl main — use select_idxs.
+                    gen_batch = gen_batch.select_idxs(np.arange(lenght_obs))
+            assert len(gen_batch.batch) == lenght_obs, \
+                f"gen_batch size {len(gen_batch.batch)} does not match obs size {lenght_obs}"
+
+            batch_size = len(gen_batch.batch['input_ids'])
+            batch_output = None
+
+            if env_rollout_n > 0:  # env grouping
+                uid_batch = []
+                for i in range(batch_size):
+                    if i % env_rollout_n == 0:
+                        uid = str(uuid.uuid4())
+                    uid_batch.append(uid)
+                uid_batch = np.array(uid_batch, dtype=object)
+            else:  # no env grouping, set all to the same uid
+                uid = str(uuid.uuid4())
+                uid_batch = np.array([uid for _ in range(len(gen_batch.batch))], dtype=object)
+
+            is_done = np.zeros(batch_size, dtype=bool)
+            traj_uid = np.array([str(uuid.uuid4()) for _ in range(batch_size)], dtype=object)
+            total_batch_list = [[] for _ in range(batch_size)]
+            total_infos = [[] for _ in range(batch_size)]
+            episode_lengths = np.zeros(batch_size, dtype=np.int32)
+            episode_rewards = np.zeros(batch_size, dtype=np.float32)
+
+            # Trajectory collection loop
+            for _step in range(self.config.env.max_steps):
+
+                active_masks = np.logical_not(is_done)
+                completed_count = is_done.sum()
+                active_count = batch_size - completed_count
+                print(f"{time.strftime('%Y-%m-%d %H:%M:%S')} [Rollout Loop] step {_step + 1}: "
+                      f"{completed_count}/{batch_size} completed, {active_count} active", flush=True)
+
+                batch = self.preprocess_batch(gen_batch=gen_batch, obs=obs)
+
+                batch_keys_to_pop = ["input_ids", "attention_mask", "position_ids"]
+                non_tensor_batch_keys_to_pop = ["raw_prompt_ids"]
+                if "multi_modal_data" in batch.non_tensor_batch:
+                    non_tensor_batch_keys_to_pop.append("multi_modal_data")
+                if "raw_prompt" in batch.non_tensor_batch:
+                    non_tensor_batch_keys_to_pop.append("raw_prompt")
+                if "tools_kwargs" in batch.non_tensor_batch:
+                    non_tensor_batch_keys_to_pop.append("tools_kwargs")
+                batch_input = batch.pop(
+                    batch_keys=batch_keys_to_pop,
+                    non_tensor_batch_keys=non_tensor_batch_keys_to_pop,
+                )
+
+                batch_input.meta_info = gen_batch.meta_info
+
+                batch_output = actor_rollout_wg.generate_sequences(batch_input)
+
+                batch.non_tensor_batch['uid'] = uid_batch
+                batch.non_tensor_batch['traj_uid'] = traj_uid
+
+                batch = batch.union(batch_output)
+
+                responses = self.tokenizer.batch_decode(batch.batch['responses'], skip_special_tokens=True)
+
+                next_input, rewards, dones, infos = envs.step(responses)
+
+                if len(rewards.shape) == 2:
+                    rewards = rewards.squeeze(1)
+                if len(dones.shape) == 2:
+                    dones = dones.squeeze(1)
+
+                if 'is_action_valid' in infos[0]:
+                    batch.non_tensor_batch['is_action_valid'] = np.array(
+                        [info['is_action_valid'] for info in infos], dtype=bool)
+                else:
+                    batch.non_tensor_batch['is_action_valid'] = np.ones(batch_size, dtype=bool)
+
+                # Extract environment feedback from infos
+                if 'environment_feedback' in infos[0]:
+                    batch.non_tensor_batch['environment_feedback'] = np.array(
+                        [info['environment_feedback'] for info in infos], dtype=object)
+                else:
+                    batch.non_tensor_batch['environment_feedback'] = np.array(
+                        ['' for _ in range(batch_size)], dtype=object)
+
+                # Extract question, ground_truth, and question_id from infos
+                if 'question' in infos[0]:
+                    batch.non_tensor_batch['question'] = np.array([info['question'] for info in infos], dtype=object)
+                if 'ground_truth' in infos[0]:
+                    batch.non_tensor_batch['ground_truth'] = np.array([info['ground_truth'] for info in infos], dtype=object)
+                if 'question_id' in infos[0]:
+                    batch.non_tensor_batch['question_id'] = np.array([info['question_id'] for info in infos], dtype=object)
+
+                # Create reward tensor, only assign rewards for active environments
+                episode_rewards += torch_to_numpy(rewards) * torch_to_numpy(active_masks)
+                episode_lengths[active_masks] += 1
+
+                assert len(rewards) == batch_size, \
+                    f"env should return rewards for all environments, got {len(rewards)} rewards for {batch_size} environments"
+                batch.non_tensor_batch['rewards'] = torch_to_numpy(rewards, is_object=True)
+                batch.non_tensor_batch['active_masks'] = torch_to_numpy(active_masks, is_object=True)
+
+                # Update episode lengths for active environments
+                batch_list: list[dict] = to_list_of_dict(batch)
+
+                for i in range(batch_size):
+                    total_batch_list[i].append(batch_list[i])
+                    total_infos[i].append(infos[i])
+
+                # Update done states
+                is_done = np.logical_or(is_done, dones)
+
+                # Update observations for next step
+                obs = next_input
+
+                # Break if all environments are done
+                if is_done.all():
+                    break
+
+            success: Dict[str, np.ndarray] = envs.success_evaluator(
+                total_infos=total_infos,
+                total_batch_list=total_batch_list,
+                episode_rewards=episode_rewards,
+                episode_lengths=episode_lengths,
+            )
+
+            return total_batch_list, episode_rewards, episode_lengths, success, traj_uid
+
+        def dynamic_multi_turn_loop(
+                self,
+                gen_batch: DataProto,
+                actor_rollout_wg,
+                envs: EnvironmentManagerBase,
+                ) -> DataProto:
+            """
+            Conduct dynamic rollouts until a target batch size is met (DAPO-style).
+            Kept for completeness; not used when algorithm.filter_groups is disabled.
+            """
+            total_batch_list = []
+            total_episode_rewards = []
+            total_episode_lengths = []
+            total_success = []
+            total_traj_uid = []
+            try_count: int = 0
+            max_try_count = self.config.algorithm.filter_groups.max_num_gen_batches
+
+            while (len(total_batch_list) < self.config.data.train_batch_size * self.config.env.rollout.n
+                   and try_count < max_try_count):
+
+                if len(total_batch_list) > 0:
+                    print(f"valid num={len(total_batch_list)} < "
+                          f"target num={self.config.data.train_batch_size * self.config.env.rollout.n}. "
+                          f"Keep generating... ({try_count}/{max_try_count})")
+                try_count += 1
+
+                batch_list, episode_rewards, episode_lengths, success, traj_uid = self.vanilla_multi_turn_loop(
+                    gen_batch=gen_batch,
+                    actor_rollout_wg=actor_rollout_wg,
+                    envs=envs,
+                )
+                batch_list, episode_rewards, episode_lengths, success, traj_uid = filter_group_data(
+                    batch_list=batch_list,
+                    episode_rewards=episode_rewards,
+                    episode_lengths=episode_lengths,
+                    success=success,
+                    traj_uid=traj_uid,
+                    config=self.config,
+                    last_try=(try_count == max_try_count),
+                )
+
+                total_batch_list += batch_list
+                total_episode_rewards.append(episode_rewards)
+                total_episode_lengths.append(episode_lengths)
+                total_success.append(success)
+                total_traj_uid.append(traj_uid)
+
+            total_episode_rewards = np.concatenate(total_episode_rewards, axis=0)
+            total_episode_lengths = np.concatenate(total_episode_lengths, axis=0)
+            total_success = {key: np.concatenate([success[key] for success in total_success], axis=0)
+                             for key in total_success[0].keys()}
+            total_traj_uid = np.concatenate(total_traj_uid, axis=0)
+
+            return total_batch_list, total_episode_rewards, total_episode_lengths, total_success, total_traj_uid
+
+        def multi_turn_loop(
+                self,
+                gen_batch: DataProto,
+                actor_rollout_wg,
+                envs: EnvironmentManagerBase,
+                critique_envs: EnvironmentManagerBase = None,
+                is_train: bool = True,
+                ) -> DataProto:
+            """
+            Select and run the appropriate rollout loop. Critique and rule-reward
+            modes are stripped in this vendored copy — only vanilla and dynamic
+            (filter_groups) sampling are available.
+            """
+            filter_groups_cfg = _cfg_get(self.config.algorithm, 'filter_groups', None)
+            filter_groups_enabled = bool(filter_groups_cfg) and bool(_cfg_get(filter_groups_cfg, 'enable', False))
+            if bool(_cfg_get(self.config.env, 'use_critique', False)) or \
+               bool(_cfg_get(self.config.env, 'use_rule_reward', False)):
+                raise NotImplementedError(
+                    "critique / rule-reward rollout modes were stripped from this vendored copy"
+                )
+
+            if filter_groups_enabled and is_train:
+                total_batch_list, total_episode_rewards, total_episode_lengths, total_success, total_traj_uid = \
+                    self.dynamic_multi_turn_loop(
+                        gen_batch=gen_batch,
+                        actor_rollout_wg=actor_rollout_wg,
+                        envs=envs,
+                    )
+            else:
+                total_batch_list, total_episode_rewards, total_episode_lengths, total_success, total_traj_uid = \
+                    self.vanilla_multi_turn_loop(
+                        gen_batch=gen_batch,
+                        actor_rollout_wg=actor_rollout_wg,
+                        envs=envs,
+                    )
+            assert len(total_batch_list) == len(total_episode_rewards)
+            assert len(total_batch_list) == len(total_episode_lengths)
+            assert len(total_batch_list) == len(total_traj_uid)
+
+            # Create trajectory data
+            gen_batch_output: DataProto = self.gather_rollout_data(
+                total_batch_list=total_batch_list,
+                episode_rewards=total_episode_rewards,
+                episode_lengths=total_episode_lengths,
+                success=total_success,
+                traj_uid=total_traj_uid,
+            )
+
+            return gen_batch_output
+
+  agent_system--multi_turn_rollout--utils.py: |
+    # Copyright 2025 Nanyang Technological University (NTU), Singapore
+    # and the verl-agent (GiGPO) team.
+    #
+    # Licensed under the Apache License, Version 2.0 (the "License");
+    # you may not use this file except in compliance with the License.
+    # You may obtain a copy of the License at
+    #
+    #     http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing, software
+    # distributed under the License is distributed on an "AS IS" BASIS,
+    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    # See the License for the specific language governing permissions and
+    # limitations under the License.
+
+    import torch
+    import numpy as np
+    import random
+    from typing import List, Tuple, Dict
+    import math
+    from PIL import Image
+    from verl import DataProto
+
+    def to_list_of_dict(batch: DataProto) -> list[dict]:
+        tensors = batch.batch
+        non_tensor = batch.non_tensor_batch
+        batch_size = len(tensors['input_ids'])
+        save_list = []
+        for bs in range(batch_size):
+            save_dict = dict()
+            for key, val in tensors.items():
+                save_dict[key] = val[bs]
+            for key, val in non_tensor.items():
+                save_dict[key] = val[bs]
+            save_list.append(save_dict)
+        return save_list
+
+
+    def torch_to_numpy(tensor, is_object=False):
+        if isinstance(tensor, torch.Tensor):
+            tensor = tensor.detach().cpu().numpy()
+        elif isinstance(tensor, np.ndarray):
+            pass
+        else:
+            raise ValueError(f"Unsupported type: {type(tensor)})")
+
+        if is_object:
+            tensor = tensor.astype(object)
+        return tensor
+
+    def numpy_to_torch(array, device):
+        if isinstance(array, np.ndarray):
+            array = torch.from_numpy(array).to(device)
+        elif isinstance(array, torch.Tensor):
+            array = array.to(device)
+        else:
+            raise ValueError(f"Unsupported type: {type(array)})")
+        return array
+
+
+    def process_image(image, max_pixels: int = 2048 * 2048, min_pixels: int = 256 * 256):
+        if isinstance(image, torch.Tensor):
+            image = torch_to_numpy(image)
+        if image.max() < 1:
+            image = image * 255.0
+        if image.dtype != np.uint8:
+            image = image.astype(np.uint8)
+        image = Image.fromarray(image)
+
+        if (image.width * image.height) > max_pixels:
+            resize_factor = math.sqrt(max_pixels / (image.width * image.height))
+            width, height = int(image.width * resize_factor), int(image.height * resize_factor)
+            image = image.resize((width, height))
+
+        if (image.width * image.height) < min_pixels:
+            resize_factor = math.sqrt(min_pixels / (image.width * image.height))
+            width, height = int(image.width * resize_factor), int(image.height * resize_factor)
+            image = image.resize((width, height))
+
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+
+        return image
+
+
+    def adjust_batch(config, data: DataProto, mode="copy") -> DataProto:
+        size_divisor_ref = config.actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu * config.trainer.n_gpus_per_node
+        size_divisor_rollout = config.actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu * config.trainer.n_gpus_per_node
+        size_divisor_actor = config.actor_rollout_ref.actor.ppo_mini_batch_size
+        size_divisor = np.lcm.reduce(np.array([size_divisor_ref, size_divisor_rollout, size_divisor_actor])).item()
+
+        # check if the batch size is divisible by the dp size, if not, delete the last few samples to make it divisible
+        bs = len(data)
+        remainder = bs % size_divisor
+        if remainder == 0:
+            return data
+
+        if mode == "delete":
+            # Generate indices to remove, rather than indices to keep
+            remove_indices = np.random.choice(bs, remainder, replace=False)
+            # Sort remove_indices to maintain stability when deleting
+            remove_indices = np.sort(remove_indices)
+
+            # Create a boolean mask for elements to keep
+            keep_mask = np.ones(bs, dtype=bool)
+            keep_mask[remove_indices] = False
+
+            keep_mask_tensor = torch.tensor(keep_mask, dtype=torch.bool, device=data.batch['input_ids'].device)
+            # Apply the mask to keep elements in their original order
+            tensor_data = data.batch[keep_mask_tensor]
+            non_tensor_data = {key: val[keep_mask] for key, val in data.non_tensor_batch.items()}
+            adjusted_batch = DataProto(batch=tensor_data, non_tensor_batch=non_tensor_data, meta_info=data.meta_info)
+            del data
+        elif mode == "copy":
+            to_add = size_divisor - remainder
+            dup_indices = np.random.choice(bs, to_add, replace=False)
+            dup_proto = data.select_idxs(dup_indices)
+
+            adjusted_batch = DataProto.concat([data, dup_proto])
+        else:
+            raise ValueError(f"Unsupported mode: {mode}")
+
+        return adjusted_batch
+
+
+    def filter_group_data(batch_list : List[Dict],
+                            episode_rewards: np.ndarray,
+                            episode_lengths: np.ndarray,
+                            success: Dict[str, np.ndarray],
+                            traj_uid: np.ndarray,
+                            config,
+                            last_try: bool = False,
+                            ):
+        """
+        Dynamic Sampling:
+        Over-sample and filter out episode group in which all episodes have the same rewards.
+        Adopted from DAPO (https://arxiv.org/abs/2503.14476)
+        """
+        if last_try:
+            return batch_list, episode_rewards, episode_lengths, success, traj_uid
+
+        batch_size = config.data.train_batch_size
+        group_n = config.env.rollout.n
+        if group_n <= 1:
+            print("Warning: group_n <= 1, no need to adopt dynamic sampling")
+
+        # Handle each group
+        keep_indices = np.array([], dtype=np.int64)
+        for i in range(batch_size):
+            # Get the indices of the current group
+            group_indices = np.arange(i * group_n, (i + 1) * group_n)
+            group_rewards = episode_rewards[group_indices]
+
+            # check if all group_traj_uid are the same
+            for index in group_indices:
+                assert batch_list[index][0]['uid'] == batch_list[group_indices[0]][0]['uid']
+
+            # Check if all rewards in the group are the same
+            if not np.all(group_rewards == group_rewards[0]):
+                # If so, keep the entire group, otherwise, remove it
+                keep_indices = np.concatenate((keep_indices, group_indices))
+
+        # Filter the batch_list, episode_rewards, episode_lengths, and success based on the keep_indices
+        success = {
+            key: value[keep_indices]
+            for key, value in success.items()
+            if len(value) == len(batch_list)
+        }
+        batch_list = [batch_list[i] for i in keep_indices]
+        episode_rewards = episode_rewards[keep_indices]
+        episode_lengths = episode_lengths[keep_indices]
+        # success = {key: value[keep_indices] for key, value in success.items()}
+        traj_uid = traj_uid[keep_indices]
+
+        return batch_list, episode_rewards, episode_lengths, success, traj_uid
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: disagg-deepresearch
+  namespace: default
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 604800
+  template:
+    metadata:
+      labels:
+        app: disagg-deepresearch
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-h100-mega-80gb
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cloud.google.com/gke-nodepool
+                operator: In
+                values:
+                - h100-mega-8gpu-spot-b
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: benchmark
+        image: verlai/verl:vllm017.latest
+        env:
+        - name: DEBIAN_FRONTEND
+          value: "noninteractive"
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          set -euo pipefail
+          echo "=== Disaggregated Deep-Research Multi-Turn Benchmark ==="
+          echo "Node: $(hostname)"
+          echo "Date: $(date)"
+          nvidia-smi
+          echo ""
+          mkdir -p /workspace/results
+          bash /workspace/scripts/setup_and_run_disagg.sh 2>&1 | tee /workspace/results/experiment.log
+        resources:
+          limits:
+            nvidia.com/gpu: 2
+          requests:
+            nvidia.com/gpu: 2
+            cpu: "40"
+            memory: "200Gi"
+        volumeMounts:
+        - name: scripts
+          mountPath: /workspace/scripts
+        - name: code
+          mountPath: /workspace/code
+        - name: results
+          mountPath: /workspace/results
+        - name: dshm
+          mountPath: /dev/shm
+      # Search sidecar: pyserini BM25 Wikipedia server (Serper-format API).
+      # Reuses the colocated benchmark image, which already has pyserini +
+      # JDK + the 12GB index bootstrap. Shares localhost with the main
+      # container (same pod network namespace).
+      - name: search
+        image: us-west1-docker.pkg.dev/aishuk-test/tpu-poc-repo/deepresearch-benchmark:latest
+        env:
+        - name: SEARCH_PORT
+          value: "8877"
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          set -euo pipefail
+          echo "=== Local Wikipedia search server (pyserini BM25) ==="
+          python3 /workspace/scripts/local_search_server.py
+        resources:
+          requests:
+            cpu: "8"
+            memory: "40Gi"
+          limits:
+            memory: "60Gi"
+        volumeMounts:
+        - name: scripts
+          mountPath: /workspace/scripts
+      volumes:
+      - name: scripts
+        configMap:
+          name: disagg-deepresearch-scripts
+          defaultMode: 0755
+      - name: code
+        configMap:
+          name: disagg-deepresearch-code
+      - name: results
+        emptyDir: {}
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Gi

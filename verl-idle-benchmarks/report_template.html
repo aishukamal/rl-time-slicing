@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>GPU Time-Slicing for RL — Benchmark Report</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1: #fcfcfb;
+    --surface-2: #f4f3f1;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #8a887f;
+    --series-1: #2a78d6;   /* trainer / blue */
+    --series-2: #eb6834;   /* rollout / orange */
+    --series-3: #1baf7a;   /* aqua accent */
+    --border: #e5e4e0;
+    --code-bg: #f4f3f1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --surface-1: #1a1a19;
+      --surface-2: #232322;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted: #8a887f;
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --border: #3a3936;
+      --code-bg: #232322;
+    }
+    figure img { background: #fcfcfb; border-radius: 6px; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--surface-1); color: var(--text-primary);
+    font: 16px/1.6 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 48px 32px 96px; }
+  h1 { font-size: 30px; line-height: 1.25; margin: 0 0 6px; }
+  h2 { font-size: 22px; margin: 56px 0 12px; padding-top: 18px; border-top: 1px solid var(--border); }
+  h3 { font-size: 17px; margin: 28px 0 8px; }
+  p, li { color: var(--text-primary); }
+  .sub { color: var(--text-secondary); margin: 0 0 4px; }
+  .muted { color: var(--text-muted); font-size: 14px; }
+  code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: 13.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0 20px; font-size: 14.5px; }
+  th { text-align: left; color: var(--text-secondary); font-weight: 600; }
+  th, td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr.hl td { background: var(--surface-2); font-weight: 600; }
+  figure { margin: 22px 0; }
+  figure img { width: 100%; height: auto; border: 1px solid var(--border); border-radius: 6px; }
+  figcaption { color: var(--text-muted); font-size: 13.5px; margin-top: 6px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 24px 0; }
+  .tile { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .tile .n { font-size: 26px; font-weight: 700; line-height: 1.2; }
+  .tile .l { color: var(--text-secondary); font-size: 13.5px; margin-top: 2px; }
+  .tile.blue .n { color: var(--series-1); }
+  .tile.orange .n { color: var(--series-2); }
+  .tile.aqua .n { color: var(--series-3); }
+  .law { background: var(--surface-2); border-left: 4px solid var(--series-1); border-radius: 0 8px 8px 0;
+         padding: 14px 18px; margin: 22px 0; font-size: 16.5px; }
+  .toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 16px 22px; margin: 26px 0; }
+  .toc a { color: var(--series-1); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ol { margin: 6px 0 0; padding-left: 20px; }
+  .pill { display: inline-block; font-size: 12.5px; font-weight: 600; padding: 2px 10px; border-radius: 99px;
+          background: var(--surface-2); border: 1px solid var(--border); color: var(--text-secondary); margin-left: 8px; vertical-align: middle; }
+  ul { padding-left: 22px; }
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 800px) { .twocol { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>GPU Time-Slicing for RL Workloads — Benchmark Report</h1>
+<p class="sub">Where does harvestable GPU idle exist in RL training pipelines, how big is it, and which regimes can time-slicing target?</p>
+<p class="muted">verl-research-cluster-west (GKE, us-west1) · H100 (a3-highgpu / a3-megagpu spot) · veRL (main + experimental fully-async) · July 6–25, 2026</p>
+
+<div class="toc">
+<strong>Contents</strong>
+<ol>
+  <li><a href="#summary">Executive summary &amp; the regime map</a></li>
+  <li><a href="#background">Background: why time-slicing for RL</a></li>
+  <li><a href="#phase1">Phase 1 — Square wave in async disagg requires artificial starvation (GSM8K, single-turn)</a></li>
+  <li><a href="#phase2">Phase 2 — Multi-turn agentic RL produces the long-tail naturally (deep-research, colocated)</a></li>
+  <li><a href="#phase3">Phase 3 — Staleness sweep, train-heavy workload (HotpotQA multi-turn tools, async disagg)</a></li>
+  <li><a href="#phase4">Phase 4 — Staleness sweep, gen-heavy workload (long-CoT math, async disagg)</a></li>
+  <li><a href="#conclusions">Conclusions: the time-slicing targeting matrix</a></li>
+  <li><a href="#appendix">Appendix: infrastructure, method, artifacts</a></li>
+</ol>
+</div>
+
+<h2 id="summary">1 · Executive summary</h2>
+
+<p>Across four experimental phases we measured GPU duty cycles of veRL RL training under every combination of
+<strong>execution mode</strong> (sync colocated, async disaggregated), <strong>data policy</strong> (on-policy,
+bounded staleness, unbounded staleness), and <strong>workload balance</strong> (generation-heavy vs training-heavy).
+All final experiments run out-of-the-box configurations — the idle we report comes from the workload's structure,
+not from tuning.</p>
+
+<div class="tiles">
+  <div class="tile blue"><div class="n">46–64%</div><div class="l">trainer GPU idle on long-CoT reasoning RL — at <em>every</em> staleness setting</div></div>
+  <div class="tile orange"><div class="n">1.6–3.3 min</div><div class="l">contiguous idle blocks, one per training step, perfectly periodic</div></div>
+  <div class="tile aqua"><div class="n">0</div><div class="l">artificial throttling knobs in Phases 2–4</div></div>
+  <div class="tile"><div class="n">~0.7s</div><div class="l">NCCL weight sync — never the bottleneck</div></div>
+</div>
+
+<div class="law"><strong>The law all measurements obey:</strong> the slower pipeline side pins its GPU at ~90–99%;
+the faster side idles in clean per-step blocks whose duration equals the gen−train time gap. A staleness budget
+relocates idle onto the faster side, but can never push total idle below the throughput imbalance — and when
+generation is the slower side, staleness does not bind at all.</div>
+
+{{IMG:P4_REGIME|The regime map: harvestable idle per GPU, workload balance × staleness policy (Phases 3 & 4, identical harness)}}
+
+<p><strong>Bottom line for time-slicing:</strong> the flagship community workload — R1/DAPO-style long
+chain-of-thought reasoning RL — leaves the trainer GPU idle 46–64% of the time in minute-plus periodic blocks
+under veRL's own async mode, regardless of staleness policy. On-policy modes additionally idle the rollout GPU in
+anti-phase. Only the divergent regime (unbounded staleness on a train-heavy workload) offers nothing to harvest.</p>
+
+<h2 id="background">2 · Background: why time-slicing for RL</h2>
+
+<p>RL post-training alternates two heterogeneous computations: <strong>autoregressive generation</strong>
+(latency-bound, one token at a time) and <strong>policy training</strong> (throughput-bound, parallel
+forward/backward). Unless the two are perfectly balanced, one side's GPUs wait. The prior PoC
+(<a href="https://github.com/aishukamal/rl-time-slicing">rl-time-slicing</a>, disaggregated sync RL with fast
+GPU context checkpoint/restore) demonstrated that a second job can be slotted into those waits:
+duty cycle 41%→71% with two jobs, &lt;1s context swap, no step-throughput impact, 33% total execution reduction.</p>
+
+<p>This project's question: <strong>in which realistic veRL configurations does that harvestable idle actually
+exist, how big is it, and does it survive the async/off-policy modes designed to eliminate it?</strong></p>
+
+<h2 id="phase1">3 · Phase 1 — Async disagg needs artificial starvation on a simple dataset <span class="pill">benchmark-longtail/</span></h2>
+
+<p><strong>Setup:</strong> veRL <code>fully_async_policy</code> (async disaggregated), Qwen2.5-0.5B-Instruct on GSM8K,
+1 trainer + 1 rollout H100. <strong>Goal:</strong> reproduce the "square wave" (minutes-long alternating busy/idle
+phases) that makes time-slicing worthwhile.</p>
+
+<p><strong>Finding: with default configs the pipeline stays balanced — no square wave.</strong> Single-turn GSM8K
+generation takes seconds per batch; the queue stays full and the trainer never waits. Producing multi-minute idle
+required deliberately fighting the framework:</p>
+
+<table>
+<tr><th>Knob</th><th>Value</th><th>Purpose (all artificial)</th></tr>
+<tr><td><code>rollout.gpu_memory_utilization</code></td><td>0.25</td><td>throttle sampler concurrency</td></tr>
+<tr><td><code>require_batches</code></td><td>32 (1024 samples/step)</td><td>inflate trainer's collection wait</td></tr>
+<tr><td><code>trigger_parameter_sync_step</code></td><td>4</td><td>batch weight syncs</td></tr>
+<tr><td><code>staleness_threshold</code></td><td>0</td><td>flush queue at sync</td></tr>
+</table>
+
+<p><strong>Result:</strong> 16 training steps, 4 full sync cycles over ~2.5h — post-sync trainer idle gaps of
+<strong>5.3 / 3.1 / 3.9 / 2.5 minutes</strong>, ~20s collection waits otherwise.</p>
+
+{{IMG:P1_SQUARE|Phase 1: square-wave timeline reconstructed from logs — yellow bars are 2.5–5.3 min idle gaps after weight syncs at steps 4, 8, 12, 16}}
+{{IMG:P1_DUTY|Phase 1: GPU trace (iteration 1, same recipe) — trainer humps with gaps, sampler generation blocks, 45% anti-correlation}}
+
+<h3>Phase 1 conclusions</h3>
+<ul>
+<li>veRL's async mode is engineered to prevent idle — a concurrent pipeline with a buffering queue.</li>
+<li>The trainer is inherently faster than the sampler (autoregressive generation is the bottleneck), so starvation is the natural direction — but with cheap single-turn generation it must be induced artificially.</li>
+<li>Time-slicing applicability judged at this point: on-policy modes high, fully-async minimal. <em>(Phase 4 later sharpened this: it depends on the workload's gen:train ratio, not just the mode.)</em></li>
+</ul>
+
+<h2 id="phase2">4 · Phase 2 — Multi-turn agentic RL: the long-tail is natural <span class="pill">benchmark-deepresearch/</span></h2>
+
+<p><strong>Hypothesis:</strong> multi-turn search-agent workloads (deep-research style) starve the trainer
+<em>naturally</em> — samples finish at wildly different turn counts and the batch waits for stragglers.</p>
+
+<p><strong>Setup:</strong> CMU <a href="https://github.com/cxcscmu/verl-agent-deepresearch">verl-agent-deepresearch</a>
+(arXiv:2510.06534) — sync <em>colocated</em> hybrid engine (the mode their fork hard-requires), Qwen2.5-3B-Instruct,
+MHQA multi-hop QA, up to 6 search→read→generate turns per trajectory, local Wikipedia BM25 search (pyserini
+<code>wikipedia-dpr-100w</code> behind a Serper-format HTTP shim — no external APIs), 2×H100 TP=2,
+32 trajectories/step. Config deltas vs the CMU recipe were hardware adaptation only — <strong>no throttling</strong>.</p>
+
+<p><strong>Result (run 4 — 16 GRPO steps, ~97 min, complete 100ms trace; profile reproduced across 3 runs):</strong></p>
+
+<table>
+<tr><th>Metric</th><th>Value</th></tr>
+<tr><td>Generation phase</td><td><strong>77s → 190s</strong> (mean 150s) — grows with context length across steps</td></tr>
+<tr><td>Training phase</td><td>~94s steady (update ~60s + logprob ~17s + ref ~17s)</td></tr>
+<tr><td>Generation share of wall time</td><td>41% (plus generation-heavy ~290s validation on steps 4/8/12/16)</td></tr>
+<tr><td>GPU idle (&lt;15% util)</td><td><strong>~34% on both GPUs</strong> (33.7% / 33.8%) — three-run reproducible</td></tr>
+<tr><td>Long-tail evidence</td><td>turn 4: 2/32 trajectories done · turn 5: 8/32 · turn 6: 13/32 — the rest run all 6 turns</td></tr>
+</table>
+
+{{IMG:P2_TIMELINE|Phase 2: full 97-min colocated trace — flat ~100% training plateaus alternating with spiky, underutilized multi-turn generation phases}}
+{{IMG:P2_PHASES|Phase 2: per-step phase structure — generation (orange) vs training/logprob/ref/validation (blue)}}
+
+<h3>Phase 2 conclusions</h3>
+<ul>
+<li><strong>The long-tail is intrinsic to the workload</strong> — 2.5-minute generation phases with zero tuning (Phase 1 needed three artificial knobs for the same shape).</li>
+<li><strong>Colocated mode converts the long-tail into low utilization, not reclaimable idle.</strong> With TP=2 both GPUs act in lockstep (they idle and burst at the same instants — the ~34% idle is search-I/O barriers, straggler-thinned decode batches, and engine transitions, fragmented into sub-minute slices on GPUs that are still allocated). No second job can use it.</li>
+<li>Getting <em>reclaimable</em> idle requires disaggregation — which motivated Phases 3–4. (A full port of this workload into the PoC's sync-disagg trainer was built and shelved: sync RL's idle is already structural, so the interesting question moved to async modes.)</li>
+</ul>
+
+<h2 id="phase3">5 · Phase 3 — Staleness sweep, train-heavy workload <span class="pill">async-multiturn/</span></h2>
+
+<p><strong>Question:</strong> does a multi-turn tool-calling workload create harvestable idle in veRL's own
+<em>fully-async disaggregated</em> mode with out-of-the-box configs — and where does the idle go as the staleness
+budget grows?</p>
+
+<p><strong>Setup:</strong> veRL main <code>fully_async_policy</code> — which natively supports multi-turn tool calling
+(its rollouter <em>is</em> the agent-loop stack; the only glue was a ~60-line <code>WikiSearchTool</code> since verl
+removed its in-tree search tool). Qwen2.5-3B-Instruct, 512 HotpotQA prompts (search-R1 format), hermes tool calls
+against the local Wikipedia server, 1 trainer + 1 rollout H100, <code>sync_step=1</code>, no throttling.
+Tool use was genuine: ~5 turns/trajectory (max 16), EM reward climbing 0.17→0.45.
+<strong>Only <code>staleness_threshold</code> varied: 0, 1, 4, 8, ∞.</strong></p>
+
+<p>This workload turned out <strong>train-heavy</strong>: generation ~30s/batch vs training ~70s/step —
+multi-hop QA answers are short, so the multi-turn structure adds latency but not enough tokens to dominate.</p>
+
+<table>
+<tr><th>Config</th><th>Step</th><th>Trainer wait</th><th>Trainer GPU util / idle</th><th>Trainer idle blocks</th><th>Rollout GPU util / idle</th><th>Rollout idle blocks</th></tr>
+<tr class="hl"><td>s=0 (on-policy)</td><td>88s</td><td>26.3s</td><td>65% / 32%</td><td>38× ~27s (max 43s)</td><td>28% / 71%</td><td>39× ~60s (max 72s)</td></tr>
+<tr><td>s=1</td><td>72s</td><td>0.2s</td><td>91% / 4%</td><td>~2.5s sync gaps only</td><td>51% / 48%</td><td>17× ~32s</td></tr>
+<tr><td>s=4</td><td>72s</td><td>0.2s</td><td>91% / 4%</td><td>—</td><td>64% / 34%</td><td>15× ~28s</td></tr>
+<tr><td>s=8</td><td>73s</td><td>0.2s</td><td>90% / 5%</td><td>—</td><td>70% / 28%</td><td>13× ~27s</td></tr>
+<tr class="hl"><td>s=∞ (10000)</td><td>74s</td><td>0.2s</td><td>89% / 6%</td><td>—</td><td>96% / <strong>0.8%</strong></td><td><strong>zero</strong></td></tr>
+</table>
+
+{{IMG:P3_IDLE|Phase 3: harvestable idle per GPU vs staleness — train-heavy workload}}
+{{IMG:P3_TIMELINES|Phase 3: the five utilization timelines — s=0 anti-phase square wave; rollout (orange) gaps shrink with staleness until they vanish at unbounded}}
+
+<h3>Phase 3 conclusions</h3>
+<ul>
+<li><strong>s=0:</strong> both GPUs idle in anti-phase (mutual ping-pong; queue pinned at 0) — ~50% of the 2-GPU capacity harvestable, alternating devices.</li>
+<li><strong>s≥1:</strong> one step of staleness lets ~30s generation hide inside the ~70s training window — the trainer saturates (91%) and <em>all</em> idle migrates to the rollout GPU in regular ~30s blocks (48% → 34% → 28% for s=1/4/8).</li>
+<li><strong>Step time is flat ~72s from s=1 to s=∞</strong>: throughput is 100% trainer-bound; staleness beyond 1 buys queue depth and data staleness, zero speed.</li>
+<li><strong>s=∞ is a divergent regime</strong> — the rollouter never pauses (96% util) and the queue grows without bound. Nothing to harvest, and not a configuration anyone should run.</li>
+<li>Bonus finding: async-at-s=0 <em>behaves</em> exactly like sync disagg RL (the freshness constraint forces the alternating schedule) — you don't need a special sync harness to study sync-RL idle.</li>
+</ul>
+
+<h2 id="phase4">6 · Phase 4 — Staleness sweep, gen-heavy workload <span class="pill">async-longcot/</span></h2>
+
+<p><strong>Question:</strong> the community's flagship RL workload is long chain-of-thought reasoning (R1/DAPO-style),
+where blogs consistently report generation dominating (3:1 to 10:1). On such a workload, can <em>any</em> staleness
+policy keep the trainer busy?</p>
+
+<p><strong>Setup:</strong> DeepSeek-R1-Distill-Qwen-1.5B on DAPO-Math-17k (in-tree <code>math_dapo</code> reward),
+single-turn, <code>max_response_length=8192</code>, same async harness and 1+1 H100 split as Phase 3, no tools.
+Gen-heaviness comes purely from CoT length: <strong>measured responses ~6.0K tokens mean, max pinned at the 8192 cap</strong>
+— generation ~200–220s per 64-sample batch vs ~124s training update. Learning was real (score −0.66 → −0.46).
+Zero crashes, zero redeploys, across all three runs.</p>
+
+<table>
+<tr><th>Config</th><th>Step</th><th>Trainer wait</th><th>Trainer GPU idle</th><th>Trainer idle blocks</th><th>Rollout GPU</th><th>Queue</th></tr>
+<tr class="hl"><td>s=0 (on-policy)</td><td>340s</td><td>214s</td><td><strong>63.8%</strong></td><td>14× <strong>~197s</strong> (max 231s)</td><td>36.5% idle (~118s blocks)</td><td>0</td></tr>
+<tr><td>s=8</td><td>223s</td><td>83s</td><td><strong>45.5%</strong></td><td>21× ~96s (max 126s)</td><td>99.2% util, zero blocks</td><td>0</td></tr>
+<tr class="hl"><td>s=∞ (10000)</td><td>224s</td><td>89s</td><td><strong>45.5%</strong> — identical to s=8</td><td>21× ~96s (max 126s)</td><td>99.3% util, zero blocks</td><td>0</td></tr>
+</table>
+
+{{IMG:P4_TIMELINES|Phase 4: s=0 is a textbook anti-phase square wave with 3+ minute trainer gaps; at s=8 and s=∞ the rollout GPU pins at 100% while the trainer square-waves forever}}
+
+<h3>Phase 4 conclusions</h3>
+<ul>
+<li><strong>The trainer starves at every staleness value.</strong> The message queue never buffered a single sample in any run — a staleness budget only matters if the rollouter can get ahead, and a rollouter needing ~210s/batch against a ~124s consumer never gets ahead. s=8 and s=∞ are statistically identical.</li>
+<li>Staleness does deliver its one win — overlapping generation with the training window (step 340s → 223s) — then saturates. The residual ~85–95s/step gap is the raw gen−train imbalance, landing on the trainer as one contiguous block per step.</li>
+<li><strong>These are the largest idle windows measured in the project</strong> (1.6–3.3 min blocks, 46–64% of trainer time), on the most realistic workload, with nothing tuned.</li>
+</ul>
+
+<h2 id="conclusions">7 · Conclusions — the time-slicing targeting matrix</h2>
+
+<table>
+<tr><th>Regime</th><th>Harvestable idle</th><th>Shape</th><th>Time-slicing verdict</th></tr>
+<tr><td>Sync <strong>colocated</strong> (any workload)</td><td>none reclaimable (~34% low-util but GPUs allocated & role-switching)</td><td>fragmented sub-minute slices</td><td>✗ — disaggregation is a prerequisite</td></tr>
+<tr class="hl"><td>On-policy disagg (sync RL, or async s=0) — <strong>any workload</strong></td><td>~50% of total capacity</td><td>anti-phase per-step blocks on both GPUs (27s–3.3 min, ratio-dependent)</td><td>✓✓ — richest target; schedule against the phase</td></tr>
+<tr><td>Bounded staleness, <strong>train-heavy</strong> workload</td><td>28–48% of rollout GPU</td><td>regular ~30s blocks, rollout side only</td><td>✓ — target the rollout GPU</td></tr>
+<tr class="hl"><td>Bounded or unbounded staleness, <strong>gen-heavy</strong> workload (long-CoT reasoning)</td><td>46% of trainer GPU</td><td>~96s blocks, one per step, immune to staleness</td><td>✓✓ — target the trainer GPU; the flagship real-world case</td></tr>
+<tr><td>Unbounded staleness, train-heavy workload</td><td>~1%</td><td>—</td><td>✗ — but also a divergent config nobody should run</td></tr>
+</table>
+
+<h3>General findings</h3>
+<ul>
+<li><strong>The imbalance law:</strong> the slower side pins its GPU; the faster side idles in per-step blocks of duration ≈ |gen − train|; staleness relocates idle onto the faster side but never below the throughput imbalance.</li>
+<li><strong>Workload class decides which side starves.</strong> Short-answer workloads (GSM8K, multi-hop QA) are train-heavy → rollout GPU idles. Long-CoT reasoning is gen-heavy → trainer GPU idles, at any staleness. Idle block size scales with response length / turn count / batch size — all legitimate workload parameters.</li>
+<li><strong>Staleness beyond 1 is pure loss</strong> in every measured case: step time saturates immediately (train-heavy: flat at s≥1; gen-heavy: flat at s≥8 ≈ s=∞), while data grows staler and queues deeper.</li>
+<li><strong>Weight sync is a non-issue</strong>: ~0.7s NCCL, in every configuration.</li>
+<li><strong>Why async on-policy exists despite the bubble:</strong> disaggregation buys independent pool sizing, no hybrid-engine thrash, and streaming machinery — s=0 is an algorithm-fidelity choice (GRPO/DAPO degrade with stale data). The systems remedy, static pool right-sizing, is always stale in practice because the gen:train ratio drifts <em>within</em> a run (Phase 2: gen 77→190s over 16 steps; CoT lengths grow as models learn). <strong>Time-slicing is the dynamic complement: it harvests the residual bubble wherever it currently lives.</strong></li>
+</ul>
+
+<h3>One-line summary</h3>
+<div class="law">Realistic RL workloads — especially long-CoT reasoning, the community's flagship — leave one GPU
+pool idle 28–64% of the time in large, periodic, predictable blocks under every on-policy and bounded-staleness
+configuration of veRL, with nothing tuned. That is precisely the idle that GPU time-slicing converts into throughput.</div>
+
+<h2 id="appendix">8 · Appendix</h2>
+
+<h3>Infrastructure &amp; method</h3>
+<ul>
+<li><strong>Cluster:</strong> verl-research-cluster-west (GKE, us-west1-c control plane), spot node pools <code>h100-mega-8gpu-spot-b</code> (a3-megagpu-8g, autoscaling 0–2 — used for Phases 2–4) and <code>h100-2gpu-spot</code> (Phase 1). Spot capacity typically provisioned in ~4 min; occasional multi-hour stockouts.</li>
+<li><strong>Measurement:</strong> 100ms <code>nvidia-smi</code> sampler (util/mem/power per GPU) alongside training logs; idle = &lt;10% util (Phase 2: &lt;15%); warmup steps excluded from steady-state stats.</li>
+<li><strong>Result durability:</strong> periodic <code>kubectl cp</code> rescues + on-completion gzip+base64 trace dump to stdout → preserved in Cloud Logging even if the spot node vanishes (adopted after two spot-preemption data losses).</li>
+<li><strong>Search backend (Phases 2–3):</strong> local pyserini BM25 over <code>wikipedia-dpr-100w</code> (~12GB prebuilt index) wrapped in a Serper-format HTTP server — hermetic, no external APIs.</li>
+<li><strong>verl versions:</strong> Phases 3–4 on verl main (commit 983cb0f2 for Phase 4) via <code>verlai/verl</code> images with runtime clone; Phase 2 on the CMU fork's pins (vllm 0.8.5, transformers 4.51.1) in a purpose-built image.</li>
+</ul>
+
+<h3>Artifacts</h3>
+<table>
+<tr><th>Phase</th><th>Directory (under <code>GPU-CR/</code>)</th><th>Contents</th></tr>
+<tr><td>1</td><td><code>benchmark-longtail/</code></td><td>REPORT.md, working job spec, traces, charts</td></tr>
+<tr><td>2</td><td><code>benchmark-deepresearch/</code></td><td>REPORT.md, Dockerfile + k8s job, run 1/3/4 traces &amp; logs, charts</td></tr>
+<tr><td>—</td><td><code>disagg-deepresearch/</code></td><td>shelved sync-disagg port of the multi-turn workload (~2.6k lines, PLAN.md, 4 latent PoC bug fixes) — built, never run</td></tr>
+<tr><td>3</td><td><code>async-multiturn/</code></td><td>REPORT.md, NOTES.md, WikiSearchTool, 5-config traces + sweep_summary, charts</td></tr>
+<tr><td>4</td><td><code>async-longcot/</code></td><td>REPORT.md, data prep, 3-config traces + sweep_summary, charts, regime map</td></tr>
+</table>
+
+<p class="muted">Report generated 2026-07-25. All experiments on spot capacity; total of 14 measured runs across 4 phases (plus 8 debug iterations bringing up the Phase 2 environment). Charts embedded at full resolution — this file is self-contained.</p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,687 @@
+# Phase 3: verl fully-async disaggregated mode + multi-turn search tool,
+# out-of-the-box on-policy (staleness=0, sync every step, no starvation knobs).
+# 1 trainer GPU + 1 rollout GPU, Qwen2.5-3B-Instruct, hotpotqa search-R1 data.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: async-multiturn-scripts
+  namespace: default
+data:
+  gpu_monitor.sh: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+    OUTPUT="${1:?Usage: $0 <output.csv> [interval_ms]}"
+    INTERVAL_MS="${2:-100}"
+    echo "timestamp_ms,gpu_index,gpu_util_pct,mem_util_pct,power_w" > "$OUTPUT"
+    trap 'exit 0' SIGINT SIGTERM
+    SLEEP_S=$(python3 -c "print($INTERVAL_MS/1000)")
+    while true; do
+        ts=$(date +%s%3N)
+        nvidia-smi --query-gpu=index,utilization.gpu,utilization.memory,power.draw \
+                   --format=csv,noheader,nounits 2>/dev/null | \
+        while IFS=', ' read -r idx gpu mem pwr; do
+            echo "${ts},${idx},${gpu},${mem},${pwr}"
+        done >> "$OUTPUT"
+        sleep "$SLEEP_S"
+    done
+
+  local_search_server.py: |
+    #!/usr/bin/env python3
+    """Local Wikipedia BM25 search server matching Serper API format."""
+    import json
+    import os
+    import sys
+    import time
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+    from socketserver import ThreadingMixIn
+
+    SEARCHER = None
+
+    def init_searcher():
+        global SEARCHER
+        print("Loading pyserini Wikipedia index (this may take a few minutes)...")
+        from pyserini.search.lucene import LuceneSearcher
+        SEARCHER = LuceneSearcher.from_prebuilt_index('wikipedia-dpr-100w')
+        if SEARCHER is None:
+            raise RuntimeError("Failed to load pyserini prebuilt index wikipedia-dpr-100w")
+        print(f"Search index loaded. Ready to serve.")
+
+    class SearchHandler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length)
+            try:
+                data = json.loads(body)
+                query = data.get('q', '')
+                num_results = data.get('num', 10)
+            except:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b'{"error": "invalid json"}')
+                return
+
+            results = []
+            if SEARCHER and query:
+                hits = SEARCHER.search(query, k=num_results)
+                for hit in hits:
+                    doc = SEARCHER.doc(hit.docid)
+                    raw = json.loads(doc.raw()) if doc.raw() else {}
+                    contents = raw.get('contents', doc.raw() or '')
+                    if not isinstance(contents, str):
+                        contents = str(contents)
+                    title = raw.get('title', '')
+                    # DPR-100w format: contents = "Title"\npassage text
+                    if not title and contents.startswith('"'):
+                        first, _, rest = contents.partition('\n')
+                        title = first.strip('"')
+                        contents = rest or contents
+                    if not title:
+                        title = str(hit.docid)
+                    snippet = contents[:500]
+                    results.append({
+                        'title': title,
+                        'link': f'https://en.wikipedia.org/wiki/{title.replace(" ", "_")}',
+                        'snippet': snippet,
+                        'date': '',
+                        'source': 'wikipedia'
+                    })
+
+            response = json.dumps({
+                'searchParameters': {'q': query},
+                'organic': results
+            })
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(response.encode())
+
+        def log_message(self, format, *args):
+            pass
+
+    class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
+        daemon_threads = True
+
+    if __name__ == '__main__':
+        port = int(os.environ.get('SEARCH_PORT', '8877'))
+        init_searcher()
+        server = ThreadingHTTPServer(('0.0.0.0', port), SearchHandler)
+        print(f"Search server running on port {port}")
+        server.serve_forever()
+
+  wiki_search_tool.py: |
+    # Copyright 2026
+    # Licensed under the Apache License, Version 2.0
+    """Wikipedia search tool for multi-turn RL rollout.
+
+    Replacement for the removed in-tree ``verl.tools.search_tool.SearchTool``.
+    Talks to the local pyserini BM25 Wikipedia server (Serper-style request/response
+    schema, see benchmark-deepresearch local_search_server.py):
+
+        POST {search_url}  body: {"q": <query>, "num": <topk>}
+        resp: {"organic": [{"title": ..., "snippet": ...}, ...]}
+
+    Deployed by copying this file into the cloned verl tree as
+    ``verl/tools/wiki_search_tool.py`` so ``class_name:
+    verl.tools.wiki_search_tool.WikiSearchTool`` resolves inside every Ray worker.
+    """
+
+    from __future__ import annotations
+
+    import asyncio
+    import json
+    import logging
+    import os
+    from typing import Any, Optional
+    from uuid import uuid4
+
+    from verl.tools.base_tool import BaseTool
+    from verl.tools.schemas import OpenAIFunctionToolSchema, ToolResponse
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
+
+
+    class WikiSearchTool(BaseTool):
+        """Search tool backed by a local Serper-format Wikipedia retrieval server."""
+
+        def __init__(self, config: dict, tool_schema: OpenAIFunctionToolSchema):
+            super().__init__(config, tool_schema)
+            self.search_url = config.get("search_url", "http://localhost:8877/search")
+            self.topk = int(config.get("topk", 3))
+            self.timeout = float(config.get("timeout", 30))
+            self._instance_dict: dict[str, dict] = {}
+
+        async def create(self, instance_id: Optional[str] = None, **kwargs) -> tuple[str, ToolResponse]:
+            if instance_id is None:
+                instance_id = str(uuid4())
+            # create_kwargs (ground_truth/question/data_source) arrive here; keep for debugging.
+            self._instance_dict[instance_id] = {"create_kwargs": kwargs, "num_calls": 0}
+            return instance_id, ToolResponse()
+
+        def _search_one(self, query: str) -> str:
+            """Blocking HTTP call, run in a thread. Returns formatted doc block."""
+            import requests
+
+            resp = requests.post(
+                self.search_url,
+                data=json.dumps({"q": query, "num": self.topk}),
+                headers={"Content-Type": "application/json"},
+                timeout=self.timeout,
+            )
+            resp.raise_for_status()
+            organic = resp.json().get("organic", [])
+            if not organic:
+                return f'Query: "{query}"\nNo results found.'
+            docs = []
+            for i, hit in enumerate(organic[: self.topk]):
+                title = hit.get("title", "")
+                snippet = hit.get("snippet", "")
+                docs.append(f"Doc {i + 1} (Title: {title})\n{snippet}")
+            return f'Query: "{query}"\n' + "\n\n".join(docs)
+
+        async def execute(
+            self, instance_id: str, parameters: dict[str, Any], **kwargs
+        ) -> tuple[ToolResponse, float, dict]:
+            query_list = parameters.get("query_list") or []
+            if isinstance(query_list, str):
+                query_list = [query_list]
+            query_list = [str(q) for q in query_list if q]
+            if not query_list:
+                return (
+                    ToolResponse(text="Error: no query provided. Pass query_list=[...]"),
+                    0.0,
+                    {"num_queries": 0, "error": "empty_query"},
+                )
+
+            loop = asyncio.get_event_loop()
+            blocks = []
+            errors = 0
+            for q in query_list:
+                try:
+                    block = await loop.run_in_executor(None, self._search_one, q)
+                except Exception as e:  # noqa: BLE001 - tool must not crash the agent loop
+                    logger.warning("search failed for %r: %s", q, e)
+                    block = f'Query: "{q}"\nSearch error: {e}'
+                    errors += 1
+                blocks.append(block)
+
+            if instance_id in self._instance_dict:
+                self._instance_dict[instance_id]["num_calls"] += 1
+
+            text = "\n\n".join(blocks)
+            metrics = {"num_queries": len(query_list), "errors": errors}
+            return ToolResponse(text=text), 0.0, metrics
+
+        async def calc_reward(self, instance_id: str, **kwargs) -> float:
+            return 0.0
+
+        async def release(self, instance_id: str, **kwargs) -> None:
+            self._instance_dict.pop(instance_id, None)
+
+  search_tool_config.yaml: |
+    tools:
+      - class_name: verl.tools.wiki_search_tool.WikiSearchTool
+        config:
+          type: native
+          search_url: http://localhost:8877/search
+          topk: 3
+          timeout: 30
+        tool_schema:
+          type: function
+          function:
+            name: search
+            description: >-
+              Search Wikipedia for information. Returns the top matching
+              passages for each query. Use this whenever you need external
+              knowledge to answer the question.
+            parameters:
+              type: object
+              properties:
+                query_list:
+                  type: array
+                  items:
+                    type: string
+                  description: >-
+                    A list of fully-formed semantic search queries. Each query
+                    should be a complete question or statement describing the
+                    information you need.
+              required:
+                - query_list
+
+  data_prep.py: |
+    #!/usr/bin/env python3
+    """Prepare a small search-R1-style multi-hop QA parquet for verl ToolAgentLoop.
+
+    Source: HF dataset PeterJinGo/nq_hotpotqa_train (the Search-R1 training mix).
+    Filters to hotpotqa rows (multi-hop -> variable turn counts), samples
+    TRAIN_SIZE train / VAL_SIZE val prompts, and writes verl RLHFDataset-compatible
+    parquet with agent_name=tool_agent + tools_kwargs for the `search` tool.
+
+    Reward: data_source `searchR1_hotpotqa` routes to
+    verl.utils.reward_score.search_r1_like_qa_em (EM on <answer>...</answer> vs
+    ground_truth["target"]) -- no custom reward function needed.
+    """
+
+    import argparse
+    import os
+
+    import pandas as pd
+    from huggingface_hub import hf_hub_download
+
+    SYSTEM_CONTENT = "You are a helpful and harmless assistant."
+
+    # Search-R1 style instructions adapted for hermes/native function calling:
+    # the model calls the `search` tool (schema injected via chat template) instead
+    # of emitting free-form <tool_call> query text.
+    USER_CONTENT_PREFIX = (
+        "Answer the given question. You must conduct reasoning inside <think> and "
+        "</think> first every time you get new information. After reasoning, if you "
+        "find you lack some knowledge, you can call the search tool with a list of "
+        "queries; it will return the top results. You can search as many times as "
+        "you want. If you find no further external knowledge needed, provide the "
+        "answer inside <answer> and </answer> without detailed illustrations. For "
+        "example, <answer> Beijing </answer>. Question: "
+    )
+
+
+    def to_list(x):
+        """golden_answers may be a numpy array from parquet."""
+        if x is None:
+            return []
+        if isinstance(x, str):
+            return [x]
+        return [str(a) for a in list(x)]
+
+
+    def process_row(row, split_name, idx):
+        question = str(row.get("question", "")).strip()
+        golden = to_list(row.get("golden_answers"))
+
+        rm = row.get("reward_model")
+        if isinstance(rm, dict) and isinstance(rm.get("ground_truth"), dict) and "target" in rm["ground_truth"]:
+            ground_truth = {"target": to_list(rm["ground_truth"]["target"])}
+        elif isinstance(rm, dict) and "ground_truth" in rm:
+            ground_truth = {"target": to_list(rm["ground_truth"])}
+        else:
+            ground_truth = {"target": golden}
+
+        data_source = "searchR1_" + str(row.get("data_source", "hotpotqa"))
+        prompt = [
+            {"role": "system", "content": SYSTEM_CONTENT},
+            {"role": "user", "content": USER_CONTENT_PREFIX + question},
+        ]
+        tools_kwargs = {
+            "search": {
+                "create_kwargs": {
+                    "ground_truth": ground_truth,
+                    "question": question,
+                    "data_source": data_source,
+                }
+            }
+        }
+        return pd.Series(
+            {
+                "data_source": data_source,
+                "prompt": prompt,
+                "ability": "multihop-qa",
+                "reward_model": {"style": "rule", "ground_truth": ground_truth},
+                "extra_info": {
+                    "index": idx,
+                    "split": split_name,
+                    "question": question,
+                    "need_tools_kwargs": True,
+                    "tools_kwargs": tools_kwargs,
+                },
+                "agent_name": "tool_agent",
+            }
+        )
+
+
+    def prep_split(repo_id, filename, split_name, size, out_path, seed):
+        local = hf_hub_download(repo_id=repo_id, filename=filename, repo_type="dataset")
+        df = pd.read_parquet(local)
+        print(f"{split_name}: loaded {len(df)} rows, sources: {df['data_source'].value_counts().to_dict()}")
+
+        hotpot = df[df["data_source"] == "hotpotqa"]
+        if len(hotpot) >= size:
+            df = hotpot
+        else:
+            print(f"WARNING: only {len(hotpot)} hotpotqa rows; using full mix")
+        df = df.sample(n=min(size, len(df)), random_state=seed).reset_index(drop=True)
+
+        out = df.apply(lambda r: process_row(r, split_name, r.name), axis=1)
+        os.makedirs(os.path.dirname(out_path), exist_ok=True)
+        out.to_parquet(out_path, index=False)
+        print(f"{split_name}: wrote {len(out)} rows -> {out_path}")
+        print(f"{split_name}: sample question: {out.iloc[0]['extra_info']['question'][:120]}")
+
+
+    def main():
+        ap = argparse.ArgumentParser()
+        ap.add_argument("--repo_id", default="PeterJinGo/nq_hotpotqa_train")
+        ap.add_argument("--out_dir", default="/workspace/data/hotpotqa_search")
+        ap.add_argument("--train_size", type=int, default=512)
+        ap.add_argument("--val_size", type=int, default=64)
+        ap.add_argument("--seed", type=int, default=17)
+        args = ap.parse_args()
+
+        prep_split(args.repo_id, "train.parquet", "train", args.train_size,
+                   os.path.join(args.out_dir, "train.parquet"), args.seed)
+        try:
+            prep_split(args.repo_id, "test.parquet", "test", args.val_size,
+                       os.path.join(args.out_dir, "val.parquet"), args.seed)
+        except Exception as e:  # test split may be absent; fall back to a train slice
+            print(f"WARNING: test split failed ({e}); sampling val from train with different seed")
+            prep_split(args.repo_id, "train.parquet", "test", args.val_size,
+                       os.path.join(args.out_dir, "val.parquet"), args.seed + 1)
+
+
+    if __name__ == "__main__":
+        main()
+
+  run_async_multiturn.sh: |
+    #!/usr/bin/env bash
+    set -xeuo pipefail
+
+    # On ANY exit, kill background children (gpu monitor) so the stdout pipe to
+    # tee is released and the container surfaces the real exit status.
+    trap 'kill $(jobs -p) 2>/dev/null || true' EXIT
+
+    RESULTS_DIR="/workspace/results"
+    MODEL_PATH="/workspace/models/Qwen2.5-3B-Instruct"
+    TRAIN_FILE="/workspace/data/hotpotqa_search/train.parquet"
+    VAL_FILE="/workspace/data/hotpotqa_search/val.parquet"
+    TOOL_CONFIG="/workspace/scripts/search_tool_config.yaml"
+    SEARCH_PORT=8877
+    RUN_SECONDS=6000   # 100 min hard cap, then dump results (rollout steps never complete)
+
+    mkdir -p "$RESULTS_DIR"
+
+    echo "=== Phase 1: install verl main (same pattern as Phase-1 job) ==="
+    pip install datasets TransferQueue 2>&1 | tail -5
+    git clone --depth 1 https://github.com/verl-project/verl.git /workspace/verl-src
+    cd /workspace/verl-src
+    pip install -e ".[gpu]" 2>&1 | tail -10
+    cd /workspace
+    pip install cupy-cuda12x 2>&1 | tail -3
+
+    echo "=== Phase 2: install custom search tool into verl tree ==="
+    # verl main removed verl.tools.search_tool.SearchTool; ship our own BaseTool
+    # subclass inside the verl package so it imports in every Ray worker.
+    cp /workspace/scripts/wiki_search_tool.py /workspace/verl-src/verl/tools/wiki_search_tool.py
+    python3 -c "import verl; print('verl version:', verl.__version__)"
+    python3 -c "from verl.tools.wiki_search_tool import WikiSearchTool; print('WikiSearchTool import OK')"
+    python3 -c "import transfer_queue; print('transfer_queue OK')"
+
+    echo "=== Phase 3: download model ==="
+    python3 -c "
+    from huggingface_hub import snapshot_download
+    snapshot_download('Qwen/Qwen2.5-3B-Instruct', local_dir='$MODEL_PATH')
+    print('Model download complete')
+    "
+
+    echo "=== Phase 4: prepare dataset (512 hotpotqa prompts, search-R1 format) ==="
+    python3 /workspace/scripts/data_prep.py --out_dir /workspace/data/hotpotqa_search \
+        --train_size 512 --val_size 64
+
+    echo "=== Phase 5: wait for search sidecar (pyserini index ~12GB on first run) ==="
+    SEARCH_READY=0
+    for i in $(seq 1 2400); do
+        if curl -s --max-time 5 -X POST http://localhost:$SEARCH_PORT/search -d '{"q":"test"}' > /dev/null 2>&1; then
+            echo "Search server ready after ${i}s"
+            SEARCH_READY=1
+            break
+        fi
+        sleep 1
+    done
+    if [ "$SEARCH_READY" != "1" ]; then
+        echo "FATAL: search server not ready after 2400s"
+        exit 1
+    fi
+
+    echo "=== Phase 5b: end-to-end tool sanity check ==="
+    python3 << 'TOOLCHECK'
+    import asyncio, yaml
+    from verl.tools.tool_registry import initialize_tools_from_config
+    tools = initialize_tools_from_config("/workspace/scripts/search_tool_config.yaml")
+    tool = tools[0]
+    assert tool.name == "search", f"unexpected tool name {tool.name}"
+    async def go():
+        iid, _ = await tool.create()
+        resp, reward, metrics = await tool.execute(iid, {"query_list": ["capital of France"]})
+        print("TOOL RESPONSE (first 300 chars):", (resp.text or "")[:300])
+        assert resp.text and "Search error" not in resp.text, "tool returned error"
+        await tool.release(iid)
+    asyncio.run(go())
+    print("Tool sanity check OK")
+    TOOLCHECK
+
+    echo "=== Phase 6: start GPU monitor (100ms) ==="
+    bash /workspace/scripts/gpu_monitor.sh "$RESULTS_DIR/gpu_util.csv" 100 &
+    MONITOR_PID=$!
+    date +%s%3N > "$RESULTS_DIR/start_ts"
+
+    echo "=== Phase 7: fully-async on-policy training, 1 trainer GPU + 1 rollout GPU ==="
+    echo "  Model: Qwen2.5-3B-Instruct | Dataset: hotpotqa (search-R1 style)"
+    echo "  Multi-turn search tool -> localhost:$SEARCH_PORT"
+    echo "  On-policy: staleness_threshold=0, trigger_parameter_sync_step=1,"
+    echo "  require_batches=1 (default), gpu_memory_utilization=0.8 (no throttling)"
+    nvidia-smi
+
+    export PYTHONUNBUFFERED=1
+    export HYDRA_FULL_ERROR=1
+
+    TOTAL_ROLLOUT_STEPS=65536   # >> trainer consumption; None-sentinel must not fire
+
+    # timeout bounds the experiment; exit 124 (timeout) is the EXPECTED end state.
+    set +e
+    timeout --signal=INT --kill-after=120 "$RUN_SECONDS" \
+    python3 -m verl.experimental.fully_async_policy.fully_async_main \
+        data.train_files="$TRAIN_FILE" \
+        data.val_files="$VAL_FILE" \
+        data.prompt_key=prompt \
+        data.truncation=left \
+        data.max_prompt_length=2048 \
+        data.max_response_length=4096 \
+        data.train_batch_size=0 \
+        data.gen_batch_size=1 \
+        data.return_raw_chat=True \
+        actor_rollout_ref.model.path="$MODEL_PATH" \
+        actor_rollout_ref.model.use_remove_padding=True \
+        actor_rollout_ref.model.enable_gradient_checkpointing=True \
+        actor_rollout_ref.hybrid_engine=False \
+        actor_rollout_ref.actor.strategy=fsdp \
+        actor_rollout_ref.actor.ppo_mini_batch_size=64 \
+        actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=1 \
+        actor_rollout_ref.actor.use_kl_loss=False \
+        actor_rollout_ref.actor.kl_loss_coef=0.0 \
+        actor_rollout_ref.actor.entropy_coeff=0 \
+        actor_rollout_ref.actor.grad_clip=1.0 \
+        actor_rollout_ref.actor.loss_agg_mode=token-mean \
+        actor_rollout_ref.actor.use_dynamic_bsz=True \
+        actor_rollout_ref.actor.optim.lr=1e-6 \
+        actor_rollout_ref.actor.optim.lr_warmup_steps=-1 \
+        actor_rollout_ref.actor.fsdp_config.param_offload=False \
+        actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
+        actor_rollout_ref.ref.log_prob_use_dynamic_bsz=True \
+        actor_rollout_ref.rollout.name=vllm \
+        actor_rollout_ref.rollout.mode=async \
+        actor_rollout_ref.rollout.n=8 \
+        actor_rollout_ref.rollout.calculate_log_probs=True \
+        actor_rollout_ref.rollout.checkpoint_engine.backend=nccl \
+        actor_rollout_ref.rollout.gpu_memory_utilization=0.8 \
+        actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
+        actor_rollout_ref.rollout.enable_chunked_prefill=True \
+        actor_rollout_ref.rollout.temperature=1.0 \
+        actor_rollout_ref.rollout.top_p=1.0 \
+        actor_rollout_ref.rollout.top_k=-1 \
+        actor_rollout_ref.rollout.agent.default_agent_loop=tool_agent \
+        actor_rollout_ref.rollout.multi_turn.enable=True \
+        actor_rollout_ref.rollout.multi_turn.format=hermes \
+        actor_rollout_ref.rollout.multi_turn.tool_config_path="$TOOL_CONFIG" \
+        actor_rollout_ref.rollout.multi_turn.max_user_turns=8 \
+        actor_rollout_ref.rollout.multi_turn.max_assistant_turns=8 \
+        actor_rollout_ref.rollout.multi_turn.max_parallel_calls=1 \
+        actor_rollout_ref.rollout.multi_turn.max_tool_response_length=4096 \
+        actor_rollout_ref.rollout.multi_turn.tool_response_truncate_side=middle \
+        algorithm.adv_estimator=grpo \
+        algorithm.use_kl_in_reward=False \
+        algorithm.kl_ctrl.kl_coef=0.0 \
+        trainer.logger="['console']" \
+        trainer.val_before_train=False \
+        trainer.save_freq=-1 \
+        trainer.resume_mode=disable \
+        trainer.nnodes=1 \
+        trainer.n_gpus_per_node=1 \
+        trainer.total_epochs=10 \
+        trainer.test_freq=-1 \
+        trainer.project_name=async-multiturn \
+        trainer.experiment_name=qwen3b-hotpotqa-async-s"${STALENESS_THRESHOLD:-0}" \
+        trainer.default_local_dir="$RESULTS_DIR/ckpts" \
+        rollout.nnodes=1 \
+        rollout.n_gpus_per_node=1 \
+        rollout.total_rollout_steps="$TOTAL_ROLLOUT_STEPS" \
+        async_training.staleness_threshold="${STALENESS_THRESHOLD:-0}" \
+        async_training.trigger_parameter_sync_step=1 \
+        2>&1 | tee "$RESULTS_DIR/train.log"
+    TRAIN_RC=${PIPESTATUS[0]}
+    set -e
+    if [ "$TRAIN_RC" = "124" ]; then
+        echo "Training stopped by planned ${RUN_SECONDS}s timeout (expected end state)"
+    elif [ "$TRAIN_RC" != "0" ]; then
+        echo "WARNING: training exited rc=$TRAIN_RC before planned timeout"
+    fi
+
+    date +%s%3N > "$RESULTS_DIR/end_ts"
+    kill "$MONITOR_PID" 2>/dev/null || true
+    wait "$MONITOR_PID" 2>/dev/null || true
+    wc -l "$RESULTS_DIR/gpu_util.csv" || true
+
+    echo "=== Per-GPU summary ==="
+    python3 -c "
+    import csv
+    from collections import defaultdict
+    traces = defaultdict(list)
+    with open('$RESULTS_DIR/gpu_util.csv') as f:
+        for row in csv.DictReader(f):
+            traces[int(row['gpu_index'])].append(float(row['gpu_util_pct']))
+    for gi in sorted(traces.keys()):
+        u = traces[gi]
+        n = len(u)
+        mean_u = sum(u)/n
+        idle = sum(1 for v in u if v <= 15)/n
+        busy = sum(1 for v in u if v >= 50)/n
+        print(f'GPU {gi}: mean={mean_u:.1f}% idle={idle:.1%} busy={busy:.1%} samples={n}')
+    " || true
+
+    # Insurance: dump the raw GPU trace to stdout as gzip+base64 so Cloud
+    # Logging preserves it even if the live kubectl-cp window is missed.
+    echo "=== GPU trace dump (gzip+base64, prefix GPUCSV:) ==="
+    echo "GPUCSV-BEGIN md5=$(md5sum "$RESULTS_DIR/gpu_util.csv" | cut -d' ' -f1)"
+    gzip -c "$RESULTS_DIR/gpu_util.csv" | base64 -w 3000 | sed 's/^/GPUCSV:/' || true
+    echo "GPUCSV-END"
+
+    echo "=== Keeping pod alive for result collection ==="
+    sleep 7200
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: async-multiturn
+  namespace: default
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 604800
+  template:
+    metadata:
+      labels:
+        app: async-multiturn
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-h100-mega-80gb
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cloud.google.com/gke-nodepool
+                operator: In
+                values:
+                - h100-mega-8gpu-spot-b
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      # Native sidecar: pyserini Wikipedia search server (Serper format, :8877).
+      # Shares the pod network namespace -> reachable from the benchmark
+      # container at localhost:8877. restartPolicy Always = k8s-native sidecar
+      # (restarts if it crashes, does not block pod completion).
+      initContainers:
+      - name: search
+        image: us-west1-docker.pkg.dev/aishuk-test/tpu-poc-repo/deepresearch-benchmark:latest
+        restartPolicy: Always
+        env:
+        - name: SEARCH_PORT
+          value: "8877"
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          set -euo pipefail
+          echo "=== Search sidecar: pyserini wikipedia-dpr-100w on :8877 ==="
+          python3 /workspace/scripts/local_search_server.py
+        resources:
+          requests:
+            cpu: "8"
+            memory: "48Gi"
+          limits:
+            memory: "64Gi"
+        volumeMounts:
+        - name: scripts
+          mountPath: /workspace/scripts
+        - name: pyserini-cache
+          mountPath: /root/.cache
+      containers:
+      - name: benchmark
+        image: verlai/verl:vllm020.dev2
+        env:
+        - name: VLLM_USE_V1
+          value: "1"
+        - name: STALENESS_THRESHOLD
+          value: "10000"   # effectively unbounded: no sentinel exists in verl; max_required_samples=(1+s)*64
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          set -euo pipefail
+          echo "=== Async Multi-Turn Search Benchmark (Phase 3) ==="
+          echo "Node: $(hostname)"
+          echo "Date: $(date)"
+          nvidia-smi
+          bash /workspace/scripts/run_async_multiturn.sh 2>&1 | tee /workspace/results/experiment.log
+        resources:
+          limits:
+            nvidia.com/gpu: 2
+          requests:
+            nvidia.com/gpu: 2
+            cpu: "40"
+            memory: "160Gi"
+        volumeMounts:
+        - name: scripts
+          mountPath: /workspace/scripts
+        - name: results
+          mountPath: /workspace/results
+        - name: dshm
+          mountPath: /dev/shm
+      volumes:
+      - name: scripts
+        configMap:
+          name: async-multiturn-scripts
+          defaultMode: 0755
+      - name: results
+        emptyDir: {}
+      - name: pyserini-cache
+        emptyDir: {}
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Gi

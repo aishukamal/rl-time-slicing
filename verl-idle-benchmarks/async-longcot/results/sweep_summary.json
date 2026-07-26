@@ -1,0 +1,53 @@
+[
+  {
+    "config": "s0",
+    "steps": 13,
+    "step_s": 340.238,
+    "genwait_s": 214.286,
+    "update_s": 124.907,
+    "mq": 0.0,
+    "resp_len": 5999.651,
+    "tr_idle_pct": 63.8,
+    "tr_blocks": 14,
+    "tr_block_mean": 197.2,
+    "tr_block_max": 231.4,
+    "ro_idle_pct": 36.5,
+    "ro_util": 63.4,
+    "ro_blocks": 14,
+    "ro_block_mean": 117.9
+  },
+  {
+    "config": "s8",
+    "steps": 20,
+    "step_s": 223.114,
+    "genwait_s": 83.257,
+    "update_s": 123.84,
+    "mq": 0.0,
+    "resp_len": 5939.027,
+    "tr_idle_pct": 45.5,
+    "tr_blocks": 21,
+    "tr_block_mean": 96.0,
+    "tr_block_max": 126.1,
+    "ro_idle_pct": 0.6,
+    "ro_util": 99.2,
+    "ro_blocks": 1,
+    "ro_block_mean": 2.6
+  },
+  {
+    "config": "sinf",
+    "steps": 20,
+    "step_s": 224.349,
+    "genwait_s": 88.591,
+    "update_s": 125.022,
+    "mq": 0.0,
+    "resp_len": 5988.454,
+    "tr_idle_pct": 45.5,
+    "tr_blocks": 21,
+    "tr_block_mean": 96.3,
+    "tr_block_max": 126.0,
+    "ro_idle_pct": 0.6,
+    "ro_util": 99.3,
+    "ro_blocks": 1,
+    "ro_block_mean": 2.8
+  }
+]

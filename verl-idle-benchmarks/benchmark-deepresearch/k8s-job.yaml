@@ -1,0 +1,468 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: deepresearch-scripts
+  namespace: default
+data:
+  gpu_monitor.sh: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+    OUTPUT="${1:?Usage: $0 <output.csv> [interval_ms]}"
+    INTERVAL_MS="${2:-100}"
+    echo "timestamp_ms,gpu_index,gpu_util_pct,mem_util_pct,power_w" > "$OUTPUT"
+    trap 'exit 0' SIGINT SIGTERM
+    SLEEP_S=$(python3 -c "print($INTERVAL_MS/1000)")
+    while true; do
+        ts=$(date +%s%3N)
+        nvidia-smi --query-gpu=index,utilization.gpu,utilization.memory,power.draw \
+                   --format=csv,noheader,nounits 2>/dev/null | \
+        while IFS=', ' read -r idx gpu mem pwr; do
+            echo "${ts},${idx},${gpu},${mem},${pwr}"
+        done >> "$OUTPUT"
+        sleep "$SLEEP_S"
+    done
+
+  local_search_server.py: |
+    #!/usr/bin/env python3
+    """Local Wikipedia BM25 search server matching Serper API format."""
+    import json
+    import os
+    import sys
+    import time
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+
+    SEARCHER = None
+
+    def init_searcher():
+        global SEARCHER
+        print("Loading pyserini Wikipedia index (this may take a few minutes)...")
+        from pyserini.search.lucene import LuceneSearcher
+        SEARCHER = LuceneSearcher.from_prebuilt_index('wikipedia-dpr-100w')
+        if SEARCHER is None:
+            raise RuntimeError("Failed to load pyserini prebuilt index wikipedia-dpr-100w")
+        print(f"Search index loaded. Ready to serve.")
+
+    class SearchHandler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length)
+            try:
+                data = json.loads(body)
+                query = data.get('q', '')
+                num_results = data.get('num', 10)
+            except:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b'{"error": "invalid json"}')
+                return
+
+            results = []
+            if SEARCHER and query:
+                hits = SEARCHER.search(query, k=num_results)
+                for hit in hits:
+                    doc = SEARCHER.doc(hit.docid)
+                    raw = json.loads(doc.raw()) if doc.raw() else {}
+                    contents = raw.get('contents', doc.raw() or '')
+                    if not isinstance(contents, str):
+                        contents = str(contents)
+                    title = raw.get('title', '')
+                    # DPR-100w format: contents = "Title"\npassage text
+                    if not title and contents.startswith('"'):
+                        first, _, rest = contents.partition('\n')
+                        title = first.strip('"')
+                        contents = rest or contents
+                    if not title:
+                        title = str(hit.docid)
+                    snippet = contents[:500]
+                    results.append({
+                        'title': title,
+                        'link': f'https://en.wikipedia.org/wiki/{title.replace(" ", "_")}',
+                        'snippet': snippet,
+                        'date': '',
+                        'source': 'wikipedia'
+                    })
+
+            response = json.dumps({
+                'searchParameters': {'q': query},
+                'organic': results
+            })
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(response.encode())
+
+        def log_message(self, format, *args):
+            pass
+
+    if __name__ == '__main__':
+        port = int(os.environ.get('SEARCH_PORT', '8877'))
+        init_searcher()
+        server = HTTPServer(('0.0.0.0', port), SearchHandler)
+        print(f"Search server running on port {port}")
+        server.serve_forever()
+
+  setup_and_run.sh: |
+    #!/usr/bin/env bash
+    set -xeuo pipefail
+
+    # On ANY exit, kill background children (search server, gpu monitor).
+    # Otherwise they hold the stdout pipe to tee open and the container
+    # hangs forever instead of surfacing the failure in pod status.
+    trap 'kill $(jobs -p) 2>/dev/null || true' EXIT
+
+    RESULTS_DIR="/workspace/results"
+    MODEL_PATH="/workspace/models/Qwen2.5-3B-Instruct"
+    SEARCH_PORT=8877
+
+    mkdir -p "$RESULTS_DIR"
+
+    echo "=== Phase 1: Setup ==="
+    # Image already has all deps. Just use the pre-cloned repo.
+    cd /opt/verl-agent-deepresearch
+    export PYTHONPATH="/opt/verl-agent-deepresearch:${PYTHONPATH:-}"
+    python3 -c "import verl; print('verl:', verl.__version__)" 2>&1
+    # The Dockerfile's agent/search deps RUN had `2>/dev/null || true` and ran
+    # before the blinker removal, so the WHOLE batch silently missed the image
+    # (google-genai, google-generativeai, langchain set, faiss, gym, ...).
+    # Install it at runtime with the same pins. None of these touch torch.
+    python3 -m pip install --no-cache-dir \
+        langchain==0.3.27 langchain-core==0.3.74 langchain-openai==0.3.29 \
+        langchain-text-splitters==0.3.9 'langchain-community<0.4' \
+        diskcache python-dotenv tavily-python tenacity timeout-decorator nest-asyncio \
+        faiss-cpu cachetools einops gym gymnasium codetiming wandb \
+        google-genai google-generativeai 2>&1 | tail -3 || echo "WARNING: runtime dep install had errors"
+    # torchdata (unpinned, Dockerfile line 48) upgraded triton to 3.3+, and the
+    # final torch --force-reinstall --no-deps left it there. torch 2.6 inductor
+    # needs triton 3.2 (AttrsDescriptor removed in 3.3). Re-pin it.
+    python3 -m pip install --no-cache-dir triton==3.2.0 2>&1 | tail -2
+    # Verify the imports that have bitten us (fail fast + loud, not mid-training)
+    python3 -c "
+    import langchain, faiss, cachetools, gym, gymnasium
+    import google.generativeai
+    from google import genai
+    from langchain.evaluation import load_evaluator
+    from triton.compiler.compiler import AttrsDescriptor
+    import torch._dynamo.testing
+    print('Runtime dep verification OK')
+    "
+    echo "Setup complete"
+
+    echo "=== Phase 4: Download model ==="
+    python3 -c "
+    from huggingface_hub import snapshot_download
+    snapshot_download('Qwen/Qwen2.5-3B-Instruct', local_dir='$MODEL_PATH')
+    print('Model download complete')
+    "
+
+    echo "=== Phase 5: Start local Wikipedia search server ==="
+    python3 /workspace/scripts/local_search_server.py &
+    SEARCH_PID=$!
+    echo "Waiting for search index to load (12GB download on first run)..."
+    SEARCH_READY=0
+    for i in $(seq 1 1200); do
+        if curl -s -X POST http://localhost:$SEARCH_PORT/search -d '{"q":"test"}' > /dev/null 2>&1; then
+            echo "Search server ready after ${i}s"
+            SEARCH_READY=1
+            break
+        fi
+        if ! kill -0 "$SEARCH_PID" 2>/dev/null; then
+            echo "FATAL: search server process died"
+            exit 1
+        fi
+        sleep 1
+    done
+    if [ "$SEARCH_READY" != "1" ]; then
+        echo "FATAL: search server not ready after 1200s"
+        exit 1
+    fi
+    # NOTE: do NOT pipe curl into head here -- head closing the pipe makes curl
+    # exit 23, and with pipefail that kills the whole script (silent hang: the
+    # backgrounded search server keeps tee's pipe open so PID 1 never exits).
+    curl -s --max-time 30 -X POST http://localhost:$SEARCH_PORT/search -d '{"q":"capital of France"}' -o /tmp/sanity_search.json || true
+    head -c 400 /tmp/sanity_search.json || true; echo
+
+    # Set dummy API keys early (critique module imports them at module level)
+    export OPENAI_API_KEY="dummy-not-used"
+    export GOOGLE_API_KEY="dummy-not-used"
+    export GEMINI_API_KEY="dummy-not-used"
+
+    echo "=== Phase 6: Patch hardcoded paths ==="
+    # Fix ALL hardcoded CMU paths across the entire repo
+    find . -name "*.py" -exec grep -l "group_data\|behavior_priming" {} \; | while read f; do
+        sed -i 's|/data/group_data/cx_group/behavior_priming/[^"'\'']*|'"$MODEL_PATH"'|g' "$f"
+        echo "Patched: $f"
+    done
+    # Also fix local_files_only
+    find . -name "*.py" -exec sed -i 's|local_files_only=True|local_files_only=False|g' {} \;
+    echo "All hardcoded paths patched"
+
+    # Make ALL google imports optional (dep may be missing; not needed in vanilla mode).
+    # Handles BOTH `from google.x import y` AND `import google.x as y` forms.
+    python3 << 'PATCH_CRITIQUE'
+    import re, glob
+    pat_from = re.compile(r'from (google[\w.]*) import (.+)')
+    pat_imp = re.compile(r'import (google[\w.]+)(?:\s+as\s+(\w+))?\s*(#.*)?$')
+    files = [f for f in glob.glob('agent_system/**/*.py', recursive=True)
+             if re.search(r'^\s*(from google[\w.]* import |import google[\w.]+)', open(f).read(), re.M)]
+    for path in files:
+        with open(path, 'r') as f:
+            lines = f.readlines()
+        new_lines = []
+        changed = False
+        for line in lines:
+            s = line.strip()
+            indent = line[:len(line) - len(line.lstrip())]
+            m_from = pat_from.match(s) if not s.startswith('#') else None
+            m_imp = pat_imp.match(s) if not s.startswith('#') else None
+            if m_from:
+                names = [n.strip().split(' as ')[-1].strip() for n in m_from.group(2).split(',')]
+                new_lines.append(f'{indent}try:\n')
+                new_lines.append(f'{indent}    {s}\n')
+                new_lines.append(f'{indent}except ImportError:\n')
+                for n in names:
+                    new_lines.append(f'{indent}    {n} = None\n')
+                changed = True
+            elif m_imp:
+                alias = m_imp.group(2)
+                new_lines.append(f'{indent}try:\n')
+                new_lines.append(f'{indent}    {s}\n')
+                new_lines.append(f'{indent}except ImportError:\n')
+                if alias:
+                    new_lines.append(f'{indent}    {alias} = None\n')
+                else:
+                    new_lines.append(f'{indent}    pass\n')
+                changed = True
+            else:
+                new_lines.append(line)
+        if changed:
+            with open(path, 'w') as f:
+                f.writelines(new_lines)
+            print(f'Patched optional google imports in {path}')
+    PATCH_CRITIQUE
+
+    echo "=== Phase 6b: Patch retrieval.py to use local search ==="
+    cd /opt/verl-agent-deepresearch
+    cat > /tmp/patch_retrieval.py << 'PYPATCH'
+    import re
+
+    retrieval_file = "agent_system/environments/env_package/deepresearch/deepresearch/retrieval.py"
+    with open(retrieval_file, 'r') as f:
+        content = f.read()
+
+    # Replace Serper URL with local search
+    content = content.replace(
+        'https://google.serper.dev/search',
+        'http://localhost:8877/search'
+    )
+
+    # Remove API key requirement for local search
+    content = content.replace(
+        'headers={"X-API-KEY": SERPER_API_KEY,',
+        'headers={'
+    )
+
+    with open(retrieval_file, 'w') as f:
+        f.write(content)
+    print("Patched retrieval.py for local search")
+    PYPATCH
+    python3 /tmp/patch_retrieval.py
+
+    echo "=== Phase 7: Prepare data ==="
+    python3 -m examples.data_preprocess.deep_research_data_prepare \
+        --train_json agent_system/environments/env_package/deepresearch/deepresearch/data/deepresearch_mhqa/train.json \
+        --val_json agent_system/environments/env_package/deepresearch/deepresearch/data/deepresearch_mhqa/val.json \
+        --train_data_size 128 \
+        --val_data_size 64
+
+    echo "=== Phase 8: Start GPU monitor ==="
+    bash /workspace/scripts/gpu_monitor.sh "$RESULTS_DIR/gpu_util.csv" 100 &
+    MONITOR_PID=$!
+    date +%s%3N > "$RESULTS_DIR/start_ts"
+
+    echo "=== Phase 9: Start training ==="
+    echo "  Model: Qwen2.5-3B-Instruct"
+    echo "  Dataset: MHQA (multi-hop QA)"
+    echo "  Architecture: colocated, TP=2, 2 GPUs"
+    echo "  Multi-turn: max_steps=6, group_size=4"
+    nvidia-smi
+
+    export PYTHONUNBUFFERED=1
+    # NOTE: do NOT set VLLM_ATTENTION_BACKEND=XFORMERS -- incompatible with
+    # VLLM_USE_V1=1 (pod env); vLLM 0.8.5 V1 uses bundled FlashAttention.
+    export HYDRA_FULL_ERROR=1
+    export NCCL_P2P_DISABLE=0
+    export SEARCH_URL="http://localhost:$SEARCH_PORT/search"
+    export OPENAI_API_KEY="dummy-not-used"
+    export GOOGLE_API_KEY="dummy-not-used"
+    export GEMINI_API_KEY="dummy-not-used"
+    export PYTHONPATH="/opt/verl-agent-deepresearch:${PYTHONPATH:-}"
+
+    # Use CMU repo's main_ppo (has env/agent config support)
+    cd /opt/verl-agent-deepresearch
+    python3 verl/trainer/main_ppo.py \
+        algorithm.adv_estimator=grpo \
+        data.train_files=dummy_data/text/train.parquet \
+        data.val_files=dummy_data/text/val.parquet \
+        data.train_batch_size=8 \
+        data.val_batch_size=16 \
+        data.max_prompt_length=10000 \
+        data.max_response_length=1024 \
+        data.return_raw_chat=True \
+        actor_rollout_ref.model.path="$MODEL_PATH" \
+        actor_rollout_ref.model.enable_gradient_checkpointing=True \
+        actor_rollout_ref.actor.ppo_max_token_len_per_gpu=5000 \
+        actor_rollout_ref.actor.ppo_mini_batch_size=32 \
+        actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=2 \
+        actor_rollout_ref.actor.use_kl_loss=True \
+        actor_rollout_ref.actor.kl_loss_coef=0.001 \
+        actor_rollout_ref.actor.entropy_coeff=0.001 \
+        actor_rollout_ref.actor.optim.lr=5e-7 \
+        actor_rollout_ref.actor.optim.lr_warmup_steps_ratio=0.1 \
+        actor_rollout_ref.actor.fsdp_config.param_offload=False \
+        actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
+        actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=4 \
+        actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=4 \
+        actor_rollout_ref.rollout.tensor_model_parallel_size=2 \
+        actor_rollout_ref.rollout.gpu_memory_utilization=0.8 \
+        actor_rollout_ref.rollout.enable_chunked_prefill=True \
+        actor_rollout_ref.rollout.max_num_batched_tokens=12288 \
+        actor_rollout_ref.rollout.temperature=1.0 \
+        actor_rollout_ref.rollout.top_p=0.95 \
+        actor_rollout_ref.rollout.name=vllm \
+        env.env_name=deepresearch \
+        env.dataset=deepresearch_mhqa \
+        env.max_steps=6 \
+        env.rollout.n=4 \
+        env.use_explicit_thinking=True \
+        +env.search_engine=serper \
+        trainer.logger="['console']" \
+        trainer.val_before_train=False \
+        trainer.save_freq=-1 \
+        trainer.resume_mode=disable \
+        trainer.nnodes=1 \
+        trainer.n_gpus_per_node=2 \
+        trainer.total_epochs=1 \
+        trainer.test_freq=5 \
+        trainer.project_name=deepresearch-benchmark \
+        trainer.experiment_name=llama3b-mhqa-longtail \
+        trainer.default_local_dir="$RESULTS_DIR/ckpts" \
+        2>&1 | tee "$RESULTS_DIR/train.log" || {
+            echo "WARNING: Training failed"
+            date +%s%3N > "$RESULTS_DIR/end_ts"
+            kill "$MONITOR_PID" 2>/dev/null || true
+            kill "$SEARCH_PID" 2>/dev/null || true
+            echo "=== Partial results ==="
+            wc -l "$RESULTS_DIR/gpu_util.csv" || true
+            exit 1
+        }
+
+    date +%s%3N > "$RESULTS_DIR/end_ts"
+    kill "$MONITOR_PID" 2>/dev/null || true
+    kill "$SEARCH_PID" 2>/dev/null || true
+
+    echo "=== Per-GPU summary ==="
+    python3 -c "
+    import csv
+    from collections import defaultdict
+    traces = defaultdict(list)
+    with open('$RESULTS_DIR/gpu_util.csv') as f:
+        for row in csv.DictReader(f):
+            traces[int(row['gpu_index'])].append(float(row['gpu_util_pct']))
+    for gi in sorted(traces.keys()):
+        u = traces[gi]
+        n = len(u)
+        mean_u = sum(u)/n
+        idle = sum(1 for v in u if v <= 15)/n
+        busy = sum(1 for v in u if v >= 50)/n
+        print(f'GPU {gi}: mean={mean_u:.1f}% idle={idle:.1%} busy={busy:.1%} samples={n}')
+    "
+
+    echo "=== Training complete ==="
+    echo "GPU trace: $(wc -l < $RESULTS_DIR/gpu_util.csv) samples"
+
+    # Insurance: dump the raw GPU trace to stdout as gzip+base64 so Cloud
+    # Logging preserves it even if the live kubectl-cp window is missed.
+    echo "=== GPU trace dump (gzip+base64, prefix GPUCSV:) ==="
+    echo "GPUCSV-BEGIN md5=$(md5sum "$RESULTS_DIR/gpu_util.csv" | cut -d' ' -f1)"
+    gzip -c "$RESULTS_DIR/gpu_util.csv" | base64 -w 3000 | sed 's/^/GPUCSV:/' || true
+    echo "GPUCSV-END"
+
+    echo "=== Keeping pod alive for result collection ==="
+    sleep 7200
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: deepresearch-benchmark
+  namespace: default
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 604800
+  template:
+    metadata:
+      labels:
+        app: deepresearch-benchmark
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-h100-mega-80gb
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cloud.google.com/gke-nodepool
+                operator: In
+                values:
+                - h100-mega-8gpu-spot-b
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: benchmark
+        image: us-west1-docker.pkg.dev/aishuk-test/tpu-poc-repo/deepresearch-benchmark:latest
+        env:
+        - name: VLLM_USE_V1
+          value: "1"
+        - name: DEBIAN_FRONTEND
+          value: "noninteractive"
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          set -euo pipefail
+          echo "=== Deep Research Multi-Turn Benchmark ==="
+          echo "Node: $(hostname)"
+          echo "Date: $(date)"
+          nvidia-smi
+          echo ""
+
+          cp /workspace/scripts/gpu_monitor.sh /usr/local/bin/gpu_monitor.sh
+          chmod +x /usr/local/bin/gpu_monitor.sh
+
+          bash /workspace/scripts/setup_and_run.sh 2>&1 | tee /workspace/results/experiment.log
+        resources:
+          limits:
+            nvidia.com/gpu: 2
+          requests:
+            nvidia.com/gpu: 2
+            cpu: "48"
+            memory: "200Gi"
+        volumeMounts:
+        - name: scripts
+          mountPath: /workspace/scripts
+        - name: results
+          mountPath: /workspace/results
+        - name: dshm
+          mountPath: /dev/shm
+      volumes:
+      - name: scripts
+        configMap:
+          name: deepresearch-scripts
+          defaultMode: 0755
+      - name: results
+        emptyDir: {}
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Gi

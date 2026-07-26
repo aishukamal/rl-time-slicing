@@ -1,0 +1,408 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dapo-longtail-scripts
+  namespace: default
+data:
+  gpu_monitor.sh: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+    OUTPUT="${1:?Usage: $0 <output.csv> [interval_ms]}"
+    INTERVAL_MS="${2:-100}"
+    echo "timestamp_ms,gpu_index,gpu_util_pct,mem_util_pct,power_w" > "$OUTPUT"
+    trap 'exit 0' SIGINT SIGTERM
+    SLEEP_S=$(python3 -c "print($INTERVAL_MS/1000)")
+    while true; do
+        ts=$(date +%s%3N)
+        nvidia-smi --query-gpu=index,utilization.gpu,utilization.memory,power.draw \
+                   --format=csv,noheader,nounits 2>/dev/null | \
+        while IFS=', ' read -r idx gpu mem pwr; do
+            echo "${ts},${idx},${gpu},${mem},${pwr}"
+        done >> "$OUTPUT"
+        sleep "$SLEEP_S"
+    done
+
+  run_dapo.sh: |
+    #!/usr/bin/env bash
+    set -xeuo pipefail
+
+    RESULTS_DIR="/workspace/results"
+    MODEL_PATH="/workspace/models/Qwen2.5-7B-Instruct"
+    TRAIN_FILE="/workspace/data/dapo_math_17k/train.parquet"
+    VAL_FILE="/workspace/data/aime_2024/val.parquet"
+
+    mkdir -p "$RESULTS_DIR" /workspace/data/dapo_math_17k /workspace/data/aime_2024
+
+    echo "=== Setting up environment ==="
+    pip install datasets TransferQueue 2>&1 | tail -5
+
+    git clone --depth 1 https://github.com/verl-project/verl.git /workspace/verl-src
+    cd /workspace/verl-src
+    pip install -e ".[gpu]" 2>&1 | tail -10
+    cd /workspace
+
+    pip install cupy-cuda12x 2>&1 | tail -3
+    python3 -c "import verl; print('verl version:', verl.__version__)" 2>&1
+    python3 -c "import transfer_queue; print('transfer_queue OK')" 2>&1
+    echo "=== Install complete ==="
+
+    echo "=== Downloading model: Qwen2.5-7B-Instruct ==="
+    python3 -c "
+    from huggingface_hub import snapshot_download
+    snapshot_download('Qwen/Qwen2.5-7B-Instruct', local_dir='$MODEL_PATH')
+    print('Model download complete')
+    "
+
+    echo "=== Downloading datasets ==="
+    python3 << 'PYEOF'
+    import json
+    from datasets import load_dataset
+
+    # DAPO-Math-17k (training) — serialize prompt only, keep dicts native
+    print("Downloading DAPO-Math-17k...")
+    ds = load_dataset("BytedTsinghua-SIA/DAPO-Math-17k", split="train")
+    def prep_train(example):
+        return {"prompt": json.dumps(example["prompt"])}
+    ds = ds.map(prep_train)
+    ds.to_parquet("/workspace/data/dapo_math_17k/train.parquet")
+    print(f"DAPO-Math-17k: {len(ds)} samples, columns: {ds.column_names}")
+
+    # AIME-2024 (validation) — serialize prompt only, keep dicts native
+    print("Downloading AIME-2024...")
+    ds_val = load_dataset("BytedTsinghua-SIA/AIME-2024", split="train")
+    def prep_val(example):
+        return {"prompt": json.dumps(example["prompt"])}
+    ds_val = ds_val.map(prep_val)
+    ds_val.to_parquet("/workspace/data/aime_2024/val.parquet")
+    print(f"AIME-2024: {len(ds_val)} samples, columns: {ds_val.column_names}")
+    PYEOF
+
+    echo "=== Starting GPU monitor ==="
+    bash /workspace/scripts/gpu_monitor.sh "$RESULTS_DIR/gpu_util.csv" 100 &
+    MONITOR_PID=$!
+
+    date +%s%3N > "$RESULTS_DIR/start_ts"
+
+    echo "=== Starting DAPO GRPO training (sync colocated) ==="
+    echo "  Model: Qwen2.5-7B-Instruct (32K context)"
+    echo "  Dataset: DAPO-Math-17k (train), AIME-2024 (val)"
+    echo "  max_response_length: 16384"
+    echo "  train_batch_size: 8 (1 prompt per GPU for max long-tail variance)"
+    echo "  rollout.n: 8 (8 samples per prompt)"
+    echo "  GPUs: 8 (sync colocated mode)"
+    nvidia-smi
+
+    python3 -m verl.trainer.main_ppo \
+        data.train_files="$TRAIN_FILE" \
+        data.val_files="$VAL_FILE" \
+        data.prompt_key=prompt \
+        data.truncation=left \
+        data.max_prompt_length=2048 \
+        data.max_response_length=16384 \
+        data.train_batch_size=8 \
+        data.return_raw_chat=True \
+        actor_rollout_ref.model.path="$MODEL_PATH" \
+        actor_rollout_ref.model.use_remove_padding=True \
+        actor_rollout_ref.model.enable_gradient_checkpointing=True \
+        actor_rollout_ref.hybrid_engine=True \
+        actor_rollout_ref.actor.strategy=fsdp \
+        actor_rollout_ref.actor.ppo_mini_batch_size=4 \
+        actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=1 \
+        actor_rollout_ref.actor.ppo_epochs=1 \
+        actor_rollout_ref.actor.use_kl_loss=False \
+        actor_rollout_ref.actor.kl_loss_coef=0.0 \
+        actor_rollout_ref.actor.entropy_coeff=0 \
+        actor_rollout_ref.actor.clip_ratio_low=0.2 \
+        actor_rollout_ref.actor.clip_ratio_high=0.28 \
+        actor_rollout_ref.actor.clip_ratio_c=10.0 \
+        actor_rollout_ref.actor.grad_clip=1.0 \
+        actor_rollout_ref.actor.loss_agg_mode=token-mean \
+        actor_rollout_ref.actor.use_dynamic_bsz=True \
+        actor_rollout_ref.actor.fsdp_config.param_offload=True \
+        actor_rollout_ref.actor.fsdp_config.optimizer_offload=True \
+        actor_rollout_ref.actor.optim.lr=1e-6 \
+        actor_rollout_ref.actor.optim.lr_warmup_steps=-1 \
+        actor_rollout_ref.actor.optim.weight_decay=0.1 \
+        actor_rollout_ref.ref.log_prob_use_dynamic_bsz=True \
+        actor_rollout_ref.ref.fsdp_config.param_offload=True \
+        actor_rollout_ref.rollout.name=vllm \
+        actor_rollout_ref.rollout.n=4 \
+        actor_rollout_ref.rollout.temperature=1.0 \
+        actor_rollout_ref.rollout.top_p=1.0 \
+        actor_rollout_ref.rollout.top_k=-1 \
+        actor_rollout_ref.rollout.gpu_memory_utilization=0.5 \
+        actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
+        actor_rollout_ref.rollout.enable_chunked_prefill=True \
+        actor_rollout_ref.rollout.log_prob_use_dynamic_bsz=True \
+        actor_rollout_ref.rollout.max_model_len=18432 \
+        actor_rollout_ref.rollout.max_num_seqs=8 \
+        actor_rollout_ref.rollout.enforce_eager=True \
+        algorithm.adv_estimator=grpo \
+        algorithm.use_kl_in_reward=False \
+        algorithm.kl_ctrl.kl_coef=0.0 \
+        reward.reward_manager.name=dapo \
+        +reward.reward_kwargs.overlong_buffer_cfg.enable=True \
+        +reward.reward_kwargs.overlong_buffer_cfg.len=4096 \
+        +reward.reward_kwargs.overlong_buffer_cfg.penalty_factor=1.0 \
+        +reward.reward_kwargs.overlong_buffer_cfg.log=True \
+        +reward.reward_kwargs.max_resp_len=16384 \
+        trainer.logger="['console']" \
+        trainer.val_before_train=True \
+        trainer.save_freq=-1 \
+        trainer.resume_mode=disable \
+        trainer.nnodes=1 \
+        trainer.n_gpus_per_node=8 \
+        trainer.total_epochs=1 \
+        trainer.test_freq=5 \
+        trainer.project_name=dapo-longtail-benchmark \
+        trainer.experiment_name=qwen-math-7b-dapo-aime2024 \
+        trainer.default_local_dir="$RESULTS_DIR/ckpts" \
+        2>&1 | tee "$RESULTS_DIR/train.log" || {
+            echo "WARNING: Training failed"
+            date +%s%3N > "$RESULTS_DIR/end_ts"
+            kill "$MONITOR_PID" 2>/dev/null || true
+            wait "$MONITOR_PID" 2>/dev/null || true
+            echo "=== Partial results available ==="
+            wc -l "$RESULTS_DIR/gpu_util.csv" || true
+            exit 1
+        }
+
+    date +%s%3N > "$RESULTS_DIR/end_ts"
+    kill "$MONITOR_PID" 2>/dev/null || true
+    wait "$MONITOR_PID" 2>/dev/null || true
+
+    echo "=== Running long-tail analysis ==="
+    python3 /workspace/scripts/analyze_longtail.py "$RESULTS_DIR" 2>&1 | tee "$RESULTS_DIR/analysis.log"
+
+    echo "=== Benchmark complete ==="
+    echo "GPU utilization trace: $(wc -l < "$RESULTS_DIR/gpu_util.csv") samples"
+    echo "Training log: $RESULTS_DIR/train.log"
+    echo "Analysis: $RESULTS_DIR/analysis.log"
+
+  analyze_longtail.py: |
+    #!/usr/bin/env python3
+    """Analyze GPU utilization traces for long-tail idle patterns in sync colocated RL."""
+    import csv
+    import sys
+    from collections import defaultdict
+    from pathlib import Path
+
+    IDLE_THRESHOLD = 15.0
+    BUSY_THRESHOLD = 50.0
+    MIN_PHASE_DURATION_S = 1.0
+
+    def load_trace(csv_path):
+        traces = defaultdict(lambda: {"ts": [], "util": []})
+        with open(csv_path) as f:
+            for row in csv.DictReader(f):
+                idx = int(row["gpu_index"])
+                traces[idx]["ts"].append(int(row["timestamp_ms"]))
+                traces[idx]["util"].append(float(row["gpu_util_pct"]))
+        return dict(traces)
+
+    def smooth(vals, w=10):
+        out = []
+        for i in range(len(vals)):
+            s, e = max(0, i - w // 2), min(len(vals), i + w // 2 + 1)
+            out.append(sum(vals[s:e]) / (e - s))
+        return out
+
+    def detect_phases(ts, util):
+        sm = smooth(util)
+        phases, cur, start = [], None, ts[0]
+        for t, v in zip(ts, sm):
+            st = "busy" if v >= BUSY_THRESHOLD else ("idle" if v <= IDLE_THRESHOLD else "mid")
+            if cur is None:
+                cur, start = st, t
+            elif st != cur and st != "mid":
+                if (t - start) / 1000 >= MIN_PHASE_DURATION_S:
+                    phases.append((cur, start, t))
+                cur, start = st, t
+        if cur and ts:
+            if (ts[-1] - start) / 1000 >= MIN_PHASE_DURATION_S:
+                phases.append((cur, start, ts[-1]))
+        return phases
+
+    def main():
+        results_dir = Path(sys.argv[1] if len(sys.argv) > 1 else "/workspace/results")
+        csv_path = results_dir / "gpu_util.csv"
+        if not csv_path.exists():
+            print("ERROR: gpu_util.csv not found")
+            return
+
+        traces = load_trace(str(csv_path))
+        n_gpus = len(traces)
+        total_time_s = 0
+        if traces:
+            first = list(traces.values())[0]
+            if first["ts"]:
+                total_time_s = (first["ts"][-1] - first["ts"][0]) / 1000
+
+        print("=" * 80)
+        print("DAPO LONG-TAIL IDLE ANALYSIS")
+        print("=" * 80)
+        print(f"GPUs: {n_gpus}")
+        print(f"Total trace duration: {total_time_s:.1f}s ({total_time_s/60:.1f}min)")
+        print()
+
+        all_idle_durations = []
+        all_busy_durations = []
+
+        print(f"{'GPU':>4} {'Mean%':>6} {'Idle%':>7} {'Busy%':>7} {'Phases':>7} "
+              f"{'AvgBusy':>8} {'AvgIdle':>8} {'MaxIdle':>8} {'IdleGPU-s':>10}")
+        print("-" * 80)
+
+        total_idle_gpu_seconds = 0
+
+        for gpu_idx in sorted(traces.keys()):
+            tr = traces[gpu_idx]
+            ts, util = tr["ts"], tr["util"]
+            n = len(util)
+            if not n:
+                continue
+
+            mean_u = sum(util) / n
+            idle_f = sum(1 for u in util if u <= IDLE_THRESHOLD) / n
+            busy_f = sum(1 for u in util if u >= BUSY_THRESHOLD) / n
+            phases = detect_phases(ts, util)
+            busy_d = [(e - s) / 1000 for st, s, e in phases if st == "busy"]
+            idle_d = [(e - s) / 1000 for st, s, e in phases if st == "idle"]
+            avg_busy = sum(busy_d) / len(busy_d) if busy_d else 0
+            avg_idle = sum(idle_d) / len(idle_d) if idle_d else 0
+            max_idle = max(idle_d) if idle_d else 0
+            idle_gpu_s = sum(idle_d)
+            total_idle_gpu_seconds += idle_gpu_s
+
+            all_idle_durations.extend(idle_d)
+            all_busy_durations.extend(busy_d)
+
+            print(f"{gpu_idx:>4} {mean_u:>5.1f}% {idle_f:>6.1%} {busy_f:>6.1%} "
+                  f"{len(phases):>7} {avg_busy:>7.1f}s {avg_idle:>7.1f}s "
+                  f"{max_idle:>7.1f}s {idle_gpu_s:>9.1f}s")
+
+        print()
+        print("=" * 80)
+        print("LONG-TAIL SUMMARY")
+        print("=" * 80)
+
+        total_gpu_seconds = total_time_s * n_gpus
+        idle_fraction = total_idle_gpu_seconds / total_gpu_seconds if total_gpu_seconds else 0
+
+        print(f"Total GPU-seconds:      {total_gpu_seconds:>10.1f}")
+        print(f"Idle GPU-seconds:       {total_idle_gpu_seconds:>10.1f}")
+        print(f"Idle fraction:          {idle_fraction:>10.1%}")
+        print(f"Effective utilization:  {1 - idle_fraction:>10.1%}")
+        print()
+
+        if all_idle_durations:
+            all_idle_durations.sort()
+            n_idle = len(all_idle_durations)
+            print("Idle phase duration distribution:")
+            print(f"  Min:    {all_idle_durations[0]:>7.1f}s")
+            print(f"  P25:    {all_idle_durations[n_idle // 4]:>7.1f}s")
+            print(f"  Median: {all_idle_durations[n_idle // 2]:>7.1f}s")
+            print(f"  P75:    {all_idle_durations[3 * n_idle // 4]:>7.1f}s")
+            print(f"  P95:    {all_idle_durations[int(n_idle * 0.95)]:>7.1f}s")
+            print(f"  Max:    {all_idle_durations[-1]:>7.1f}s")
+            print(f"  Count:  {n_idle}")
+            print()
+
+        if all_busy_durations:
+            all_busy_durations.sort()
+            n_busy = len(all_busy_durations)
+            print("Busy phase duration distribution:")
+            print(f"  Min:    {all_busy_durations[0]:>7.1f}s")
+            print(f"  Median: {all_busy_durations[n_busy // 2]:>7.1f}s")
+            print(f"  Max:    {all_busy_durations[-1]:>7.1f}s")
+            print(f"  Count:  {n_busy}")
+            print()
+
+        print("TIME-SLICING OPPORTUNITY:")
+        if idle_fraction > 0.15:
+            print(f"  HIGH — {idle_fraction:.0%} of GPU-seconds are idle.")
+            print(f"  A second workload could reclaim ~{total_idle_gpu_seconds:.0f} GPU-seconds.")
+            if all_idle_durations:
+                median_idle = all_idle_durations[len(all_idle_durations) // 2]
+                print(f"  Median idle phase: {median_idle:.1f}s (sufficient for C/R swap at <1s).")
+        elif idle_fraction > 0.05:
+            print(f"  MODERATE — {idle_fraction:.0%} idle. Some time-slicing benefit possible.")
+        else:
+            print(f"  LOW — only {idle_fraction:.0%} idle. GPUs are well-utilized.")
+
+    if __name__ == "__main__":
+        main()
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dapo-longtail-benchmark
+  namespace: default
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app: dapo-longtail-benchmark
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-h100-mega-80gb
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cloud.google.com/gke-nodepool
+                operator: In
+                values:
+                - h100-mega-8gpu-spot-b
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: benchmark
+        image: verlai/verl:vllm020.dev2
+        env:
+        - name: VLLM_USE_V1
+          value: "1"
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          set -euo pipefail
+          echo "=== DAPO Long-Tail Benchmark ==="
+          echo "Node: $(hostname)"
+          echo "Date: $(date)"
+          nvidia-smi
+          echo ""
+
+          cp /workspace/scripts/gpu_monitor.sh /usr/local/bin/gpu_monitor.sh
+          chmod +x /usr/local/bin/gpu_monitor.sh
+
+          bash /workspace/scripts/run_dapo.sh 2>&1 | tee /workspace/results/experiment.log
+        resources:
+          limits:
+            nvidia.com/gpu: 8
+          requests:
+            nvidia.com/gpu: 8
+            cpu: "48"
+            memory: "200Gi"
+        volumeMounts:
+        - name: scripts
+          mountPath: /workspace/scripts
+        - name: results
+          mountPath: /workspace/results
+        - name: dshm
+          mountPath: /dev/shm
+      volumes:
+      - name: scripts
+        configMap:
+          name: dapo-longtail-scripts
+          defaultMode: 0755
+      - name: results
+        emptyDir: {}
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Gi

@@ -1,0 +1,351 @@
+# Long-CoT math RL (DAPO/R1-style) x verl fully-async disaggregated mode.
+# Follow-up to async-multiturn staleness sweep: there TRAIN(~70s) > GEN(~30s),
+# so s>=1 saturated the trainer. Here the ratio flips naturally: DeepSeek-R1-
+# Distill-Qwen-1.5B emits 4-16K-token <think> CoT on DAPO-Math-17k -> GEN >> TRAIN.
+# NO artificial slowing; gen-heaviness comes from response length only.
+# Sweep: staleness_threshold = 0 / 8 / 10000(unbounded), 1 trainer + 1 rollout H100.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: async-longcot-scripts
+  namespace: default
+data:
+  gpu_monitor.sh: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+    OUTPUT="${1:?Usage: $0 <output.csv> [interval_ms]}"
+    INTERVAL_MS="${2:-100}"
+    echo "timestamp_ms,gpu_index,gpu_util_pct,mem_util_pct,power_w" > "$OUTPUT"
+    trap 'exit 0' SIGINT SIGTERM
+    SLEEP_S=$(python3 -c "print($INTERVAL_MS/1000)")
+    while true; do
+        ts=$(date +%s%3N)
+        nvidia-smi --query-gpu=index,utilization.gpu,utilization.memory,power.draw \
+                   --format=csv,noheader,nounits 2>/dev/null | \
+        while IFS=', ' read -r idx gpu mem pwr; do
+            echo "${ts},${idx},${gpu},${mem},${pwr}"
+        done >> "$OUTPUT"
+        sleep "$SLEEP_S"
+    done
+
+  data_prep.py: |
+    #!/usr/bin/env python3
+    """Prepare DAPO-Math-17k subsets for the async long-CoT experiment.
+
+    Source: HF dataset BytedTsinghua-SIA/DAPO-Math-17k (data/dapo-math-17k.parquet),
+    which is ALREADY in verl RLHFDataset format:
+      - data_source = "math_dapo"  -> default reward routing hits
+        verl.utils.reward_score.math_dapo.compute_score (Answer: <ans> extraction,
+        matching the instruction baked into every prompt)
+      - prompt = [{"role": "user", "content": "...Remember to put your answer on its
+        own line after \"Answer:\"..."}]
+      - reward_model = {"style": "rule", "ground_truth": "<answer string>"}
+
+    We only subsample (512 train / 64 val, disjoint) and sanity-check the schema.
+    No agent_name column -> single_turn_agent (default), single-turn long CoT.
+    """
+
+    import argparse
+    import os
+
+    import pandas as pd
+    from huggingface_hub import hf_hub_download
+
+
+    def main():
+        ap = argparse.ArgumentParser()
+        ap.add_argument("--repo_id", default="BytedTsinghua-SIA/DAPO-Math-17k")
+        ap.add_argument("--filename", default="data/dapo-math-17k.parquet")
+        ap.add_argument("--out_dir", default="/workspace/data/dapo_math")
+        ap.add_argument("--train_size", type=int, default=512)
+        ap.add_argument("--val_size", type=int, default=64)
+        ap.add_argument("--seed", type=int, default=17)
+        args = ap.parse_args()
+
+        local = hf_hub_download(repo_id=args.repo_id, filename=args.filename, repo_type="dataset")
+        df = pd.read_parquet(local)
+        print(f"loaded {len(df)} rows, columns: {list(df.columns)}")
+
+        # ---- schema sanity checks (fail fast, before burning GPU time) ----
+        row = df.iloc[0]
+        prompt = row["prompt"]
+        assert row["data_source"] == "math_dapo", f"unexpected data_source {row['data_source']!r}"
+        p0 = prompt[0] if not isinstance(prompt, dict) else prompt
+        p0 = dict(p0)
+        assert p0.get("role") == "user" and isinstance(p0.get("content"), str), f"bad prompt row: {p0}"
+        assert "Answer:" in p0["content"], "prompt lacks the Answer: instruction the reward fn expects"
+        rm = dict(row["reward_model"])
+        gt = rm.get("ground_truth")
+        assert isinstance(gt, str) and gt, f"bad ground_truth: {gt!r}"
+        print("schema OK; sample prompt (first 400 chars):")
+        print(p0["content"][:400])
+        print("sample ground_truth:", gt[:100])
+
+        # Deduplicate on prompt text so train/val are truly distinct problems.
+        df = df.assign(_ptext=df["prompt"].map(lambda p: dict(list(p)[0])["content"]))
+        df = df.drop_duplicates("_ptext").drop(columns="_ptext").reset_index(drop=True)
+        print(f"{len(df)} unique problems after dedup")
+
+        n = args.train_size + args.val_size
+        sub = df.sample(n=min(n, len(df)), random_state=args.seed).reset_index(drop=True)
+        train = sub.iloc[: args.train_size]
+        val = sub.iloc[args.train_size : args.train_size + args.val_size]
+
+        os.makedirs(args.out_dir, exist_ok=True)
+        train.to_parquet(os.path.join(args.out_dir, "train.parquet"), index=False)
+        val.to_parquet(os.path.join(args.out_dir, "val.parquet"), index=False)
+        print(f"wrote {len(train)} train / {len(val)} val -> {args.out_dir}")
+
+
+    if __name__ == "__main__":
+        main()
+
+  run_async_longcot.sh: |
+    #!/usr/bin/env bash
+    set -xeuo pipefail
+
+    # On ANY exit, kill background children (gpu monitor) so the stdout pipe to
+    # tee is released and the container surfaces the real exit status.
+    trap 'kill $(jobs -p) 2>/dev/null || true' EXIT
+
+    RESULTS_DIR="/workspace/results"
+    MODEL_PATH="/workspace/models/DeepSeek-R1-Distill-Qwen-1.5B"
+    TRAIN_FILE="/workspace/data/dapo_math/train.parquet"
+    VAL_FILE="/workspace/data/dapo_math/val.parquet"
+    RUN_SECONDS="${RUN_SECONDS:-5400}"   # ~90 min budget per staleness config
+
+    mkdir -p "$RESULTS_DIR"
+
+    echo "=== Phase 1: install verl main (same pattern as prior async jobs) ==="
+    pip install datasets TransferQueue 2>&1 | tail -5
+    git clone --depth 1 https://github.com/verl-project/verl.git /workspace/verl-src
+    cd /workspace/verl-src
+    git rev-parse HEAD | tee "$RESULTS_DIR/verl_commit"
+    pip install -e ".[gpu]" 2>&1 | tail -10
+    cd /workspace
+    pip install cupy-cuda12x 2>&1 | tail -3
+    python3 -c "import verl; print('verl version:', verl.__version__)"
+    python3 -c "import transfer_queue; print('transfer_queue OK')"
+
+    echo "=== Phase 2: download model (DeepSeek-R1-Distill-Qwen-1.5B, MIT, ungated) ==="
+    python3 -c "
+    from huggingface_hub import snapshot_download
+    snapshot_download('deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B', local_dir='$MODEL_PATH')
+    print('Model download complete')
+    "
+
+    echo "=== Phase 3: prepare dataset (512 DAPO-Math-17k prompts) ==="
+    python3 /workspace/scripts/data_prep.py --out_dir /workspace/data/dapo_math \
+        --train_size 512 --val_size 64
+
+    echo "=== Phase 3b: chat-template sanity check (forced <think> must be active) ==="
+    python3 << 'TMPLCHECK'
+    import pandas as pd
+    from transformers import AutoTokenizer
+    tok = AutoTokenizer.from_pretrained("/workspace/models/DeepSeek-R1-Distill-Qwen-1.5B")
+    df = pd.read_parquet("/workspace/data/dapo_math/train.parquet")
+    msgs = [dict(m) for m in df.iloc[0]["prompt"]]
+    rendered = tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False)
+    print("RENDERED PROMPT TAIL:", rendered[-200:])
+    assert rendered.rstrip().endswith("<think>"), "chat template does not force <think> - CoT premise broken"
+    ntok = len(tok.apply_chat_template(msgs, add_generation_prompt=True))
+    print(f"prompt tokens: {ntok}")
+    assert ntok < 2048, f"prompt longer than max_prompt_length: {ntok}"
+    print("Chat template check OK")
+    TMPLCHECK
+
+    echo "=== Phase 4: start GPU monitor (100ms) ==="
+    bash /workspace/scripts/gpu_monitor.sh "$RESULTS_DIR/gpu_util.csv" 100 &
+    MONITOR_PID=$!
+    date +%s%3N > "$RESULTS_DIR/start_ts"
+
+    echo "=== Phase 5: fully-async long-CoT training, 1 trainer GPU + 1 rollout GPU ==="
+    echo "  Model: DeepSeek-R1-Distill-Qwen-1.5B | Dataset: DAPO-Math-17k (512 prompts)"
+    echo "  Single-turn long CoT, max_response_length=8192, temperature=1.0, n=8"
+    echo "  staleness_threshold=${STALENESS_THRESHOLD:-0}, trigger_parameter_sync_step=1"
+    nvidia-smi
+
+    export PYTHONUNBUFFERED=1
+    export HYDRA_FULL_ERROR=1
+
+    TOTAL_ROLLOUT_STEPS=65536   # >> trainer consumption; None-sentinel must not fire
+
+    # timeout bounds the experiment; exit 124 (timeout) is the EXPECTED end state.
+    # ppo_max_token_len_per_gpu=24576 is a throughput config (packs >=2 of the
+    # up-to-10240-token seqs per forward), NOT a starvation knob.
+    set +e
+    timeout --signal=INT --kill-after=120 "$RUN_SECONDS" \
+    python3 -m verl.experimental.fully_async_policy.fully_async_main \
+        data.train_files="$TRAIN_FILE" \
+        data.val_files="$VAL_FILE" \
+        data.prompt_key=prompt \
+        data.truncation=left \
+        data.max_prompt_length=2048 \
+        data.max_response_length=8192 \
+        data.train_batch_size=0 \
+        data.gen_batch_size=1 \
+        data.return_raw_chat=True \
+        actor_rollout_ref.model.path="$MODEL_PATH" \
+        actor_rollout_ref.model.use_remove_padding=True \
+        actor_rollout_ref.model.enable_gradient_checkpointing=True \
+        actor_rollout_ref.hybrid_engine=False \
+        actor_rollout_ref.actor.strategy=fsdp \
+        actor_rollout_ref.actor.ppo_mini_batch_size=64 \
+        actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=1 \
+        actor_rollout_ref.actor.use_kl_loss=False \
+        actor_rollout_ref.actor.kl_loss_coef=0.0 \
+        actor_rollout_ref.actor.entropy_coeff=0 \
+        actor_rollout_ref.actor.grad_clip=1.0 \
+        actor_rollout_ref.actor.loss_agg_mode=token-mean \
+        actor_rollout_ref.actor.use_dynamic_bsz=True \
+        actor_rollout_ref.actor.ppo_max_token_len_per_gpu=24576 \
+        actor_rollout_ref.actor.optim.lr=1e-6 \
+        actor_rollout_ref.actor.optim.lr_warmup_steps=-1 \
+        actor_rollout_ref.actor.fsdp_config.param_offload=False \
+        actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
+        actor_rollout_ref.ref.log_prob_use_dynamic_bsz=True \
+        actor_rollout_ref.ref.log_prob_max_token_len_per_gpu=24576 \
+        actor_rollout_ref.rollout.name=vllm \
+        actor_rollout_ref.rollout.mode=async \
+        actor_rollout_ref.rollout.n=8 \
+        actor_rollout_ref.rollout.calculate_log_probs=True \
+        actor_rollout_ref.rollout.checkpoint_engine.backend=nccl \
+        actor_rollout_ref.rollout.gpu_memory_utilization=0.8 \
+        actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
+        actor_rollout_ref.rollout.enable_chunked_prefill=True \
+        actor_rollout_ref.rollout.temperature=1.0 \
+        actor_rollout_ref.rollout.top_p=1.0 \
+        actor_rollout_ref.rollout.top_k=-1 \
+        algorithm.adv_estimator=grpo \
+        algorithm.use_kl_in_reward=False \
+        algorithm.kl_ctrl.kl_coef=0.0 \
+        trainer.logger="['console']" \
+        trainer.val_before_train=False \
+        trainer.save_freq=-1 \
+        trainer.resume_mode=disable \
+        trainer.nnodes=1 \
+        trainer.n_gpus_per_node=1 \
+        trainer.total_epochs=10 \
+        trainer.test_freq=-1 \
+        trainer.project_name=async-longcot \
+        trainer.experiment_name=r1distill1.5b-dapomath-s"${STALENESS_THRESHOLD:-0}" \
+        trainer.default_local_dir="$RESULTS_DIR/ckpts" \
+        rollout.nnodes=1 \
+        rollout.n_gpus_per_node=1 \
+        rollout.total_rollout_steps="$TOTAL_ROLLOUT_STEPS" \
+        async_training.staleness_threshold="${STALENESS_THRESHOLD:-0}" \
+        async_training.trigger_parameter_sync_step=1 \
+        2>&1 | tee "$RESULTS_DIR/train.log"
+    TRAIN_RC=${PIPESTATUS[0]}
+    set -e
+    if [ "$TRAIN_RC" = "124" ]; then
+        echo "Training stopped by planned ${RUN_SECONDS}s timeout (expected end state)"
+    elif [ "$TRAIN_RC" != "0" ]; then
+        echo "WARNING: training exited rc=$TRAIN_RC before planned timeout"
+    fi
+
+    date +%s%3N > "$RESULTS_DIR/end_ts"
+    kill "$MONITOR_PID" 2>/dev/null || true
+    wait "$MONITOR_PID" 2>/dev/null || true
+    wc -l "$RESULTS_DIR/gpu_util.csv" || true
+
+    echo "=== Per-GPU summary ==="
+    python3 -c "
+    import csv
+    from collections import defaultdict
+    traces = defaultdict(list)
+    with open('$RESULTS_DIR/gpu_util.csv') as f:
+        for row in csv.DictReader(f):
+            traces[int(row['gpu_index'])].append(float(row['gpu_util_pct']))
+    for gi in sorted(traces.keys()):
+        u = traces[gi]
+        n = len(u)
+        mean_u = sum(u)/n
+        idle = sum(1 for v in u if v <= 15)/n
+        busy = sum(1 for v in u if v >= 50)/n
+        print(f'GPU {gi}: mean={mean_u:.1f}% idle={idle:.1%} busy={busy:.1%} samples={n}')
+    " || true
+
+    # Insurance: dump the raw GPU trace to stdout as gzip+base64 so Cloud
+    # Logging preserves it even if the live kubectl-cp window is missed.
+    echo "=== GPU trace dump (gzip+base64, prefix GPUCSV:) ==="
+    echo "GPUCSV-BEGIN md5=$(md5sum "$RESULTS_DIR/gpu_util.csv" | cut -d' ' -f1)"
+    gzip -c "$RESULTS_DIR/gpu_util.csv" | base64 -w 3000 | sed 's/^/GPUCSV:/' || true
+    echo "GPUCSV-END"
+
+    echo "=== Keeping pod alive for result collection ==="
+    sleep 7200
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: async-longcot
+  namespace: default
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 604800
+  template:
+    metadata:
+      labels:
+        app: async-longcot
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-h100-mega-80gb
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cloud.google.com/gke-nodepool
+                operator: In
+                values:
+                - h100-mega-8gpu-spot-b
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: benchmark
+        image: verlai/verl:vllm020.dev2
+        env:
+        - name: VLLM_USE_V1
+          value: "1"
+        - name: STALENESS_THRESHOLD
+          value: "10000"   # effectively unbounded: verl has no infinity sentinel
+        - name: RUN_SECONDS
+          value: "5400"
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          set -euo pipefail
+          echo "=== Async Long-CoT Math Benchmark (gen-heavy staleness sweep) ==="
+          echo "Node: $(hostname)"
+          echo "Date: $(date)"
+          nvidia-smi
+          bash /workspace/scripts/run_async_longcot.sh 2>&1 | tee /workspace/results/experiment.log
+        resources:
+          limits:
+            nvidia.com/gpu: 2
+          requests:
+            nvidia.com/gpu: 2
+            cpu: "40"
+            memory: "160Gi"
+        volumeMounts:
+        - name: scripts
+          mountPath: /workspace/scripts
+        - name: results
+          mountPath: /workspace/results
+        - name: dshm
+          mountPath: /dev/shm
+      volumes:
+      - name: scripts
+        configMap:
+          name: async-longcot-scripts
+          defaultMode: 0755
+      - name: results
+        emptyDir: {}
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Gi
