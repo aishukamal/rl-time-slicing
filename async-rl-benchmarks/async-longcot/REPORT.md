@@ -74,6 +74,8 @@ throughput imbalance.**
 Run to size trainer idle blocks for the time-slicing PoC (11 steps, zero crashes;
 `k8s-job-async-longcot-16k.yaml`, results `run_s8_16k_*`):
 
+![16K timeline](run_s8_16k_timeline.png)
+
 | Metric | 8K run (s=8) | **16K run (s=8)** |
 |---|---|---|
 | Step cadence | 223s | **407s** (322-513s) |
