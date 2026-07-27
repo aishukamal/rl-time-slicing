@@ -4,8 +4,12 @@ Four experimental phases measuring GPU duty cycles of veRL RL training across ex
 (sync colocated / async disaggregated), data policy (on-policy / bounded / unbounded staleness),
 and workload balance (gen-heavy / train-heavy). July 2026, 2×H100 per run (GKE spot).
 
-**Start here: [rl-timeslicing-benchmark-report.html](rl-timeslicing-benchmark-report.html)** — the
-full self-contained report (all charts embedded).
+**Start here: [consolidated-report.html](consolidated-report.html)** — the single consolidated report
+covering both measurement campaigns in full: the workload study (this directory's recipes) and the
+7B standard-recipe study ([verl-benchmarks/](verl-benchmarks/)), every run with its data and figures.
+Standalone per-campaign reports remain available:
+[rl-timeslicing-benchmark-report.html](rl-timeslicing-benchmark-report.html) (workload study) and
+[verl-benchmarks/RESULTS.html](verl-benchmarks/RESULTS.html) (recipe study).
 
 ## Headline result
 
