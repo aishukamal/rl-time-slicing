@@ -4,7 +4,14 @@
 
 Full end-to-end checkpoint/restore validated across 3 workloads, 5 GPU topologies, on H100 80GB. All tests pass with post-restore inference/training verification.
 
-**Recipe:** NCCL TCP transport (3 env vars) + LD_PRELOAD shim (ncclCommSuspend/Resume) + framework-specific CUDA graph disable.
+Two shim generations:
+
+- **Shim v1** (`universal_cr_shim.c`): ncclCommSuspend/Resume across the freeze. Requires NCCL on TCP transport — **no NVLink at steady state** (50-100x slower collectives).
+- **Shim v2** (`universal_cr_shim_v2.c`): destroys NCCL comms before freeze, recreates them (fresh uniqueId rendezvous + handle indirection) after restore. **NVLink P2P stays enabled at steady state — zero performance tax.** See the "Shim v2" section below.
+
+**v1 recipe:** NCCL TCP transport (3 env vars) + LD_PRELOAD shim (ncclCommSuspend/Resume) + framework-specific CUDA graph disable.
+
+**v2 recipe:** `NCCL_NVLS_ENABLE=0` + LD_PRELOAD shim v2 + framework-specific CUDA graph disable. NVLink P2P active.
 
 ## Environment
 
@@ -104,7 +111,62 @@ Each node runs its C/R cycle independently. No cross-node coordination required 
 | Inference throughput | baseline | ~10-30% loss for 70B+ TP models | Negligible for small models |
 | Training throughput | baseline | 2-5x slower for comm-bound workloads | Significant |
 
-NCCL env vars must be set at pod launch (before NCCL init). Cannot be toggled at C/R time.
+NCCL env vars must be set at pod launch (before NCCL init). Cannot be toggled at C/R time — which is exactly why shim v2 (below) exists: it removes the TCP requirement entirely.
+
+## Shim v2: NVLink at Steady State (destroy/recreate)
+
+`universal_cr_shim_v2.c` eliminates v1's performance tax. Instead of suspending comms across the freeze (which requires the checkpoint-safe TCP transport), v2 **destroys** all NCCL communicators before the freeze and **recreates** them after restore:
+
+```
+Steady state:  NVLink P2P — full speed (NCCL_NVLS_ENABLE=0 is the only restriction)
+C/R window:    quiesce workload
+               SIGRTMIN+1  → ncclCommDestroy all comms   (~350-450ms)
+                             (NCCL itself tears down ALL P2P/SHM cross-process state)
+               cuda-checkpoint freeze                     (sees only process-private state)
+               ... GPU free for other workloads ...
+               cuda-checkpoint restore
+               SIGRTMIN+2  → arms lazy recreate (flag only, async-signal-safe)
+               workload resumes → first collective call performs:
+                   fresh ncclUniqueId rendezvous (rank 0 generates + publishes;
+                   original uniqueId is stale — bootstrap sockets die at freeze)
+                   + collective ncclCommInitRank on the app's own thread
+               NVLink P2P re-established
+```
+
+The framework (PyTorch, vLLM) still holds the original `ncclComm_t` handles: the shim keeps an `app_handle → current_handle` table and translates on every intercepted NCCL call, so the recreate is invisible. While comms are destroyed, query calls (e.g. PyTorch's watchdog polling `ncclCommGetAsyncError`) are answered from cached values.
+
+### v2 test results (2x H100 NV18, opt-1.3b, driver 580.126.20)
+
+| Test | NVLink steady state | Destroy | Freeze | Restore | Recreate | Post-C/R verification |
+|------|--------------------|---------| -------|---------|----------|----------------------|
+| FSDP DP=2 (3 C/R cycles) | confirmed (traffic counters) | ~360ms | PASS, VRAM=0 | PASS | PASS ×3 | training continues, NVLink traffic confirmed |
+| vLLM TP=2 | confirmed (traffic counters) | ~410ms | PASS, VRAM=0 | PASS | PASS | inference correct, NVLink traffic confirmed |
+
+### vLLM specifics: PyNCCL routing
+
+vLLM's PyNCCL loads NCCL via ctypes `dlopen`+`dlsym`, bypassing LD_PRELOAD interposition — its comms would be invisible to the shim (and their P2P state would break the freeze). Fix: point `VLLM_NCCL_SO_PATH` at the shim itself. The shim exports the full PyNCCL surface (version/error/group/mem functions) and forwards to the real NCCL (located via `CR_NCCL_LIB`), so PyNCCL's comms are tracked and translated like everything else. Also set `VLLM_ALLREDUCE_USE_SYMM_MEM=0` (symmetric-memory all-reduce creates cuMem state outside NCCL comms).
+
+```bash
+NCCL_NVLS_ENABLE=0 \
+VLLM_DISABLE_CUSTOM_ALL_REDUCE=1 VLLM_ALLREDUCE_USE_SYMM_MEM=0 \
+LD_PRELOAD="/opt/bin/libcr-shim-v2.so:/path/to/libnccl.so.2" \
+CR_NCCL_LIB=/path/to/libnccl.so.2 \
+VLLM_NCCL_SO_PATH=/opt/bin/libcr-shim-v2.so \
+vllm serve ... --tensor-parallel-size 2 --enforce-eager --disable-custom-all-reduce
+```
+
+### v2 design notes (lessons from failed variants)
+
+1. **Recreate must NOT run in the signal handler.** `ncclCommInitRank` spawns threads, allocates, opens sockets — async-signal-unsafe. Running it from the handler wedged rank 0's bootstrap listener ("Connection refused" on rank 1 after 35 retries). The handler only sets a flag; the first intercepted collective after resume performs the re-init on the app's thread. Destroy in the handler is fine in practice (workload quiesced).
+2. **Fresh uniqueId is mandatory.** The original uniqueId encodes a bootstrap TCP rendezvous that is dead after restore. Reusing it fails with `ncclUnhandledCudaError`/`ncclRemoteError`.
+3. **NVLS must be off at launch.** `ncclNvlsSetup` fails post-restore (`Cuda failure 101 'invalid device ordinal'` in `nvlsAllocateMem`) — multicast objects cannot be created in a restored CUDA context (driver limitation). Setting `NCCL_NVLS_ENABLE=0` at recreate time is not enough: NCCL caches parsed env params in statics. NVLink **P2P** (the 50-100x win over TCP) is unaffected; NVLS in-fabric reduction is a modest additional gain at 2 GPUs.
+4. **CUDA graphs still disabled** (`--enforce-eager` / `--disable-cuda-graph`) — unchanged from v1; cuda-checkpoint limitation, independent of transport.
+
+### Remaining v2 limitations
+
+- **NVLS off** (see note 3) — needs NVIDIA driver support for multicast re-creation after restore.
+- **Rendezvous is same-host** (file in `/dev/shm`, override with `CR_RENDEZVOUS_DIR`). Multi-node TP needs a shared volume or a TCP rendezvous extension.
+- **`ncclCommRegister`-registered buffers** are not re-registered after recreate (not used by stock PyTorch/vLLM paths tested here).
 
 ## Reproduction
 
