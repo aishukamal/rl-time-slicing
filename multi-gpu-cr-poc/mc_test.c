@@ -75,7 +75,14 @@ int main(void) {
     CUdeviceptr p;
     cuMemAlloc(&p, 1 << 20);
 
-    try_multicast("PRE");
+    /* SKIP_PRE=1: never touch multicast before the checkpoint. Disambiguates
+     * "driver cannot bind multicast devices in any restored process" from
+     * "prior multicast state poisons the checkpoint image" (NCCL #2117
+     * describes silent cuMulticastUnbind failures leaving stale bindings). */
+    if (!getenv("SKIP_PRE"))
+        try_multicast("PRE");
+    else
+        printf("[PRE] skipped (SKIP_PRE=1)\n");
 
     printf("PID %d waiting for /tmp/mc_go (freeze+restore me now)\n", getpid());
     fflush(stdout);
