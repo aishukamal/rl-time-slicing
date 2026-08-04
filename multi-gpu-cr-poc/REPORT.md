@@ -503,20 +503,30 @@ The shim destroys NCCL comms (clearing all cross-process state), cuda-checkpoint
 - [PyTorch #115388](https://github.com/pytorch/pytorch/issues/115388): separately, `ncclCommDestroy` hangs when CUDA graphs hold comm references. Known issue with documented workaround (reset graphs before destroy).
 - Impact: `--enforce-eager` costs 15-130% decode throughput depending on batch size (2.3x at BS=1 per [Fireworks AI benchmark](https://fireworks.ai/blog/speed-python-pick-two-how-cuda-graphs-enable-fast-python-code-for-deep-learning)).
 
-### Option C: GPU-CR combo (hugepage data plane + cuda-checkpoint) — testing in progress
+### Option C: GPU-CR combo (hugepage data plane + cuda-checkpoint)
 
-GPU-CR's `vGPU.so` hooks cudaMalloc → cuMem VMM for all allocations, dumps to hugepages at ~12 GB/s before cuda-checkpoint freeze. With our NCCL shim patches (RT signals, ncclCommSuspend re-enabled, sequential freeze), provides 2.8-4.7x faster C/R for inference. Testing graphs + NVLS compatibility — results pending.
+GPU-CR's `vGPU.so` hooks cudaMalloc → cuMem VMM for all allocations, dumps to hugepages at ~12 GB/s before cuda-checkpoint freeze. With our NCCL shim patches (RT signals, ncclCommSuspend re-enabled, sequential freeze), provides 2.8-4.7x faster C/R for inference.
+
+**CUDA graphs: NOT SUPPORTED.** GPU-CR's cudaMalloc→VMM hook is incompatible with CUDA graph capture on multi-device processes. The vLLM worker dies during graph capture when GPU-CR's vGPU.so is loaded. Confirmed by control: same vLLM config without vGPU.so starts successfully with graphs. GPU-CR can only be used with `--enforce-eager`.
+
+**NVLS: not tested** (GPU-CR requires `NCCL_CUMEM_ENABLE=1` which adds a separate conflict layer; and the cuda-checkpoint multicast restore bug applies regardless).
+
+| GPU-CR test | Graphs | NVLS | Result |
+|---|---|---|---|
+| Baseline (enforce-eager, TCP) | OFF | OFF | **PASS** — ckpt 5.2s, restore 1.6s |
+| Default graphs | ON | OFF | **FAIL** — worker killed during graph capture |
 
 ### Summary
 
-| | Option A (vLLM sleep) | Option B (shim + cuda-ckpt) | Option C (GPU-CR) |
+| | Option A (vLLM sleep) | Option B (shim + cuda-ckpt) | Option C (GPU-CR + cuda-ckpt) |
 |---|---|---|---|
-| Graphs | **ON** | OFF (driver limit) | TBD |
-| NVLS | **ON** | OFF (driver limit) | TBD |
-| NVLink P2P | **ON** | **ON** (v2) / OFF (v1) | ON with v2 patches |
-| GPU freed | 96% (3.4 GB stays) | **100%** | **100%** (with cuda-ckpt) |
+| Graphs | **ON** | OFF (driver limit) | OFF (VMM hook breaks capture) |
+| NVLS | **ON** | OFF (driver limit) | OFF |
+| NVLink P2P | **ON** | **ON** (v2) / OFF (v1) | OFF (TCP, v1 patches) |
+| GPU freed | 96% (3.4 GB stays) | **100%** | **100%** |
+| C/R speed | instant sleep/wake | shim ~400ms + freeze ~4s | data dump 1.2s + freeze 4s |
 | Frameworks | vLLM only | Universal | Universal |
-| Steady-state perf impact | **Zero** | `--enforce-eager` tax | `--enforce-eager` + transport tax (v1) |
+| Steady-state perf impact | **Zero** | `--enforce-eager` tax (15-130%) | `--enforce-eager` + TCP tax |
 
 ## Known Limitations
 
