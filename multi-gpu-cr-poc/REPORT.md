@@ -461,12 +461,71 @@ Upstream claims multi-GPU support for PP=2 on vLLM 0.14.1 + A100. On vLLM 0.25+ 
 
 **Note:** Upstream's PP=2 claim was NOT independently tested by us. Their benchmark configuration (vLLM 0.14.1, PP=2, A100) differs significantly from our test environment.
 
+## C/R Approaches: Options Matrix
+
+Three approaches exist, each with different trade-offs. All validated on 2x H100 NV18.
+
+### Option A: vLLM sleep only (cuMemUnmap-based, no cuda-checkpoint)
+
+vLLM's `/sleep` + `/wake_up` endpoints release and restore model weights + KV cache via cuMemUnmap/cuMemMap. No cuda-checkpoint, no shim signals, no process freeze.
+
+| Feature | Status |
+|---------|--------|
+| CUDA graphs | **ON** — survive sleep/wake (never destroyed) |
+| NVLS | **ON** — survives sleep/wake (NCCL comms never torn down) |
+| NVLink P2P | **ON** — full speed |
+| GPU memory freed | **96%** — ~3.4 GB residual (NCCL buffers, graphs, CUDA contexts, PyTorch runtime) |
+| Multi-cycle | **PASS** — verified 2+ consecutive cycles |
+| Framework support | vLLM only (requires `--enable-sleep-mode` + `VLLM_SERVER_DEV_MODE=1`) |
+| Snapshot agent backend | `app-endpoint` (already integrated) |
+
+**Limitation:** NCCL state stays on GPU (~1 GB of P2P/NVLS buffers), so the incoming workload gets ~77 GB instead of 80 GB. Sufficient for most workloads.
+
+**Why vLLM sleep + cuda-checkpoint doesn't compose:** after cuMemUnmap, cuda-checkpoint's `--action lock` succeeds but `--action checkpoint` hangs — the half-unmapped VMM state confuses the driver's checkpoint code path.
+
+**Why shim destroy + vLLM sleep doesn't compose:** CUDA graphs reference NCCL comm handles. To destroy comms, graphs must be reset first ([PyTorch #115388](https://github.com/pytorch/pytorch/issues/115388)). But if the shim resets vLLM's graphs externally, vLLM's internal CUDAGraphRunner state becomes inconsistent → `cudaErrorInvalidValue` on the next inference. The graph reset must come from inside vLLM (a vLLM feature gap, not a driver issue).
+
+### Option B: Shim v2 + cuda-checkpoint (100% GPU release, no graphs, TCP or NVLink)
+
+The shim destroys NCCL comms (clearing all cross-process state), cuda-checkpoint freezes the process (releasing ALL GPU memory to zero), then restores and the shim recreates comms with a fresh rendezvous. Full GPU release — another workload gets 100% of VRAM.
+
+| Feature | Shim v2 (NVLink) | Shim v1 (TCP) |
+|---------|------------------|---------------|
+| CUDA graphs | **OFF** (`--enforce-eager`) — driver refuses to freeze multi-device process with captured graphs, verified via both CLI and in-process API (`cuCheckpointProcessLock` rc=1) | **OFF** |
+| NVLS | **OFF** (`NCCL_NVLS_ENABLE=0`) — `cuMulticastAddDevice` returns error 101 post-restore, verified as driver bug with minimal repro (`mc_test.c`) | **OFF** |
+| NVLink P2P | **ON** (v2) / OFF (v1) | **OFF** (TCP loopback) |
+| GPU memory freed | **100%** | **100%** |
+| Framework support | Universal (LD_PRELOAD, any NCCL app) | Universal |
+
+**CUDA graphs finding (verified):**
+- Single-GPU + graphs + cuda-checkpoint: **PASS** (graphs survive address-preserving restore)
+- Multi-GPU + graphs + cuda-checkpoint: **FAIL** — even with all graph executables destroyed from userspace, the driver's checkpoint path retains internal graph bookkeeping and refuses the freeze. Same result via CLI (`--toggle`) and in-process API (`cuCheckpointProcessLock`). Tested: piecewise mode with no NCCL collectives in graphs, graph exec + template destroy, cudaDeviceSynchronize — nothing unblocks it.
+- [PyTorch #115388](https://github.com/pytorch/pytorch/issues/115388): separately, `ncclCommDestroy` hangs when CUDA graphs hold comm references. Known issue with documented workaround (reset graphs before destroy).
+- Impact: `--enforce-eager` costs 15-130% decode throughput depending on batch size (2.3x at BS=1 per [Fireworks AI benchmark](https://fireworks.ai/blog/speed-python-pick-two-how-cuda-graphs-enable-fast-python-code-for-deep-learning)).
+
+### Option C: GPU-CR combo (hugepage data plane + cuda-checkpoint) — testing in progress
+
+GPU-CR's `vGPU.so` hooks cudaMalloc → cuMem VMM for all allocations, dumps to hugepages at ~12 GB/s before cuda-checkpoint freeze. With our NCCL shim patches (RT signals, ncclCommSuspend re-enabled, sequential freeze), provides 2.8-4.7x faster C/R for inference. Testing graphs + NVLS compatibility — results pending.
+
+### Summary
+
+| | Option A (vLLM sleep) | Option B (shim + cuda-ckpt) | Option C (GPU-CR) |
+|---|---|---|---|
+| Graphs | **ON** | OFF (driver limit) | TBD |
+| NVLS | **ON** | OFF (driver limit) | TBD |
+| NVLink P2P | **ON** | **ON** (v2) / OFF (v1) | ON with v2 patches |
+| GPU freed | 96% (3.4 GB stays) | **100%** | **100%** (with cuda-ckpt) |
+| Frameworks | vLLM only | Universal | Universal |
+| Steady-state perf impact | **Zero** | `--enforce-eager` tax | `--enforce-eager` + transport tax (v1) |
+
 ## Known Limitations
 
-1. **NCCL transport permanently degraded.** TCP loopback is set at pod launch. Cannot switch to NVLink mid-run. NVIDIA needs to fix `ncclCommSuspend` to fully tear down SHM/P2P state.
+1. **cuda-checkpoint cannot freeze multi-GPU processes with captured CUDA graphs.** Driver limitation, not a CLI bug — verified via in-process API. Affects Options B and C. Repro: `graph_cr_api_test.py`.
 
-2. **CUDA graphs must be disabled.** CUDA graphs create persistent GPU state that cuda-checkpoint cannot restore. Framework-specific flags required (vLLM: `--enforce-eager`, SGLang: `--disable-cuda-graph`).
+2. **cuda-checkpoint: `cuMulticastAddDevice` broken post-restore.** NVLS multicast objects cannot be created in a restored process. Driver limitation, process-wide (even fresh CUDA contexts fail). Affects Options B and C. Repro: `mc_test.c`.
 
-3. **Requires NCCL ≥ 2.29.7.** For `ncclCommSuspend`/`Resume` API. Older NCCL versions don't have this.
+3. **vLLM sleep + shim destroy incompatible.** Graph lifecycle deadlock: graphs must be reset before comm destroy (PyTorch #115388), but external graph reset leaves vLLM's CUDAGraphRunner inconsistent. Requires vLLM-internal graph cleanup before comm teardown — a vLLM feature gap.
 
-4. **cuda-checkpoint driver bugs.** Multi-GPU restore with SHM/P2P transport is broken ([#27](https://github.com/NVIDIA/cuda-checkpoint/issues/27), [#47](https://github.com/NVIDIA/cuda-checkpoint/issues/47)). TCP transport works around this.
+4. **vLLM sleep + cuda-checkpoint incompatible.** After cuMemUnmap, cuda-checkpoint's checkpoint phase hangs — the driver's checkpoint code path cannot handle half-unmapped VMM state.
+
+5. **Requires NCCL ≥ 2.29.7.** For ncclCommSuspend/Resume (v1) or proper ncclCommDestroy behavior (v2).

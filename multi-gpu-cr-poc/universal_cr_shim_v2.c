@@ -153,6 +153,161 @@ static void resolve_all(void) {
     RESOLVE(real_CommDeregister,    fnCommDeregister,    "ncclCommDeregister");
 }
 
+/* ---- CUDA graph tracking -------------------------------------------------
+ * Intercept cudaGraphInstantiate to track live graph executables.
+ * Before destroying NCCL comms, we destroy all tracked graphs so
+ * cuda-checkpoint can freeze the multi-device process.
+ * Frameworks auto-recapture on the next forward pass after restore. */
+typedef void* cudaGraphExec_t;
+typedef void* cudaGraph_t;
+typedef int cudaError_t;
+typedef cudaError_t (*fnGraphInstantiate)(cudaGraphExec_t*, cudaGraph_t, unsigned long long);
+typedef cudaError_t (*fnGraphExecDestroy)(cudaGraphExec_t);
+
+static fnGraphInstantiate real_GraphInstantiate;
+static fnGraphExecDestroy real_GraphExecDestroy;
+
+#define MAX_GRAPHS 4096
+static cudaGraphExec_t tracked_graphs[MAX_GRAPHS];
+static int n_graphs = 0;
+
+cudaError_t cudaGraphInstantiate(cudaGraphExec_t* out, cudaGraph_t graph,
+                                 unsigned long long flags) {
+    if (!real_GraphInstantiate) {
+        real_GraphInstantiate = (fnGraphInstantiate)dlsym(RTLD_NEXT, "cudaGraphInstantiate");
+        if (!real_GraphInstantiate)
+            real_GraphInstantiate = (fnGraphInstantiate)dlsym(RTLD_NEXT, "cudaGraphInstantiate_v2");
+    }
+    if (!real_GraphInstantiate) return 999;
+    cudaError_t r = real_GraphInstantiate(out, graph, flags);
+    if (r == 0 && out && *out && n_graphs < MAX_GRAPHS) {
+        tracked_graphs[n_graphs++] = *out;
+    }
+    return r;
+}
+
+/* Also intercept the older 5-arg overload (CUDA <12.x compat) */
+cudaError_t cudaGraphInstantiate_v2(cudaGraphExec_t* out, cudaGraph_t graph,
+                                     void* errNode, char* errLog, size_t bufSize) {
+    typedef cudaError_t (*fn5)(cudaGraphExec_t*, cudaGraph_t, void*, char*, size_t);
+    static fn5 real_fn;
+    if (!real_fn) real_fn = (fn5)dlsym(RTLD_NEXT, "cudaGraphInstantiate_v2");
+    if (!real_fn) return 999;
+    cudaError_t r = real_fn(out, graph, errNode, errLog, bufSize);
+    if (r == 0 && out && *out && n_graphs < MAX_GRAPHS) {
+        tracked_graphs[n_graphs++] = *out;
+    }
+    return r;
+}
+
+/* PyTorch/torch.compile uses this variant (libtorch_cuda.so links
+ * cudaGraphInstantiateWithFlags from libcudart.so) */
+cudaError_t cudaGraphInstantiateWithFlags(cudaGraphExec_t* out, cudaGraph_t graph,
+                                          unsigned long long flags) {
+    typedef cudaError_t (*fnFlags)(cudaGraphExec_t*, cudaGraph_t, unsigned long long);
+    static fnFlags real_fn;
+    if (!real_fn) real_fn = (fnFlags)dlsym(RTLD_NEXT, "cudaGraphInstantiateWithFlags");
+    if (!real_fn) return 999;
+    cudaError_t r = real_fn(out, graph, flags);
+    if (r == 0 && out && *out && n_graphs < MAX_GRAPHS) {
+        tracked_graphs[n_graphs++] = *out;
+        fprintf(stderr, "[cr-shim2] PID %d: tracked graph exec %p (#%d)\n",
+                getpid(), *out, n_graphs);
+    }
+    return r;
+}
+
+cudaError_t cudaGraphExecDestroy(cudaGraphExec_t ge) {
+    if (!real_GraphExecDestroy)
+        real_GraphExecDestroy = (fnGraphExecDestroy)dlsym(RTLD_NEXT, "cudaGraphExecDestroy");
+    /* remove from tracking */
+    for (int i = 0; i < n_graphs; i++) {
+        if (tracked_graphs[i] == ge) {
+            tracked_graphs[i] = tracked_graphs[--n_graphs];
+            break;
+        }
+    }
+    return real_GraphExecDestroy ? real_GraphExecDestroy(ge) : 0;
+}
+
+/* Also track graph templates (cudaGraph_t), not just executables */
+typedef cudaError_t (*fnGraphDestroy)(cudaGraph_t);
+static fnGraphDestroy real_GraphDestroy;
+
+#define MAX_GRAPH_TEMPLATES 4096
+static cudaGraph_t tracked_templates[MAX_GRAPH_TEMPLATES];
+static int n_templates = 0;
+
+/* Intercept cudaGraphCreate to track templates */
+cudaError_t cudaGraphCreate(cudaGraph_t* out, unsigned int flags) {
+    typedef cudaError_t (*fn)(cudaGraph_t*, unsigned int);
+    static fn real_fn;
+    if (!real_fn) real_fn = (fn)dlsym(RTLD_NEXT, "cudaGraphCreate");
+    if (!real_fn) return 999;
+    cudaError_t r = real_fn(out, flags);
+    if (r == 0 && out && *out && n_templates < MAX_GRAPH_TEMPLATES)
+        tracked_templates[n_templates++] = *out;
+    return r;
+}
+
+cudaError_t cudaGraphDestroy(cudaGraph_t g) {
+    if (!real_GraphDestroy)
+        real_GraphDestroy = (fnGraphDestroy)dlsym(RTLD_NEXT, "cudaGraphDestroy");
+    for (int i = 0; i < n_templates; i++) {
+        if (tracked_templates[i] == g) {
+            tracked_templates[i] = tracked_templates[--n_templates];
+            break;
+        }
+    }
+    return real_GraphDestroy ? real_GraphDestroy(g) : 0;
+}
+
+/* Also intercept cudaStreamEndCapture which produces a graph template */
+typedef cudaError_t (*fnStreamEndCapture)(void*, cudaGraph_t*);
+cudaError_t cudaStreamEndCapture(void* stream, cudaGraph_t* out) {
+    static fnStreamEndCapture real_fn;
+    if (!real_fn) real_fn = (fnStreamEndCapture)dlsym(RTLD_NEXT, "cudaStreamEndCapture");
+    if (!real_fn) return 999;
+    cudaError_t r = real_fn(stream, out);
+    if (r == 0 && out && *out && n_templates < MAX_GRAPH_TEMPLATES)
+        tracked_templates[n_templates++] = *out;
+    return r;
+}
+
+static void reset_all_graphs(void) {
+    if (!real_GraphExecDestroy)
+        real_GraphExecDestroy = (fnGraphExecDestroy)dlsym(RTLD_NEXT, "cudaGraphExecDestroy");
+    if (!real_GraphDestroy)
+        real_GraphDestroy = (fnGraphDestroy)dlsym(RTLD_NEXT, "cudaGraphDestroy");
+
+    fprintf(stderr, "[cr-shim2] PID %d: resetting %d graph execs + %d graph templates\n",
+            getpid(), n_graphs, n_templates);
+
+    /* Destroy executables first (they reference templates) */
+    for (int i = 0; i < n_graphs; i++) {
+        if (real_GraphExecDestroy && tracked_graphs[i])
+            real_GraphExecDestroy(tracked_graphs[i]);
+    }
+    int exec_count = n_graphs;
+    n_graphs = 0;
+
+    /* Then destroy templates */
+    for (int i = 0; i < n_templates; i++) {
+        if (real_GraphDestroy && tracked_templates[i])
+            real_GraphDestroy(tracked_templates[i]);
+    }
+    int tmpl_count = n_templates;
+    n_templates = 0;
+
+    /* Synchronize all devices to flush driver-side cleanup */
+    typedef int (*fnDevSync)(void);
+    fnDevSync ds = (fnDevSync)dlsym(RTLD_NEXT, "cudaDeviceSynchronize");
+    if (ds) ds();
+
+    fprintf(stderr, "[cr-shim2] PID %d: reset %d execs + %d templates done\n",
+            getpid(), exec_count, tmpl_count);
+}
+
 /* ---- comm table: app_handle (stable, what the framework holds) ->
  *      cur_handle (live comm, changes across destroy/recreate) ------------ */
 #define MAX_COMMS 64
@@ -239,6 +394,12 @@ static void destroy_handler(int sig) {
     (void)sig;
     double t0 = now_ms();
     resolve_all();
+    /* When using cuMemUnmap-based sleep (not cuda-checkpoint), CUDA graphs
+     * can survive — they reference virtual addresses which stay reserved.
+     * Only reset graphs when CR_RESET_GRAPHS=1 (cuda-checkpoint path).
+     * For the sleep/wake path, skip graph reset to keep them alive. */
+    if (getenv("CR_RESET_GRAPHS") && getenv("CR_RESET_GRAPHS")[0] == '1')
+        reset_all_graphs();
     fprintf(stderr, "[cr-shim2] PID %d: DESTROY — %d comms\n", getpid(), n_comms);
     for (int i = 0; i < n_comms; i++) {
         if (comms[i].destroyed) continue;
@@ -247,6 +408,12 @@ static void destroy_handler(int sig) {
                 getpid(), comms[i].cur_handle, rc);
         comms[i].destroyed = 1;
     }
+
+    /* Synchronize all devices to ensure destroy is fully flushed */
+    typedef int (*fnDevSync)(void);
+    fnDevSync dev_sync = (fnDevSync)dlsym(RTLD_NEXT, "cudaDeviceSynchronize");
+    if (dev_sync) dev_sync();
+
     fprintf(stderr, "[cr-shim2] PID %d: destroy done %.1fms\n", getpid(), now_ms() - t0);
 }
 
