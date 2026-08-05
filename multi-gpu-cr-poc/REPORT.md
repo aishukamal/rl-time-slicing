@@ -528,6 +528,43 @@ GPU-CR's `vGPU.so` hooks cudaMalloc → cuMem VMM for all allocations, dumps to 
 | Frameworks | vLLM only | Universal | Universal |
 | Steady-state perf impact | **Zero** | `--enforce-eager` tax (15-130%) | `--enforce-eager` + TCP tax |
 
+## Parallelism Dimension C/R Matrix
+
+Validated on 2x H100 80GB (h100-no-sharing pool, asia cluster). All using Option B (shim v2 + cuda-checkpoint, `--enforce-eager`, `NCCL_NVLS_ENABLE=0`).
+
+### Training
+
+| Test | Parallelism | NCCL pattern | Destroy | Freeze | Restore | Recreate | Result |
+|------|------------|-------------|---------|--------|---------|----------|--------|
+| T1 | FSDP DP=2 | AllReduce | 58-156ms | ~4.7s | ~750ms | 28ms | **PASS** |
+| T2 | FSDP+TP=2 | AllReduce (TP comm) | 272ms | ~4.6s | ~726ms | 29ms | **PASS** |
+| T3 | FSDP+CP=2 | AllGather/ReduceScatter (ring attn) | — | — | — | — | **SKIP** (PyTorch `context_parallel()` API bug) |
+| T4 | PP=2 | Send/Recv (pipeline) | 188ms | ~4.7s | ~765ms | 28ms | **PASS** |
+| T5 | MoE EP=2 | AllReduce (expert dispatch) | 366-410ms | ~4.6s | ~716ms | 30ms | **PASS** |
+
+**4/5 PASS.** VRAM fully freed (4 MiB per GPU) during freeze on all passing tests. Total C/R window ~10-11s including safety waits. T3 (CP=2) skipped due to PyTorch API crash (`RuntimeError: cannot resize variables that require grad` in `context_parallel()`) — not a C/R issue, needs PyTorch nightly.
+
+The shim correctly handles **all tested NCCL communication patterns**: AllReduce (DP, TP), Send/Recv (PP), and AllReduce with expert routing (EP). Handle translation works across all patterns. Fresh-uniqueId rendezvous works for all comm group types.
+
+### NCCL CommCheck race condition (known issue, workaround in place)
+
+After cuda-checkpoint restore, `ncclCommInitRank` on the recreated comms **consistently fails with rc=6 ("corrupted comm object")** unless `NCCL_DEBUG=INFO` is set. Root cause: cuda-checkpoint restores driver-level CUDA state that NCCL's `CommCheck` validation (in `misc/argcheck.cc`) interprets as stale/corrupted. The `NCCL_DEBUG=INFO` logging introduces memory barriers that change timing enough to avoid the race.
+
+This is a fragile workaround — the proper fix is either:
+- A `cudaDeviceSynchronize` + explicit barrier in the shim between restore and recreate
+- An NCCL-side fix to make `CommCheck` tolerate restored process state
+- Both (belt and suspenders)
+
+### Inference (pending — to be tested next)
+
+| Test | Framework | Parallelism | Model | C/R Mechanism | Status |
+|------|-----------|-------------|-------|---------------|--------|
+| I1 | vLLM | TP=2 | opt-1.3b | Option A (sleep) | **PASS** (validated) |
+| I2 | vLLM | PP=2 | opt-1.3b | Option A (sleep) | Pending |
+| I3 | vLLM | EP=2 | Qwen3-30B-A3B | Option A (sleep) | Pending |
+| I4 | SGLang | TP=2 | opt-1.3b | Option B (shim v2) | **PASS** (validated) |
+| I5 | SGLang | EP=2 | Qwen3-30B-A3B | Option B (shim v2) | Pending |
+
 ## Known Limitations
 
 1. **cuda-checkpoint cannot freeze multi-GPU processes with captured CUDA graphs.** Driver limitation, not a CLI bug — verified via in-process API. Affects Options B and C. Repro: `graph_cr_api_test.py`.
@@ -538,4 +575,6 @@ GPU-CR's `vGPU.so` hooks cudaMalloc → cuMem VMM for all allocations, dumps to 
 
 4. **vLLM sleep + cuda-checkpoint incompatible.** After cuMemUnmap, cuda-checkpoint's checkpoint phase hangs — the driver's checkpoint code path cannot handle half-unmapped VMM state.
 
-5. **Requires NCCL ≥ 2.29.7.** For ncclCommSuspend/Resume (v1) or proper ncclCommDestroy behavior (v2).
+5. **NCCL CommCheck race after cuda-checkpoint restore.** `ncclCommInitRank` fails with rc=6 unless `NCCL_DEBUG=INFO` is set. Fragile timing workaround — needs proper fix (cudaDeviceSynchronize barrier or NCCL patch).
+
+6. **Requires NCCL ≥ 2.29.7.** For ncclCommSuspend/Resume (v1) or proper ncclCommDestroy behavior (v2).
