@@ -1,0 +1,199 @@
+apiVersion: ray.io/v1
+kind: RayJob
+metadata:
+  name: slime-ts-JOB_SUFFIX
+spec:
+  entrypoint: /opt/scripts/run_timeslice_grpo.sh
+  shutdownAfterJobFinishes: true
+  ttlSecondsAfterFinished: 300
+  runtimeEnvYAML: |
+    env_vars:
+      PYTHONPATH: "/root/Megatron-LM"
+      CUDA_DEVICE_MAX_CONNECTIONS: "1"
+      TIMESLICE_JOB_ID: "slime-ts-JOB_SUFFIX"
+      TIMESLICE_ORCH_ADDR: "timeslice-acceleratororchestrator.timeslice-system.svc.cluster.local:50051"
+      TIMESLICE_TRAINER_GROUP: "trainers"
+      TIMESLICE_SAMPLER_GROUP: "samplers"
+      NCCL_CUMEM_ENABLE: "0"
+      NCCL_NVLS_ENABLE: "0"
+      NCCL_DEBUG: "INFO"
+      CUDA_LAUNCH_BLOCKING: "1"
+
+  submitterPodTemplate:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: ray-job-submitter
+        image: rayproject/ray:2.9.0
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+          requests:
+            cpu: "100m"
+            memory: "512Mi"
+
+  rayClusterSpec:
+    rayVersion: '2.9.0'
+    enableInTreeAutoscaling: true
+    headGroupSpec:
+      rayStartParams:
+        dashboard-host: '0.0.0.0'
+      template:
+        spec:
+          containers:
+          - name: ray-head
+            image: us-west1-docker.pkg.dev/aishuk-test/timeslice/slime-timeslice:v0.1.7
+            env:
+            - name: NCCL_CUMEM_ENABLE
+              value: "0"
+            - name: NCCL_NVLS_ENABLE
+              value: "0"
+            - name: NCCL_DEBUG
+              value: "INFO"
+            - name: CUDA_LAUNCH_BLOCKING
+              value: "1"
+            lifecycle:
+              postStart:
+                exec:
+                  command: ["/bin/sh", "-c", "/opt/scripts/setup_worker.sh"]
+            resources:
+              limits:
+                cpu: "2"
+                memory: "16Gi"
+              requests:
+                cpu: "300m"
+                memory: "4Gi"
+            volumeMounts:
+            - name: script-vol
+              mountPath: /opt/scripts
+          volumes:
+          - name: script-vol
+            configMap:
+              name: slime-ts-scripts
+              defaultMode: 0755
+
+    workerGroupSpecs:
+    - groupName: trainer-group
+      minReplicas: 0
+      maxReplicas: 1
+      replicas: 0
+      rayStartParams:
+        num-cpus: '8'
+        num-gpus: '1'
+        resources: '"{\"trainers\": 1}"'
+      template:
+        metadata:
+          labels:
+            slime-role: trainer
+            timeslice.io/job-id: "slime-ts-JOB_SUFFIX"
+            timeslice.io/group: "trainers"
+        spec:
+          nodeSelector:
+            group.timeslice.io/trainers: "true"
+          tolerations:
+          - key: "nvidia.com/gpu"
+            operator: "Exists"
+            effect: "NoSchedule"
+          - key: "timeslice.io/shared"
+            operator: "Equal"
+            value: "true"
+            effect: "NoSchedule"
+          resourceClaims:
+          - name: accelerator
+            resourceClaimName: shared-trainers-gpu-claim
+          containers:
+          - name: ray-worker-trainer
+            image: us-west1-docker.pkg.dev/aishuk-test/timeslice/slime-timeslice:v0.1.7
+            env:
+            - name: NCCL_CUMEM_ENABLE
+              value: "0"
+            - name: NCCL_NVLS_ENABLE
+              value: "0"
+            - name: NCCL_DEBUG
+              value: "INFO"
+            - name: CUDA_LAUNCH_BLOCKING
+              value: "1"
+            lifecycle:
+              postStart:
+                exec:
+                  command: ["/bin/sh", "-c", "/opt/scripts/setup_worker.sh"]
+            resources:
+              limits:
+                cpu: "8"
+                memory: "96Gi"
+              requests:
+                cpu: "4"
+                memory: "32Gi"
+              claims:
+              - name: accelerator
+            volumeMounts:
+            - name: script-vol
+              mountPath: /opt/scripts
+          volumes:
+          - name: script-vol
+            configMap:
+              name: slime-ts-scripts
+              defaultMode: 0755
+
+    - groupName: rollout-group
+      minReplicas: 0
+      maxReplicas: 1
+      replicas: 0
+      rayStartParams:
+        num-cpus: '8'
+        num-gpus: '1'
+        resources: '"{\"samplers\": 1}"'
+      template:
+        metadata:
+          labels:
+            slime-role: rollout
+            timeslice.io/job-id: "slime-ts-JOB_SUFFIX"
+            timeslice.io/group: "samplers"
+        spec:
+          nodeSelector:
+            group.timeslice.io/samplers: "true"
+          tolerations:
+          - key: "nvidia.com/gpu"
+            operator: "Exists"
+            effect: "NoSchedule"
+          - key: "timeslice.io/shared"
+            operator: "Equal"
+            value: "true"
+            effect: "NoSchedule"
+          resourceClaims:
+          - name: accelerator
+            resourceClaimName: shared-samplers-gpu-claim
+          containers:
+          - name: ray-worker-rollout
+            image: us-west1-docker.pkg.dev/aishuk-test/timeslice/slime-timeslice:v0.1.7
+            env:
+            - name: NCCL_CUMEM_ENABLE
+              value: "0"
+            - name: NCCL_NVLS_ENABLE
+              value: "0"
+            - name: NCCL_DEBUG
+              value: "INFO"
+            - name: CUDA_LAUNCH_BLOCKING
+              value: "1"
+            lifecycle:
+              postStart:
+                exec:
+                  command: ["/bin/sh", "-c", "/opt/scripts/setup_worker.sh"]
+            resources:
+              limits:
+                cpu: "8"
+                memory: "32Gi"
+              requests:
+                cpu: "4"
+                memory: "16Gi"
+              claims:
+              - name: accelerator
+            volumeMounts:
+            - name: script-vol
+              mountPath: /opt/scripts
+          volumes:
+          - name: script-vol
+            configMap:
+              name: slime-ts-scripts
+              defaultMode: 0755
