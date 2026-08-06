@@ -550,20 +550,21 @@ The shim correctly handles **all tested NCCL communication patterns**: AllReduce
 
 After cuda-checkpoint restore, `ncclCommInitRank` on the recreated comms **consistently fails with rc=6 ("corrupted comm object")** unless `NCCL_DEBUG=INFO` is set. Root cause: cuda-checkpoint restores driver-level CUDA state that NCCL's `CommCheck` validation (in `misc/argcheck.cc`) interprets as stale/corrupted. The `NCCL_DEBUG=INFO` logging introduces memory barriers that change timing enough to avoid the race.
 
-This is a fragile workaround — the proper fix is either:
-- A `cudaDeviceSynchronize` + explicit barrier in the shim between restore and recreate
-- An NCCL-side fix to make `CommCheck` tolerate restored process state
-- Both (belt and suspenders)
+This is a fragile workaround. Attempted fix: adding `cudaDeviceSynchronize` in the shim before `ncclCommInitRank` — **did not help** (rc=1/3 still occurs without `NCCL_DEBUG=INFO`). The race is deeper than unflushed GPU operations — it's in the CUDA driver's internal state machine post-restore. Only `NCCL_DEBUG=INFO`'s extensive logging (memory barriers, synchronization from fprintf) masks it. This is a genuine NVIDIA issue (NCCL or driver), no userspace fix found beyond the debug-logging workaround.
 
-### Inference (pending — to be tested next)
+### Inference
 
-| Test | Framework | Parallelism | Model | C/R Mechanism | Status |
-|------|-----------|-------------|-------|---------------|--------|
-| I1 | vLLM | TP=2 | opt-1.3b | Option A (sleep) | **PASS** (validated) |
-| I2 | vLLM | PP=2 | opt-1.3b | Option A (sleep) | Pending |
-| I3 | vLLM | EP=2 | Qwen3-30B-A3B | Option A (sleep) | Pending |
-| I4 | SGLang | TP=2 | opt-1.3b | Option B (shim v2) | **PASS** (validated) |
-| I5 | SGLang | EP=2 | Qwen3-30B-A3B | Option B (shim v2) | Pending |
+| Test | Framework | Parallelism | Model | C/R Mechanism | GPU Freed | Result |
+|------|-----------|-------------|-------|---------------|-----------|--------|
+| I1 | vLLM | TP=2 | opt-1.3b | Option A (sleep) | 96% | **PASS** |
+| I2 | vLLM | PP=2 | opt-1.3b | Option A (sleep) | 83% (14.7→2.5 GB/GPU) | **PASS** |
+| I3 | vLLM | EP=2 | Mixtral-8x7B | Option A (sleep) | 95% (75.5→3.7 GB/GPU) | **PASS** |
+| I4 | SGLang | TP=2 | opt-1.3b | Option B (shim v2) | 100% | **PASS** (enforce-eager, validated earlier) |
+| I5 | SGLang | TP=2 | opt-1.3b | Option B (shim v2) | 100% (freeze OK) | **FAIL** — restore "invalid argument" |
+
+**vLLM sleep covers all inference parallelism: TP, PP, EP.** No shim or cuda-checkpoint needed. The sleep endpoint releases model weights and KV cache; NCCL comms, graphs, and transport state survive untouched.
+
+**SGLang C/R issue:** destroy and freeze succeed (VRAM→4 MiB), but cuda-checkpoint restore returns "invalid argument." Root cause: SGLang's scheduler threads run continuously and access CUDA during the freeze/restore window — they are not quiesced. Unlike vLLM (which is idle between requests), SGLang needs a quiesce mechanism (e.g., a `/pause` endpoint) before cuda-checkpoint can work reliably.
 
 ## Known Limitations
 
@@ -575,6 +576,8 @@ This is a fragile workaround — the proper fix is either:
 
 4. **vLLM sleep + cuda-checkpoint incompatible.** After cuMemUnmap, cuda-checkpoint's checkpoint phase hangs — the driver's checkpoint code path cannot handle half-unmapped VMM state.
 
-5. **NCCL CommCheck race after cuda-checkpoint restore.** `ncclCommInitRank` fails with rc=6 unless `NCCL_DEBUG=INFO` is set. Fragile timing workaround — needs proper fix (cudaDeviceSynchronize barrier or NCCL patch).
+5. **NCCL CommCheck race after cuda-checkpoint restore.** `ncclCommInitRank` fails with rc=1/3/6 ("corrupted comm object") unless `NCCL_DEBUG=INFO` is set. `cudaDeviceSynchronize` before recreate does not help — the race is in the CUDA driver's internal state post-restore, not unflushed GPU ops. Only the debug logging's implicit memory barriers mask it. Genuine NVIDIA issue.
 
-6. **Requires NCCL ≥ 2.29.7.** For ncclCommSuspend/Resume (v1) or proper ncclCommDestroy behavior (v2).
+6. **SGLang C/R: restore fails due to unquiesced scheduler threads.** SGLang's background scheduler accesses CUDA continuously, even when no requests are in-flight. cuda-checkpoint restore returns "invalid argument" because the scheduler touches CUDA during the restore window. Needs SGLang-side quiesce mechanism.
+
+7. **Requires NCCL ≥ 2.29.7.** For ncclCommSuspend/Resume (v1) or proper ncclCommDestroy behavior (v2).

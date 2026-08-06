@@ -480,6 +480,16 @@ static void do_recreate_locked(void) {
             fprintf(stderr, "[cr-shim2] PID %d:   comm #%d: got fresh uid\n", getpid(), i);
         }
 
+        /* Synchronize all CUDA devices before re-init. After
+         * cuda-checkpoint restore, the driver-level CUDA state may
+         * not be fully flushed. Without this barrier, NCCL's CommCheck
+         * sees partially-restored state and fails with rc=6
+         * ("corrupted comm object"). */
+        typedef int (*fnDevSync)(void);
+        static fnDevSync dev_sync;
+        if (!dev_sync) dev_sync = (fnDevSync)dlsym(RTLD_NEXT, "cudaDeviceSynchronize");
+        if (dev_sync) dev_sync();
+
         /* collective re-init — every rank reaches here from its first
          * post-resume collective */
         ncclComm_t nc = NULL;
