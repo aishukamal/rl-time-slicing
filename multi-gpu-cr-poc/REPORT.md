@@ -518,15 +518,16 @@ GPU-CR's `vGPU.so` hooks cudaMalloc → cuMem VMM for all allocations, dumps to 
 
 ### Summary
 
-| | Option A (vLLM sleep) | Option B (shim + cuda-ckpt) | Option C (GPU-CR + cuda-ckpt) |
+| | Option A (app-aware sleep) | Option B (shim + cuda-ckpt) | Option C (GPU-CR + cuda-ckpt) |
 |---|---|---|---|
 | Graphs | **ON** | OFF (driver limit) | OFF (VMM hook breaks capture) |
 | NVLS | **ON** | OFF (driver limit) | OFF |
 | NVLink P2P | **ON** | **ON** (v2) / OFF (v1) | OFF (TCP, v1 patches) |
-| GPU freed | 96% (3.4 GB stays) | **100%** | **100%** |
+| GPU freed | 84-96% | **100%** | **100%** |
 | C/R speed | instant sleep/wake | shim ~400ms + freeze ~4s | data dump 1.2s + freeze 4s |
-| Frameworks | vLLM only | Universal | Universal |
-| Steady-state perf impact | **Zero** | `--enforce-eager` tax (15-130%) | `--enforce-eager` + TCP tax |
+| Frameworks | vLLM (`--enable-sleep-mode`), SGLang (`--enable-memory-saver`) | Universal (training, any NCCL app) | Universal |
+| Steady-state perf impact | **Zero** | `--enforce-eager` + `NCCL_DEBUG=INFO` | `--enforce-eager` + TCP tax |
+| Snapshot agent backend | `app-endpoint` (APP_VLLM / APP_SGLANG) | `cuda-multi-gpu` | N/A (manual multi_cr_client) |
 
 ## Parallelism Dimension C/R Matrix
 
@@ -559,12 +560,21 @@ This is a fragile workaround. Attempted fix: adding `cudaDeviceSynchronize` in t
 | I1 | vLLM | TP=2 | opt-1.3b | Option A (sleep) | 96% | **PASS** |
 | I2 | vLLM | PP=2 | opt-1.3b | Option A (sleep) | 83% (14.7→2.5 GB/GPU) | **PASS** |
 | I3 | vLLM | EP=2 | Mixtral-8x7B | Option A (sleep) | 95% (75.5→3.7 GB/GPU) | **PASS** |
-| I4 | SGLang | TP=2 | opt-1.3b | Option B (shim v2) | 100% | **PASS** (enforce-eager, validated earlier) |
-| I5 | SGLang | TP=2 | opt-1.3b | Option B (shim v2) | 100% (freeze OK) | **FAIL** — restore "invalid argument" |
+| I4 | SGLang | TP=2 | opt-1.3b | Option B (shim v2 + cuda-ckpt) | 100% (freeze OK) | **FAIL** — restore "invalid argument" (multi-device CUDA state) |
+| I5 | SGLang | TP=2 | opt-1.3b | Option A (release/resume) | 84% (14.2→2.3 GB) | **PASS** (needs `--enable-memory-saver`) |
 
 **vLLM sleep covers all inference parallelism: TP, PP, EP.** No shim or cuda-checkpoint needed. The sleep endpoint releases model weights and KV cache; NCCL comms, graphs, and transport state survive untouched.
 
-**SGLang C/R issue:** destroy and freeze succeed (VRAM→4 MiB), but cuda-checkpoint restore returns "invalid argument." Root cause: SGLang's scheduler threads run continuously and access CUDA during the freeze/restore window — they are not quiesced. Unlike vLLM (which is idle between requests), SGLang needs a quiesce mechanism (e.g., a `/pause` endpoint) before cuda-checkpoint can work reliably.
+**SGLang + cuda-checkpoint (shim v2, Option B):** destroy and freeze succeed (VRAM→4 MiB), but cuda-checkpoint restore returns "invalid argument." Root cause: **both SGLang workers open both GPUs** (`/dev/nvidia0` AND `/dev/nvidia1` — 30+ FDs each), creating multi-device CUDA contexts. cuda-checkpoint's restore path fails on the cross-device state. This is the same driver limitation that blocks CUDA graphs on multi-device processes. vLLM also opens both GPUs from each worker (7 FDs to the non-primary device) but succeeds — the difference is likely in SGLang's FlashInfer kernels or shared-memory IPC queues (`sgl_shm_mq_*`) creating additional cross-device state that the driver can't restore.
+
+**SGLang + app-aware release/resume (Option A):** SGLang has its own cuMemUnmap-based memory release via `release_memory_occupation` / `resume_memory_occupation` endpoints. Requires `--enable-memory-saver` flag at launch. Already integrated into the snapshot agent as `APP_SGLANG` in the `app-endpoint` backend.
+
+| Test | SGLang TP=2 release/resume | GPU freed | Result |
+|------|---------------------------|-----------|--------|
+| Cycle 1 | release → 2.3 GB/GPU → resume → inference | 84% (14.2→2.3 GB) | **PASS** |
+| Cycle 2 | release → resume → inference | 84% | **PASS** |
+
+SGLang's app-aware path covers TP=2 with zero perf tax, same as vLLM sleep. No shim or cuda-checkpoint needed.
 
 ## Known Limitations
 
@@ -578,6 +588,6 @@ This is a fragile workaround. Attempted fix: adding `cudaDeviceSynchronize` in t
 
 5. **NCCL CommCheck race after cuda-checkpoint restore.** `ncclCommInitRank` fails with rc=1/3/6 ("corrupted comm object") unless `NCCL_DEBUG=INFO` is set. `cudaDeviceSynchronize` before recreate does not help — the race is in the CUDA driver's internal state post-restore, not unflushed GPU ops. Only the debug logging's implicit memory barriers mask it. Genuine NVIDIA issue.
 
-6. **SGLang C/R: restore fails due to unquiesced scheduler threads.** SGLang's background scheduler accesses CUDA continuously, even when no requests are in-flight. cuda-checkpoint restore returns "invalid argument" because the scheduler touches CUDA during the restore window. Needs SGLang-side quiesce mechanism.
+6. **SGLang + cuda-checkpoint (Option B): restore fails on multi-GPU.** Both SGLang workers open both GPUs (30+ FDs each to `/dev/nvidia0` and `/dev/nvidia1`), creating multi-device CUDA contexts that cuda-checkpoint can't restore. Workaround: use SGLang's app-aware `release_memory_occupation` / `resume_memory_occupation` (Option A) instead — works for TP=2, frees 84% GPU memory, already integrated in snapshot agent.
 
 7. **Requires NCCL ≥ 2.29.7.** For ncclCommSuspend/Resume (v1) or proper ncclCommDestroy behavior (v2).
