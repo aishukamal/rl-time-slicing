@@ -2,7 +2,7 @@
 
 ## Summary
 
-Full end-to-end checkpoint/restore validated across 3 workloads, 5 GPU topologies, on H100 80GB. All tests pass with post-restore inference/training verification.
+Full end-to-end checkpoint/restore validated across vLLM, SGLang, and FSDP training on H100 80GB. Three C/R approaches tested (app-aware sleep/release, shim v2 + cuda-checkpoint, GPU-CR combo), all parallelism dimensions (TP, PP, EP, DP, MoE), and multi-job GPU interleaving. All passing tests include post-restore inference/training verification.
 
 Two shim generations:
 
@@ -465,21 +465,23 @@ Upstream claims multi-GPU support for PP=2 on vLLM 0.14.1 + A100. On vLLM 0.25+ 
 
 Three approaches exist, each with different trade-offs. All validated on 2x H100 NV18.
 
-### Option A: vLLM sleep only (cuMemUnmap-based, no cuda-checkpoint)
+### Option A: App-aware sleep/release (cuMemUnmap-based, no cuda-checkpoint)
 
-vLLM's `/sleep` + `/wake_up` endpoints release and restore model weights + KV cache via cuMemUnmap/cuMemMap. No cuda-checkpoint, no shim signals, no process freeze.
+Framework-native GPU memory release via cuMemUnmap. No cuda-checkpoint, no shim signals, no process freeze.
+- **vLLM:** `/sleep?level=2` + `/wake_up` (requires `--enable-sleep-mode` + `VLLM_SERVER_DEV_MODE=1`)
+- **SGLang:** `/release_memory_occupation` + `/resume_memory_occupation` (requires `--enable-memory-saver`)
 
 | Feature | Status |
 |---------|--------|
 | CUDA graphs | **ON** — survive sleep/wake (never destroyed) |
 | NVLS | **ON** — survives sleep/wake (NCCL comms never torn down) |
 | NVLink P2P | **ON** — full speed |
-| GPU memory freed | **96%** — ~3.4 GB residual (NCCL buffers, graphs, CUDA contexts, PyTorch runtime) |
+| GPU memory freed | **84-96%** — ~2-4 GB residual (NCCL buffers, graphs, CUDA contexts, runtime) |
 | Multi-cycle | **PASS** — verified 2+ consecutive cycles |
-| Framework support | vLLM only (requires `--enable-sleep-mode` + `VLLM_SERVER_DEV_MODE=1`) |
-| Snapshot agent backend | `app-endpoint` (already integrated) |
+| Framework support | vLLM (`--enable-sleep-mode`) and SGLang (`--enable-memory-saver`) |
+| Snapshot agent backend | `app-endpoint` (APP_VLLM or APP_SGLANG, already integrated) |
 
-**Limitation:** NCCL state stays on GPU (~1 GB of P2P/NVLS buffers), so the incoming workload gets ~77 GB instead of 80 GB. Sufficient for most workloads.
+**Limitation:** NCCL state stays on GPU (~1-3 GB of P2P/NVLS buffers), so the incoming workload gets ~77 GB instead of 80 GB. Sufficient for most workloads.
 
 **Why vLLM sleep + cuda-checkpoint doesn't compose:** after cuMemUnmap, cuda-checkpoint's `--action lock` succeeds but `--action checkpoint` hangs — the half-unmapped VMM state confuses the driver's checkpoint code path.
 
@@ -560,6 +562,8 @@ Shim v2 requires **NCCL ≥ 2.30** for correct `ncclCommDestroy` behavior. Earli
 | I3 | vLLM | EP=2 | Mixtral-8x7B | Option A (sleep) | 95% (75.5→3.7 GB/GPU) | **PASS** |
 | I4 | SGLang | TP=2 | opt-1.3b | Option B (shim v2 + cuda-ckpt) | 100% (freeze OK) | **FAIL** — restore "invalid argument" (multi-device CUDA state) |
 | I5 | SGLang | TP=2 | opt-1.3b | Option A (release/resume) | 84% (14.2→2.3 GB) | **PASS** (needs `--enable-memory-saver`) |
+| I6 | SGLang | PP=2 | Qwen2.5-0.5B | Option A (release/resume) | 81% (15.3→2.9 GB/GPU) | **PASS** |
+| I7 | SGLang | EP=2 | Mixtral-8x7B | Option A (release/resume) | 96.6% (70.5→2.4 GB/GPU) | **PASS** |
 
 **vLLM sleep covers all inference parallelism: TP, PP, EP.** No shim or cuda-checkpoint needed. The sleep endpoint releases model weights and KV cache; NCCL comms, graphs, and transport state survive untouched.
 
@@ -615,6 +619,4 @@ GPU interleaving works for both inference (app-aware) and training (shim + cuda-
 
 5. **Requires NCCL ≥ 2.30.** Earlier versions (e.g., 2.26) are missing `ncclDevCommDestroy`, causing silent comm recreate failures. Previously misdiagnosed as a "CommCheck race" requiring `NCCL_DEBUG=INFO` — debunked (wrong NCCL version was the root cause).
 
-6. **SGLang + cuda-checkpoint (Option B): restore fails on multi-GPU.** Both SGLang workers open both GPUs (30+ FDs each to `/dev/nvidia0` and `/dev/nvidia1`), creating multi-device CUDA contexts that cuda-checkpoint can't restore. Workaround: use SGLang's app-aware `release_memory_occupation` / `resume_memory_occupation` (Option A) instead — works for TP=2, frees 84% GPU memory, already integrated in snapshot agent.
-
-7. **Requires NCCL ≥ 2.29.7.** For ncclCommSuspend/Resume (v1) or proper ncclCommDestroy behavior (v2).
+6. **SGLang + cuda-checkpoint (Option B): restore fails on multi-GPU.** Both SGLang workers open both GPUs (30+ FDs each to `/dev/nvidia0` and `/dev/nvidia1`), creating multi-device CUDA contexts that cuda-checkpoint can't restore. Workaround: use SGLang's app-aware `release_memory_occupation` / `resume_memory_occupation` (Option A) instead — works for TP/PP/EP, frees 81-97% GPU memory, already integrated in snapshot agent.
