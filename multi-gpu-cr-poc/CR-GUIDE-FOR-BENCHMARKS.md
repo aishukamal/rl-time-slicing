@@ -55,7 +55,7 @@ NCCL_NVLS_ENABLE=0       # driver bug: multicast broken post-restore
 ```
 **Requires NCCL ≥ 2.30.** Earlier versions (e.g., 2.26) cause symbol errors (`ncclDevCommDestroy` missing). Install: `pip install nvidia-nccl-cu12==2.30.7`.
 
-**C/R sequence:**
+**Manual C/R sequence (for debugging / standalone use):**
 ```
 1. Quiesce trainer (pause between training steps)
 2. kill -35 <all_gpu_pids>                              # shim destroys NCCL comms (~200-400ms)
@@ -65,6 +65,50 @@ NCCL_NVLS_ENABLE=0       # driver bug: multicast broken post-restore
 6. kill -36 <all_gpu_pids>                              # arms lazy NCCL recreate
 7. Resume trainer — first collective triggers comm rebuild (~30ms)
 ```
+
+### Snapshot agent integration (automated C/R)
+
+The `cuda-multi-gpu` backend automates the manual sequence above. It is **not yet in the mainline** [llm-d-rl-time-slicing](https://github.com/llm-d-incubation/llm-d-rl-time-slicing) repo. All source code is included in this repo at [`multi-gpu-cr-poc/snapshot-agent-backend/`](snapshot-agent-backend/) — ready to PR.
+
+**What the backend does:**
+```
+Snapshot:
+  1. Send SIGRTMIN+1 (35) to all GPU PIDs → shim destroys NCCL comms
+  2. Wait 3s for destroy to complete
+  3. cuda-checkpoint --action lock + checkpoint per PID (sequential)
+
+Restore:
+  1. cuda-checkpoint --action restore + unlock per PID (sequential, 1s delay between)
+  2. Send SIGRTMIN+2 (36) to all PIDs → shim arms lazy NCCL recreate
+```
+
+**Files to integrate (all in [`snapshot-agent-backend/`](snapshot-agent-backend/)):**
+
+| File | Destination in mainline |
+|------|------------------------|
+| `snapshot_agent.proto` | `pkg/snapshot-agent/api/v1alpha1/` |
+| `snapshot_agent.pb.go` | `pkg/snapshot-agent/api/v1alpha1/` |
+| `snapshot_agent_grpc.pb.go` | `pkg/snapshot-agent/api/v1alpha1/` |
+| `checkpoint.go` | `pkg/snapshot-agent/backends/` (adds `BackendCudaMultiGPU` constant) |
+| `cuda-checkpoint.go` | `pkg/snapshot-agent/backends/` (adds `checkpointSinglePID`/`restoreSinglePID` helpers) |
+| `cuda-checkpoint-multi-gpu.go` | `pkg/snapshot-agent/backends/` (**the new backend**, ~130 lines) |
+| `server.go` | `pkg/snapshot-agent/server/` (adds `BACKEND_CUDA_MULTI_GPU` routing) |
+| `main.go` | `cmd/snapshot-agent/` (registers `NewCudaMultiGPUCheckpoint()`) |
+| `*_test.go` | `pkg/snapshot-agent/backends/` (tests) |
+
+See [`snapshot-agent-backend/README.md`](snapshot-agent-backend/README.md) for details.
+
+**Steps to automate trainer C/R for the benchmark:**
+1. PR the files above into mainline [llm-d-rl-time-slicing](https://github.com/llm-d-incubation/llm-d-rl-time-slicing)
+2. Build `libcr-shim-v2.so` from [`universal_cr_shim_v2.c`](universal_cr_shim_v2.c)
+3. Launch trainer pods with:
+   ```
+   LD_PRELOAD=libcr-shim-v2.so:libnccl.so.2
+   CR_NCCL_LIB=/path/to/libnccl.so.2
+   NCCL_NVLS_ENABLE=0
+   ```
+4. Deploy snapshot agent DaemonSet on trainer nodes (`helm install` from `deploy/snapshot-agent/`)
+5. Call snapshot agent gRPC `Snapshot()`/`Restore()` with the `cuda-multi-gpu` backend config
 
 **Expected VRAM after snapshot:** 0 (100% freed).
 
@@ -86,41 +130,6 @@ NCCL_NVLS_ENABLE=0       # driver bug: multicast broken post-restore
 - **C/R window ~10s.** Dominated by cuda-checkpoint freeze (~4.5s).
 
 **Note:** `NCCL_DEBUG=INFO` is NOT required. Earlier test reports claiming it was needed were caused by using NCCL 2.26 (missing `ncclDevCommDestroy` symbol). With NCCL ≥ 2.30, recreate works cleanly without debug logging.
-
-**Snapshot agent integration:**
-
-The `cuda-multi-gpu` backend (signal 35/36 + sequential cuda-checkpoint) is **not yet in the mainline** [llm-d-rl-time-slicing](https://github.com/llm-d-incubation/llm-d-rl-time-slicing) repo. It needs to be added. The implementation is ~130 lines of Go:
-
-- **What exists in mainline:** `app-endpoint` backend (SGLang/vLLM sleep), `cuda` backend (single-GPU cuda-checkpoint), `noop`
-- **What needs to be added:** a `cuda-multi-gpu` backend that wraps the existing `cuda` backend with signal 35 (destroy) before freeze and signal 36 (recreate) after restore
-
-The backend logic is straightforward — see `universal_cr_shim_v2.c` in this repo for the signal contract:
-```
-Snapshot: send SIGRTMIN+1 (35) to all PIDs → wait 3s → cuda-checkpoint --toggle per PID sequentially
-Restore:  cuda-checkpoint --toggle per PID sequentially → send SIGRTMIN+2 (36) to all PIDs
-```
-
-A reference implementation is included in this repo at [`multi-gpu-cr-poc/snapshot-agent-backend/`](snapshot-agent-backend/):
-- `cuda-checkpoint-multi-gpu.go` — the multi-GPU backend (~130 lines)
-- `cuda-checkpoint.go` — the base single-GPU backend it wraps
-- `cuda_checkpoint_multi_gpu_test.go` + `export_test.go` — tests
-
-To integrate: copy these files into the mainline snapshot agent's `pkg/snapshot-agent/backends/`, add the `BACKEND_CUDA_MULTI_GPU` enum to the proto, register in `main.go`. Needs to be PRed to [llm-d-rl-time-slicing](https://github.com/llm-d-incubation/llm-d-rl-time-slicing).
-
-**Snapshot agent code location:** [llm-d-rl-time-slicing](https://github.com/llm-d-incubation/llm-d-rl-time-slicing)
-- Backend interface: `pkg/snapshot-agent/backends/checkpoint.go`
-- app-endpoint backend (SGLang/vLLM): `pkg/snapshot-agent/backends/app_endpoint.go`
-- Proto definition: `pkg/snapshot-agent/api/v1alpha1/snapshot_agent.proto`
-- Server: `pkg/snapshot-agent/server/server.go`
-- Main: `cmd/snapshot-agent/main.go`
-- Helm chart: `deploy/snapshot-agent/`
-
-**What the benchmark agent needs to do to automate trainer C/R:**
-1. Add the `cuda-multi-gpu` backend to the snapshot agent (PR the reference implementation)
-2. Build `libcr-shim-v2.so` from `universal_cr_shim_v2.c` in this repo
-3. Launch trainer pods with `LD_PRELOAD=libcr-shim-v2.so:libnccl.so.2` + `CR_NCCL_LIB=<path/to/libnccl.so.2>` + `NCCL_NVLS_ENABLE=0`
-4. Deploy snapshot agent DaemonSet on trainer nodes
-5. Call snapshot agent gRPC `Snapshot()`/`Restore()` with the `cuda-multi-gpu` backend config
 
 ---
 
