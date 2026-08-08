@@ -1,0 +1,5 @@
+watching pod elastic-m3c-armed-6lcrx for auto-park
+EVENT: auto-park seen 05:48:27Z; relabeling
+pod/elastic-m3c-armed-6lcrx labeled
+label=elastic-trainer
+RELABEL DONE

@@ -1,0 +1,5 @@
+watching pod elastic-m3b-lcmvc for auto-park
+EVENT: auto-park seen 03:22:11Z; relabeling
+pod/elastic-m3b-lcmvc labeled
+label=elastic-trainer
+RELABEL DONE

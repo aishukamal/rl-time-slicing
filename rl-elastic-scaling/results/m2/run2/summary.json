@@ -1,0 +1,107 @@
+{
+ "run": "M2 attempt 2 (run2)",
+ "job": "elastic-m2",
+ "pod": "elastic-m2-v785d",
+ "node": "*-trb7",
+ "pod_start": "2026-08-06T23:03:34Z",
+ "train_end": "2026-08-07T03:34:40Z",
+ "train_rc": 124,
+ "steps_logged": [
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18,
+  19,
+  20,
+  21,
+  22,
+  23,
+  24,
+  25,
+  26,
+  27,
+  28,
+  29
+ ],
+ "steady_steps_3_29": {
+  "n": 27,
+  "mean_s": 520.0,
+  "stdev": 54.7,
+  "min": 431.59645804500906,
+  "max": 685.010298647976
+ },
+ "fully_live_steps_6_29": {
+  "n": 24,
+  "mean_s": 502.7,
+  "stdev": 24.7,
+  "min": 431.59645804500906,
+  "max": 535.4036043229862
+ },
+ "comparisons": {
+  "M0": 619.0,
+  "M2_attempt1": 615.6,
+  "M1_run4_manual": 553.1,
+  "best_case_reconstruction": 501.8
+ },
+ "regret_vs_best_case_s_per_step": 0.9,
+ "improvement_vs_M0_pct": -18.8,
+ "cycles": {
+  "switch_ins": 26,
+  "switch_backs": 26,
+  "verified_param_syncs": 25,
+  "cycle26_note": "verify preempted by planned RUN_SECONDS timeout mid-step-30; ops clean",
+  "rt_in_mean_s": 27.93,
+  "rt_out_mean_s": 37.43,
+  "r2_window_mean_s": 109.3,
+  "r2_window_total_s": 2843,
+  "wake_minus_batch_ready_s": {
+   "n": 26,
+   "mean": -33.7,
+   "median": -25.1,
+   "min": -104.2,
+   "max": -2.0,
+   "all_leq_30s": true
+  },
+  "switch_back_reasons": {
+   "predictive_eta": 24,
+   "hard_collect_failsafe": 2
+  }
+ },
+ "correctness": {
+  "score_mean": 0.191,
+  "score_range": [
+   0.131,
+   0.261
+  ],
+  "response_length_mean": 11396,
+  "dropped_stale": 0,
+  "mq_dropped": 0,
+  "ray_actor_error": 0,
+  "param_syncs": 30
+ },
+ "gpu": {
+  "gpu0_rollout_mean_util_pct": 98.2,
+  "gpu1_trainer_r2_mean_util_pct": 67.1,
+  "gpu1_idle_le15_pct": 28.3
+ },
+ "controller": {
+  "mode_change": "auto after 2 aligned dry steps (would_in=2, would_back=2)",
+  "decisions_total": 6438,
+  "aborts": 0,
+  "op_hangs": 0,
+  "switch_failures": 0
+ }
+}

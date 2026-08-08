@@ -1,0 +1,56 @@
+2026-08-06 04:19:51,244	INFO worker.py:1814 -- Connecting to existing Ray cluster at address: 10.96.1.12:38963...
+2026-08-06 04:19:51,276	INFO worker.py:2003 -- Connected to Ray cluster. View the dashboard at [1m[32mhttp://127.0.0.1:8265 [39m[22m
+/usr/local/lib/python3.12/dist-packages/ray/_private/worker.py:2051: FutureWarning: Tip: In future versions of Ray, Ray will no longer override accelerator visible devices env var if num_gpus=0 or num_gpus=None (default). To enable this behavior and turn off this error message, set RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO=0
+  warnings.warn(
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-06T04:19:51.330+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-06T04:19:51.436+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.107s)
+[2026-08-06T04:19:51.436+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-06T04:19:51.438+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.002s)
+[2026-08-06T04:19:51.438+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[2162544, 2171457]
+[2026-08-06T04:19:51.438+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-06T04:19:51.438+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[2162544, 2171457]
+[2026-08-06T04:19:51.639+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-06T04:19:51.639+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[2171457] -> OPERATION_STATUS_COMPLETE in 15828ms
+[2026-08-06T04:20:07.682+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (16.043s)
+[mq] pre-resume depth=0 produced=357 consumed=357 dropped=0 fill_rate=n/a
+[2026-08-06T04:20:07.718+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[2167075, 2167608, 2167865] -> OPERATION_STATUS_COMPLETE in 10106ms
+[2026-08-06T04:20:18.730+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (11.012s)
+[2026-08-06T04:20:18.730+00:00] [switch-to-rollout] PHASE START set_global_steps
+INFO 08-06 04:20:28 [nixl_utils.py:20] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+WARNING 08-06 04:20:28 [nixl_utils.py:34] NIXL is not available
+WARNING 08-06 04:20:28 [nixl_utils.py:44] NIXL agent config is not available
+R2 global_steps set to current_param_version=5
+[2026-08-06T04:20:29.181+00:00] [switch-to-rollout] PHASE END   set_global_steps  (10.451s)
+[2026-08-06T04:20:29.182+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-06T04:20:29.189+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-06T04:20:29.189+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-06T04:20:29.191+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.001s)
+[2026-08-06T04:20:29.191+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-06T04:20:29.199+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.008s)
+[2026-08-06T04:20:29.199+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-06T04:20:29.280+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.080s)
+[mq] post-resume depth=0 produced=357 consumed=357 dropped=0 fill_rate=0.000 samples/s
+
+=== switch-to-rollout timing breakdown (total 37.952s) ===
+  get_trainer_pids                           0.107s
+  get_ce_worker_pids                         0.002s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     16.043s
+  cuda_restore_r2                           11.012s
+  set_global_steps                          10.451s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.002s
+  lb_add_servers                             0.008s
+  raise_concurrency                          0.080s
+appended timing record -> /workspace/results/switch_timings.jsonl

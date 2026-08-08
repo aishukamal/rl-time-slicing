@@ -1,0 +1,49 @@
+2026-08-06 04:22:49,977	INFO worker.py:1814 -- Connecting to existing Ray cluster at address: 10.96.1.12:38963...
+2026-08-06 04:22:50,009	INFO worker.py:2003 -- Connected to Ray cluster. View the dashboard at [1m[32mhttp://127.0.0.1:8265 [39m[22m
+/usr/local/lib/python3.12/dist-packages/ray/_private/worker.py:2051: FutureWarning: Tip: In future versions of Ray, Ray will no longer override accelerator visible devices env var if num_gpus=0 or num_gpus=None (default). To enable this behavior and turn off this error message, set RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO=0
+  warnings.warn(
+[mq] pre-suspend depth=0 produced=377 consumed=377 dropped=0 fill_rate=n/a
+[2026-08-06T04:22:50.223+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-06T04:22:50.231+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.008s)
+[2026-08-06T04:22:50.231+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-06T04:22:58.793+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (8.562s)
+[2026-08-06T04:22:58.793+00:00] [switch-to-trainer] PHASE START abort_all_requests
+INFO 08-06 04:23:00 [nixl_utils.py:20] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+WARNING 08-06 04:23:00 [nixl_utils.py:34] NIXL is not available
+WARNING 08-06 04:23:00 [nixl_utils.py:44] NIXL agent config is not available
+abort_all_requests -> 66 aborted
+[2026-08-06T04:23:01.493+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (2.700s)
+[2026-08-06T04:23:01.494+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-06T04:23:01.495+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-06T04:23:01.495+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=379 consumed=379 dropped=0 fill_rate=0.177 samples/s
+[lb] {'servers': {'10.96.1.12:36035': 89}, 'total_inflight': 89, 'active_servers': 1, 'registered_handles': ['10.96.1.12:36035']}
+[2026-08-06T04:23:02.497+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-06T04:23:02.497+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-06T04:23:02.500+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.002s)
+[2026-08-06T04:23:02.500+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[2167075, 2167608, 2167865] -> OPERATION_STATUS_COMPLETE in 28626ms
+[2026-08-06T04:23:31.546+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.046s)
+[mq] post-suspend depth=3 produced=387 consumed=384 dropped=0 fill_rate=0.266 samples/s
+[2026-08-06T04:23:31.549+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[2171457] -> OPERATION_STATUS_COMPLETE in 5317ms
+[2026-08-06T04:23:37.557+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-06T04:23:37.558+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[2162544, 2171457]
+[2026-08-06T04:23:37.558+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-06T04:23:37.558+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[2162544, 2171457]
+[2026-08-06T04:23:37.759+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 47.697s) ===
+  lb_remove_servers                          0.008s
+  restore_base_concurrency                   8.562s
+  abort_all_requests                         2.700s
+  wait_for_requests_to_drain                 0.001s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.046s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl

@@ -1,0 +1,7 @@
+[2026-08-05T23:03:46Z] [cycles] waiting for steady state (>=3 param syncs)...
+[2026-08-05T23:34:46Z] [cycles] steady state: 4 param syncs
+[2026-08-05T23:34:46Z] [cycles] waiting for agent job elastic-trainer to be RUNNING (operator relabel)...
+agent jobs: {'elastic-m1': 'JOB_STATE_RUNNING', 'elastic-r2': 'JOB_STATE_SAVED', 'elastic-trainer': 'JOB_STATE_RUNNING'}
+[2026-08-05T23:34:46Z] [cycles] elastic-trainer RUNNING confirmed
+[2026-08-05T23:34:46Z] [cycles] baseline mq capture (120s)
+[2026-08-05T23:36:55Z] [cycles] === cycle 1: waiting for a fresh gen-wait block ===

@@ -1,0 +1,29 @@
+[cr-shim] PID 4014526: ready (suspend=sig35, resume=sig36)
+[2026-08-08T03:21:10.668+00:00] [regime-flip] waiting for step 12 to complete in /workspace/results/train.log (hard timeout 12000s)
+[2026-08-08T03:31:10.684+00:00] [regime-flip] still waiting for step 12 (waited 600s)
+[2026-08-08T03:41:10.699+00:00] [regime-flip] still waiting for step 12 (waited 1200s)
+[2026-08-08T03:51:10.714+00:00] [regime-flip] still waiting for step 12 (waited 1800s)
+[2026-08-08T04:01:10.728+00:00] [regime-flip] still waiting for step 12 (waited 2400s)
+[2026-08-08T04:11:10.743+00:00] [regime-flip] still waiting for step 12 (waited 3000s)
+[2026-08-08T04:21:10.758+00:00] [regime-flip] still waiting for step 12 (waited 3600s)
+[2026-08-08T04:31:10.774+00:00] [regime-flip] still waiting for step 12 (waited 4200s)
+[2026-08-08T04:41:10.789+00:00] [regime-flip] still waiting for step 12 (waited 4800s)
+[2026-08-08T04:51:10.804+00:00] [regime-flip] still waiting for step 12 (waited 5400s)
+[2026-08-08T05:01:10.820+00:00] [regime-flip] still waiting for step 12 (waited 6000s)
+[2026-08-08T05:11:10.835+00:00] [regime-flip] still waiting for step 12 (waited 6600s)
+[2026-08-08T05:15:55.842+00:00] [regime-flip] step 12 completed (timing_s/step=525.6680964089464) — trigger
+[2026-08-08T05:15:55.842+00:00] [regime-flip] connecting to Ray / handles actor...
+2026-08-08 05:15:56,214	INFO worker.py:1814 -- Connecting to existing Ray cluster at address: 10.96.1.25:36103...
+2026-08-08 05:15:56,247	INFO worker.py:2003 -- Connected to Ray cluster. View the dashboard at [1m[32mhttp://127.0.0.1:8265 [39m[22m
+/usr/local/lib/python3.12/dist-packages/ray/_private/worker.py:2051: FutureWarning: Tip: In future versions of Ray, Ray will no longer override accelerator visible devices env var if num_gpus=0 or num_gpus=None (default). To enable this behavior and turn off this error message, set RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO=0
+  warnings.warn(
+INFO 08-08 05:16:07 [nixl_utils.py:20] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+WARNING 08-08 05:16:07 [nixl_utils.py:34] NIXL is not available
+WARNING 08-08 05:16:07 [nixl_utils.py:44] NIXL agent config is not available
+[cr-shim] PID 1930197: ready (suspend=sig35, resume=sig36)
+[2026-08-08T05:16:07.642+00:00] [regime-flip] found 1 R1 server actor(s) via rollouter.get_replicas()
+[2026-08-08T05:16:07.647+00:00] [regime-flip] r1_server_0: response_length 16384 -> 8192
+[2026-08-08T05:16:07.655+00:00] [regime-flip] r2_server: response_length 16384 -> 8192
+[2026-08-08T05:16:07.655+00:00] [regime-flip] REGIME-FLIP COMPLETE: {"ts": "2026-08-08T05:16:07.655+00:00", "event": "regime_flip_done", "flip_at_step": 12, "triggered_step": 12, "new_response_length": 8192, "results": {"r1_server_0": [16384, 8192], "r2_server": [16384, 8192]}}
+[2026-08-08T05:16:37.662+00:00] [regime-flip] readback: {'r1_server_0': 8192, 'r2_server': 8192}
+regime flip driver exited rc=0

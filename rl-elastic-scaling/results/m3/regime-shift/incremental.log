@@ -1,0 +1,356 @@
+===== POLL 2026-08-08T03:20:03Z =====
+phase=Running restarts=0 label=elastic-r2
+--- last policy lines ---
+--- last regime-flip lines ---
+--- last step/psync/response-length ---
+--- switch ops / decisions so far ---
+0 switch_timings
+
+
+===== POLL 2026-08-08T03:40:13Z =====
+phase=Running restarts=0 label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T03:20:11.064+00:00] [policy] waiting for steady state (>= 3 param syncs)...
+[2026-08-08T03:40:11.078+00:00] [policy] WARNING: still waiting for steady state after 1200s (2/3 param syncs); hard cap 2700s
+--- last regime-flip lines ---
+[2026-08-08T03:21:10.668+00:00] [regime-flip] waiting for step 12 to complete in /workspace/results/train.log (hard timeout 12000s)
+[2026-08-08T03:31:10.684+00:00] [regime-flip] still waiting for step 12 (waited 600s)
+--- last step/psync/response-length ---
+timing_s/param_sync: 3.3276 seconds self.current_param_version: 0
+step:0 - 
+timing_s/param_sync: 2.8104 seconds self.current_param_version: 1
+step:1 - 
+--- switch ops / decisions so far ---
+1 /workspace/results/decisions.jsonl
+1
+{"ts": "2026-08-08T03:21:30.934+00:00", "operation": "initial-park(auto)", "total_seconds": 29.086, "phases": [{"phase": "abort_all_requests", "start": 1786159261.848893, "end": 1786159261.876332, "seconds": 0.0274}, {"phase": "wait_for_requests_to_drain", "start": 1786159261.8764195, "end": 1786159261.8774157, "seconds": 0.001}, {"phase": "discover_gpu_pids", "start": 1786159261.8774626, "end": 1
+
+===== POLL 2026-08-08T04:00:23Z =====
+phase=Running restarts=0 label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T03:47:41.122+00:00] [policy] PROGRESS mode=dry state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=0 decisions=2 would_in/back=0/0 live_in/back=0/0 cycles_verified=0 param_syncs=3 steps=1 last_action=dry_run_start@2026-08-08T03:47:41.122+00:00
+[2026-08-08T03:48:19.556+00:00] [policy] [dry] would SWITCH-IN (block 3, collected 38, ETA 761.5s)
+[2026-08-08T03:50:49.889+00:00] [policy] [dry] would SWITCH-BACK (predictive_eta, collected 55, ETA 62.5s)
+[2026-08-08T03:57:42.820+00:00] [policy] PROGRESS mode=dry state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=297 decisions=298 would_in/back=1/1 live_in/back=0/0 cycles_verified=0 param_syncs=3 steps=1 last_action=would_switch_to_trainer@2026-08-08T03:50:49.889+00:00
+[2026-08-08T03:58:10.890+00:00] [policy] [dry] would SWITCH-IN (block 4, collected 22, ETA 658.9s)
+--- last regime-flip lines ---
+[2026-08-08T03:31:10.684+00:00] [regime-flip] still waiting for step 12 (waited 600s)
+[2026-08-08T03:41:10.699+00:00] [regime-flip] still waiting for step 12 (waited 1200s)
+[2026-08-08T03:51:10.714+00:00] [regime-flip] still waiting for step 12 (waited 1800s)
+--- last step/psync/response-length ---
+step:2 - 
+response_length/mean:10697.48828125
+timing_s/step:887.6110656340607
+timing_s/param_sync: 2.9382 seconds self.current_param_version: 3
+step:3 - 
+step:3 - 
+response_length/mean:11317.205078125
+timing_s/step:651.7786931970622
+--- switch ops / decisions so far ---
+383 /workspace/results/decisions.jsonl
+1
+{"ts": "2026-08-08T03:21:30.934+00:00", "operation": "initial-park(auto)", "total_seconds": 29.086, "phases": [{"phase": "abort_all_requests", "start": 1786159261.848893, "end": 1786159261.876332, "seconds": 0.0274}, {"phase": "wait_for_requests_to_drain", "start": 1786159261.8764195, "end": 1786159261.8774157, "seconds": 0.001}, {"phase": "discover_gpu_pids", "start": 1786159261.8774626, "end": 1
+
+===== POLL 2026-08-08T04:20:43Z =====
+phase=Running restarts=0 label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T04:11:35.013+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 55/64, ETA 60.7s)
+[2026-08-08T04:16:45.055+00:00] [policy] cycle 1 verified: param_sync ok (version 5)
+[2026-08-08T04:16:45.055+00:00] [policy] SWITCH-IN firing (block 6, collected 36/64, ETA 276.4s > 115.0s)
+[2026-08-08T04:17:45.383+00:00] [policy] PROGRESS mode=live state=R2_ACTIVE sim=TRAINER_ACTIVE tick=849 decisions=855 would_in/back=2/2 live_in/back=2/1 cycles_verified=1 param_syncs=6 steps=4 last_action=switch_in_done@2026-08-08T04:17:13.310+00:00
+[2026-08-08T04:19:17.610+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 56/64, ETA 50.0s)
+--- last regime-flip lines ---
+[2026-08-08T03:51:10.714+00:00] [regime-flip] still waiting for step 12 (waited 1800s)
+[2026-08-08T04:01:10.728+00:00] [regime-flip] still waiting for step 12 (waited 2400s)
+[2026-08-08T04:11:10.743+00:00] [regime-flip] still waiting for step 12 (waited 3000s)
+--- last step/psync/response-length ---
+step:4 - 
+response_length/mean:11751.47265625
+timing_s/step:631.2006659910548
+timing_s/param_sync: 2.7824 seconds self.current_param_version: 5
+step:5 - 
+step:5 - 
+response_length/mean:12062.30078125
+timing_s/step:649.3602684839861
+--- switch ops / decisions so far ---
+931 /workspace/results/decisions.jsonl
+5
+{"ts": "2026-08-08T04:19:55.141+00:00", "operation": "switch-to-trainer", "total_seconds": 37.5312, "phases": [{"phase": "lb_remove_servers", "start": 1786162757.6122599, "end": 1786162757.6135511, "seconds": 0.0013}, {"phase": "restore_base_concurrency", "start": 1786162757.6136315, "end": 1786162757.6150746, "seconds": 0.0014}, {"phase": "abort_all_requests", "start": 1786162757.61513, "end": 17
+
+===== POLL 2026-08-08T04:40:54Z =====
+phase=Running restarts=0 label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T04:28:13.906+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=1111 decisions=1121 would_in/back=2/2 live_in/back=3/3 cycles_verified=2 param_syncs=7 steps=5 last_action=switch_back_done@2026-08-08T04:28:11.905+00:00
+[2026-08-08T04:34:22.807+00:00] [policy] cycle 3 verified: param_sync ok (version 7)
+[2026-08-08T04:34:22.808+00:00] [policy] SWITCH-IN firing (block 8, collected 42/64, ETA 238.1s > 102.7s)
+[2026-08-08T04:36:26.297+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 57/64, ETA 48.3s)
+[2026-08-08T04:38:14.661+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=1378 decisions=1391 would_in/back=2/2 live_in/back=4/4 cycles_verified=3 param_syncs=8 steps=6 last_action=switch_back_done@2026-08-08T04:37:04.480+00:00
+--- last regime-flip lines ---
+[2026-08-08T04:11:10.743+00:00] [regime-flip] still waiting for step 12 (waited 3000s)
+[2026-08-08T04:21:10.758+00:00] [regime-flip] still waiting for step 12 (waited 3600s)
+[2026-08-08T04:31:10.774+00:00] [regime-flip] still waiting for step 12 (waited 4200s)
+--- last step/psync/response-length ---
+step:6 - 
+response_length/mean:10300.091796875
+timing_s/step:463.6979636650067
+timing_s/param_sync: 3.4124 seconds self.current_param_version: 7
+step:7 - 
+step:7 - 
+response_length/mean:11265.716796875
+timing_s/step:503.7167701489525
+--- switch ops / decisions so far ---
+1475 /workspace/results/decisions.jsonl
+9
+{"ts": "2026-08-08T04:37:04.479+00:00", "operation": "switch-to-trainer", "total_seconds": 38.182, "phases": [{"phase": "lb_remove_servers", "start": 1786163786.299041, "end": 1786163786.3002496, "seconds": 0.0012}, {"phase": "restore_base_concurrency", "start": 1786163786.300305, "end": 1786163786.3015275, "seconds": 0.0012}, {"phase": "abort_all_requests", "start": 1786163786.3016124, "end": 178
+
+===== POLL 2026-08-08T05:01:05Z =====
+phase=Running restarts=0 label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T04:51:01.978+00:00] [policy] SWITCH-IN firing (block 10, collected 41/64, ETA 164.2s > 99.4s)
+[2026-08-08T04:53:36.540+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 58/64, ETA 39.6s)
+[2026-08-08T04:58:16.606+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=1912 decisions=1931 would_in/back=2/2 live_in/back=6/6 cycles_verified=5 param_syncs=10 steps=8 last_action=switch_back_done@2026-08-08T04:54:14.018+00:00
+[2026-08-08T04:59:24.780+00:00] [policy] cycle 6 verified: param_sync ok (version 10)
+[2026-08-08T04:59:24.780+00:00] [policy] SWITCH-IN firing (block 11, collected 42/64, ETA 226.9s > 99.0s)
+--- last regime-flip lines ---
+[2026-08-08T04:31:10.774+00:00] [regime-flip] still waiting for step 12 (waited 4200s)
+[2026-08-08T04:41:10.789+00:00] [regime-flip] still waiting for step 12 (waited 4800s)
+[2026-08-08T04:51:10.804+00:00] [regime-flip] still waiting for step 12 (waited 5400s)
+--- last step/psync/response-length ---
+step:9 - 
+response_length/mean:11561.40234375
+timing_s/step:548.9455940969056
+timing_s/param_sync: 3.0456 seconds self.current_param_version: 10
+step:10 - 
+step:10 - 
+response_length/mean:11138.896484375
+timing_s/step:449.50362489093095
+--- switch ops / decisions so far ---
+2008 /workspace/results/decisions.jsonl
+14
+{"ts": "2026-08-08T04:59:53.034+00:00", "operation": "switch-to-rollout", "total_seconds": 28.2541, "phases": [{"phase": "get_trainer_pids", "start": 1786165164.7806487, "end": 1786165164.7807188, "seconds": 0.0001}, {"phase": "get_ce_worker_pids", "start": 1786165164.7808063, "end": 1786165164.7808523, "seconds": 0.0}, {"phase": "nccl_suspend_signal", "start": 1786165164.7809072, "end": 178616516
+
+===== POLL 2026-08-08T05:21:17Z =====
+phase=Running restarts=0 label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T05:09:52.603+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 57/64, ETA 49.8s)
+[2026-08-08T05:15:55.616+00:00] [policy] cycle 8 verified: param_sync ok (version 12)
+[2026-08-08T05:15:55.616+00:00] [policy] SWITCH-IN firing (block 13, collected 39/64, ETA 261.6s > 99.4s)
+[2026-08-08T05:17:36.062+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 57/64, ETA 31.4s)
+[2026-08-08T05:18:40.456+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=2424 decisions=2452 would_in/back=2/2 live_in/back=9/9 cycles_verified=8 param_syncs=13 steps=11 last_action=switch_back_done@2026-08-08T05:18:12.394+00:00
+--- last regime-flip lines ---
+[2026-08-08T05:16:07.655+00:00] [regime-flip] r2_server: response_length 16384 -> 8192
+[2026-08-08T05:16:07.655+00:00] [regime-flip] REGIME-FLIP COMPLETE: {"ts": "2026-08-08T05:16:07.655+00:00", "event": "regime_flip_done", "flip_at_step": 12, "triggered_step": 12, "new_response_length": 8192, "results": {"r1_server_0": [16384, 8192], "r2_server": [16384, 8192]}}
+[2026-08-08T05:16:37.662+00:00] [regime-flip] readback: {'r1_server_0': 8192, 'r2_server': 8192}
+--- last step/psync/response-length ---
+step:11 - 
+response_length/mean:11412.802734375
+timing_s/step:502.8081404429395
+timing_s/param_sync: 3.9439 seconds self.current_param_version: 12
+step:12 - 
+step:12 - 
+response_length/mean:11350.5859375
+timing_s/step:525.6680964089464
+--- switch ops / decisions so far ---
+2535 /workspace/results/decisions.jsonl
+19
+{"ts": "2026-08-08T05:18:12.394+00:00", "operation": "switch-to-trainer", "total_seconds": 36.3318, "phases": [{"phase": "lb_remove_servers", "start": 1786166256.064018, "end": 1786166256.0654647, "seconds": 0.0014}, {"phase": "restore_base_concurrency", "start": 1786166256.0655217, "end": 1786166256.0669148, "seconds": 0.0014}, {"phase": "abort_all_requests", "start": 1786166256.0669656, "end": 1
+{"ts": "2026-08-08T05:16:07.655+00:00", "event": "regime_flip_done", "flip_at_step": 12, "triggered_step": 12, "new_response_length": 8192, "results": {"r1_server_0": [16384, 8192], "r2_server": [16384, 8192]}}
+{"ts": "2026-08-08T05:16:37.661+00:00", "event": "flip_readback", "values": {"r1_server_0": 8192, "r2_server": 8192}}
+
+===== POLL 2026-08-08T05:41:28Z =====
+phase=Running restarts=0 label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T05:35:54.050+00:00] [policy] cycle 11 verified: param_sync ok (version 16)
+[2026-08-08T05:35:54.050+00:00] [policy] SWITCH-IN firing (block 17, collected 37/64, ETA 177.4s > 96.2s)
+[2026-08-08T05:36:23.308+00:00] [policy] SWITCH-BACK firing (hard_collect_failsafe: collected 61/64, ETA 6.8s)
+[2026-08-08T05:38:41.815+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=2928 decisions=2965 would_in/back=2/2 live_in/back=12/12 cycles_verified=11 param_syncs=17 steps=15 last_action=switch_back_done@2026-08-08T05:36:59.582+00:00
+[2026-08-08T05:40:20.052+00:00] [policy] cycle 12 verified: param_sync ok (version 17)
+--- last regime-flip lines ---
+[2026-08-08T05:16:07.655+00:00] [regime-flip] r2_server: response_length 16384 -> 8192
+[2026-08-08T05:16:07.655+00:00] [regime-flip] REGIME-FLIP COMPLETE: {"ts": "2026-08-08T05:16:07.655+00:00", "event": "regime_flip_done", "flip_at_step": 12, "triggered_step": 12, "new_response_length": 8192, "results": {"r1_server_0": [16384, 8192], "r2_server": [16384, 8192]}}
+[2026-08-08T05:16:37.662+00:00] [regime-flip] readback: {'r1_server_0': 8192, 'r2_server': 8192}
+--- last step/psync/response-length ---
+step:16 - 
+response_length/mean:8357.880859375
+timing_s/step:284.102682413999
+timing_s/param_sync: 2.8300 seconds self.current_param_version: 17
+step:17 - 
+step:17 - 
+response_length/mean:7806.025390625
+timing_s/step:292.4600074409973
+--- switch ops / decisions so far ---
+3054 /workspace/results/decisions.jsonl
+25
+{"ts": "2026-08-08T05:36:59.582+00:00", "operation": "switch-to-trainer", "total_seconds": 36.274, "phases": [{"phase": "lb_remove_servers", "start": 1786167383.3097017, "end": 1786167383.3109899, "seconds": 0.0013}, {"phase": "restore_base_concurrency", "start": 1786167383.311051, "end": 1786167383.3122585, "seconds": 0.0012}, {"phase": "abort_all_requests", "start": 1786167383.3123083, "end": 17
+{"ts": "2026-08-08T05:16:07.655+00:00", "event": "regime_flip_done", "flip_at_step": 12, "triggered_step": 12, "new_response_length": 8192, "results": {"r1_server_0": [16384, 8192], "r2_server": [16384, 8192]}}
+{"ts": "2026-08-08T05:16:37.661+00:00", "event": "flip_readback", "values": {"r1_server_0": 8192, "r2_server": 8192}}
+
+===== POLL 2026-08-08T06:01:39Z =====
+phase=Running restarts=0 label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T05:48:42.523+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=3195 decisions=3235 would_in/back=2/2 live_in/back=13/13 cycles_verified=12 param_syncs=19 steps=17 last_action=switch_back_done@2026-08-08T05:46:28.203+00:00
+[2026-08-08T05:49:34.655+00:00] [policy] cycle 13 verified: param_sync ok (version 19)
+[2026-08-08T05:58:13.942+00:00] [policy] SWITCH-IN firing (block 22, collected 39/64, ETA 142.7s > 97.0s)
+[2026-08-08T05:58:44.197+00:00] [policy] PROGRESS mode=live state=R2_ACTIVE sim=TRAINER_ACTIVE tick=3481 decisions=3523 would_in/back=2/2 live_in/back=14/13 cycles_verified=13 param_syncs=22 steps=20 last_action=switch_in_done@2026-08-08T05:58:42.197+00:00
+[2026-08-08T05:59:42.555+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 57/64, ETA 36.8s)
+--- last regime-flip lines ---
+[2026-08-08T05:16:07.655+00:00] [regime-flip] r2_server: response_length 16384 -> 8192
+[2026-08-08T05:16:07.655+00:00] [regime-flip] REGIME-FLIP COMPLETE: {"ts": "2026-08-08T05:16:07.655+00:00", "event": "regime_flip_done", "flip_at_step": 12, "triggered_step": 12, "new_response_length": 8192, "results": {"r1_server_0": [16384, 8192], "r2_server": [16384, 8192]}}
+[2026-08-08T05:16:37.662+00:00] [regime-flip] readback: {'r1_server_0': 8192, 'r2_server': 8192}
+--- last step/psync/response-length ---
+step:20 - 
+response_length/mean:7518.5
+timing_s/step:302.58745622599963
+timing_s/param_sync: 2.4952 seconds self.current_param_version: 21
+step:21 - 
+step:21 - 
+response_length/mean:8094.7109375
+timing_s/step:254.27233986894134
+--- switch ops / decisions so far ---
+3597 /workspace/results/decisions.jsonl
+29
+{"ts": "2026-08-08T06:00:20.095+00:00", "operation": "switch-to-trainer", "total_seconds": 37.5398, "phases": [{"phase": "lb_remove_servers", "start": 1786168782.5567753, "end": 1786168782.5582678, "seconds": 0.0015}, {"phase": "restore_base_concurrency", "start": 1786168782.5583408, "end": 1786168782.5604758, "seconds": 0.0021}, {"phase": "abort_all_requests", "start": 1786168782.5606122, "end": 
+{"ts": "2026-08-08T05:16:07.655+00:00", "event": "regime_flip_done", "flip_at_step": 12, "triggered_step": 12, "new_response_length": 8192, "results": {"r1_server_0": [16384, 8192], "r2_server": [16384, 8192]}}
+{"ts": "2026-08-08T05:16:37.661+00:00", "event": "flip_readback", "values": {"r1_server_0": 8192, "r2_server": 8192}}
+
+===== POLL 2026-08-08T06:21:50Z =====
+phase=Running restarts=0 label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T06:12:40.049+00:00] [policy] SWITCH-IN firing (block 25, collected 46/64, ETA 136.3s > 98.6s)
+[2026-08-08T06:13:12.316+00:00] [policy] SWITCH-BACK firing (hard_collect_failsafe: collected 60/64, ETA 9.3s)
+[2026-08-08T06:17:09.118+00:00] [policy] cycle 16 verified: param_sync ok (version 25)
+[2026-08-08T06:19:15.721+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=4011 decisions=4061 would_in/back=2/2 live_in/back=16/16 cycles_verified=16 param_syncs=26 steps=24 last_action=cycle_verified@2026-08-08T06:17:09.118+00:00
+[2026-08-08T06:21:36.065+00:00] [policy] SWITCH-IN firing (block 27, collected 48/64, ETA 99.3s > 97.7s)
+--- last regime-flip lines ---
+[2026-08-08T05:16:07.655+00:00] [regime-flip] r2_server: response_length 16384 -> 8192
+[2026-08-08T05:16:07.655+00:00] [regime-flip] REGIME-FLIP COMPLETE: {"ts": "2026-08-08T05:16:07.655+00:00", "event": "regime_flip_done", "flip_at_step": 12, "triggered_step": 12, "new_response_length": 8192, "results": {"r1_server_0": [16384, 8192], "r2_server": [16384, 8192]}}
+[2026-08-08T05:16:37.662+00:00] [regime-flip] readback: {'r1_server_0': 8192, 'r2_server': 8192}
+--- last step/psync/response-length ---
+step:25 - 
+response_length/mean:7751.568359375
+timing_s/step:313.411219652975
+timing_s/param_sync: 2.8024 seconds self.current_param_version: 26
+step:26 - 
+step:26 - 
+response_length/mean:8074.5859375
+timing_s/step:267.82544761302415
+--- switch ops / decisions so far ---
+4132 /workspace/results/decisions.jsonl
+33
+{"ts": "2026-08-08T06:13:48.625+00:00", "operation": "switch-to-trainer", "total_seconds": 36.3091, "phases": [{"phase": "lb_remove_servers", "start": 1786169592.3179069, "end": 1786169592.3193617, "seconds": 0.0015}, {"phase": "restore_base_concurrency", "start": 1786169592.3194215, "end": 1786169592.3209817, "seconds": 0.0016}, {"phase": "abort_all_requests", "start": 1786169592.3210356, "end": 
+{"ts": "2026-08-08T05:16:07.655+00:00", "event": "regime_flip_done", "flip_at_step": 12, "triggered_step": 12, "new_response_length": 8192, "results": {"r1_server_0": [16384, 8192], "r2_server": [16384, 8192]}}
+{"ts": "2026-08-08T05:16:37.661+00:00", "event": "flip_readback", "values": {"r1_server_0": 8192, "r2_server": 8192}}
+
+===== POLL 2026-08-08T06:42:01Z =====
+phase=Running restarts=0 label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T06:31:25.069+00:00] [policy] SWITCH-BACK firing (hard_collect_failsafe: collected 60/64, ETA 17.3s)
+[2026-08-08T06:36:16.893+00:00] [policy] cycle 18 verified: param_sync ok (version 29)
+[2026-08-08T06:39:17.344+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=4545 decisions=4601 would_in/back=2/2 live_in/back=18/18 cycles_verified=18 param_syncs=30 steps=28 last_action=cycle_verified@2026-08-08T06:36:16.893+00:00
+[2026-08-08T06:40:03.460+00:00] [policy] SWITCH-IN firing (block 31, collected 47/64, ETA 108.5s > 98.1s)
+[2026-08-08T06:40:39.737+00:00] [policy] SWITCH-BACK firing (hard_collect_failsafe: collected 60/64, ETA 10.7s)
+--- last regime-flip lines ---
+[2026-08-08T05:16:07.655+00:00] [regime-flip] r2_server: response_length 16384 -> 8192
+[2026-08-08T05:16:07.655+00:00] [regime-flip] REGIME-FLIP COMPLETE: {"ts": "2026-08-08T05:16:07.655+00:00", "event": "regime_flip_done", "flip_at_step": 12, "triggered_step": 12, "new_response_length": 8192, "results": {"r1_server_0": [16384, 8192], "r2_server": [16384, 8192]}}
+[2026-08-08T05:16:37.662+00:00] [regime-flip] readback: {'r1_server_0': 8192, 'r2_server': 8192}
+--- last step/psync/response-length ---
+step:29 - 
+response_length/mean:7540.470703125
+timing_s/step:261.2355898900423
+timing_s/param_sync: 2.8435 seconds self.current_param_version: 30
+step:30 - 
+step:30 - 
+response_length/mean:7387.92578125
+timing_s/step:369.06276401504874
+--- switch ops / decisions so far ---
+4657 /workspace/results/decisions.jsonl
+39
+{"ts": "2026-08-08T06:41:17.215+00:00", "operation": "switch-to-trainer", "total_seconds": 37.4777, "phases": [{"phase": "lb_remove_servers", "start": 1786171239.7392983, "end": 1786171239.7401912, "seconds": 0.0009}, {"phase": "restore_base_concurrency", "start": 1786171239.740248, "end": 1786171239.741806, "seconds": 0.0016}, {"phase": "abort_all_requests", "start": 1786171239.7418716, "end": 17
+{"ts": "2026-08-08T05:16:07.655+00:00", "event": "regime_flip_done", "flip_at_step": 12, "triggered_step": 12, "new_response_length": 8192, "results": {"r1_server_0": [16384, 8192], "r2_server": [16384, 8192]}}
+{"ts": "2026-08-08T05:16:37.661+00:00", "event": "flip_readback", "values": {"r1_server_0": 8192, "r2_server": 8192}}
+
+===== POLL 2026-08-08T07:02:13Z =====
+phase=Running restarts=0 label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T06:54:38.235+00:00] [policy] SWITCH-BACK firing (hard_collect_failsafe: collected 61/64, ETA 7.4s)
+[2026-08-08T06:58:37.045+00:00] [policy] cycle 22 verified: param_sync ok (version 34)
+[2026-08-08T06:58:37.045+00:00] [policy] SWITCH-IN firing (block 35, collected 46/64, ETA 114.3s > 96.0s)
+[2026-08-08T06:59:07.305+00:00] [policy] SWITCH-BACK firing (hard_collect_failsafe: collected 60/64, ETA 10.1s)
+[2026-08-08T06:59:45.635+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=4997 decisions=5067 would_in/back=2/2 live_in/back=23/23 cycles_verified=22 param_syncs=35 steps=33 last_action=switch_back_done@2026-08-08T06:59:43.635+00:00
+--- last regime-flip lines ---
+--- last step/psync/response-length ---
+step:33 - 
+response_length/mean:7835.087890625
+timing_s/step:273.75005640403833
+timing_s/param_sync: 2.8580 seconds self.current_param_version: 34
+step:34 - 
+step:34 - 
+response_length/mean:7411.15625
+timing_s/step:272.8959861610783
+--- switch ops / decisions so far ---
+5145 /workspace/results/decisions.jsonl
+47
+{"ts": "2026-08-08T06:59:43.634+00:00", "operation": "switch-to-trainer", "total_seconds": 36.3287, "phases": [{"phase": "lb_remove_servers", "start": 1786172347.307464, "end": 1786172347.308928, "seconds": 0.0015}, {"phase": "restore_base_concurrency", "start": 1786172347.3090007, "end": 1786172347.3104742, "seconds": 0.0015}, {"phase": "abort_all_requests", "start": 1786172347.3105218, "end": 17
+{"ts": "2026-08-08T05:16:07.655+00:00", "event": "regime_flip_done", "flip_at_step": 12, "triggered_step": 12, "new_response_length": 8192, "results": {"r1_server_0": [16384, 8192], "r2_server": [16384, 8192]}}
+{"ts": "2026-08-08T05:16:37.661+00:00", "event": "flip_readback", "values": {"r1_server_0": 8192, "r2_server": 8192}}
+
+===== POLL 2026-08-08T07:22:24Z =====
+phase=Running restarts=0 label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T07:09:47.365+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=5232 decisions=5308 would_in/back=2/2 live_in/back=25/25 cycles_verified=24 param_syncs=37 steps=35 last_action=switch_back_done@2026-08-08T07:08:55.246+00:00
+[2026-08-08T07:13:16.104+00:00] [policy] cycle 25 verified: param_sync ok (version 37)
+[2026-08-08T07:19:49.047+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=5532 decisions=5609 would_in/back=2/2 live_in/back=25/25 cycles_verified=25 param_syncs=39 steps=37 last_action=cycle_verified@2026-08-08T07:13:16.104+00:00
+[2026-08-08T07:20:51.203+00:00] [policy] SWITCH-IN firing (block 40, collected 40/64, ETA 133.1s > 97.8s)
+[2026-08-08T07:22:07.583+00:00] [policy] SWITCH-BACK firing (hard_collect_failsafe: collected 60/64, ETA 14.8s)
+--- last regime-flip lines ---
+--- last step/psync/response-length ---
+step:38 - 
+response_length/mean:7892.033203125
+timing_s/step:353.51688057591673
+timing_s/param_sync: 2.5043 seconds self.current_param_version: 39
+step:39 - 
+step:39 - 
+response_length/mean:7617.66015625
+timing_s/step:184.14868748595472
+--- switch ops / decisions so far ---
+5666 /workspace/results/decisions.jsonl
+52
+{"ts": "2026-08-08T07:21:19.460+00:00", "operation": "switch-to-rollout", "total_seconds": 28.2574, "phases": [{"phase": "get_trainer_pids", "start": 1786173651.2035174, "end": 1786173651.203584, "seconds": 0.0001}, {"phase": "get_ce_worker_pids", "start": 1786173651.2036328, "end": 1786173651.2036676, "seconds": 0.0}, {"phase": "nccl_suspend_signal", "start": 1786173651.2037122, "end": 1786173651
+{"ts": "2026-08-08T05:16:07.655+00:00", "event": "regime_flip_done", "flip_at_step": 12, "triggered_step": 12, "new_response_length": 8192, "results": {"r1_server_0": [16384, 8192], "r2_server": [16384, 8192]}}
+{"ts": "2026-08-08T05:16:37.661+00:00", "event": "flip_readback", "values": {"r1_server_0": 8192, "r2_server": 8192}}
+
+===== POLL 2026-08-08T07:42:35Z =====
+phase=Running restarts=0 label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T07:34:17.329+00:00] [policy] cycle 27 verified: param_sync ok (version 42)
+[2026-08-08T07:34:17.330+00:00] [policy] SWITCH-IN firing (block 43, collected 46/64, ETA 105.3s > 98.9s)
+[2026-08-08T07:34:55.610+00:00] [policy] SWITCH-BACK firing (hard_collect_failsafe: collected 60/64, ETA 11.8s)
+[2026-08-08T07:38:31.505+00:00] [policy] cycle 28 verified: param_sync ok (version 43)
+[2026-08-08T07:40:11.737+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=6043 decisions=6129 would_in/back=2/2 live_in/back=28/28 cycles_verified=28 param_syncs=44 steps=42 last_action=cycle_verified@2026-08-08T07:38:31.505+00:00
+--- last regime-flip lines ---
+--- last step/psync/response-length ---
+step:42 - 
+response_length/mean:7411.8515625
+timing_s/step:230.5995058020344
+timing_s/param_sync: 2.5065 seconds self.current_param_version: 43
+step:43 - 
+step:43 - 
+response_length/mean:7378.990234375
+timing_s/step:279.814756359905
+--- switch ops / decisions so far ---
+6206 /workspace/results/decisions.jsonl
+57
+{"ts": "2026-08-08T07:35:33.060+00:00", "operation": "switch-to-trainer", "total_seconds": 37.4507, "phases": [{"phase": "lb_remove_servers", "start": 1786174495.6116037, "end": 1786174495.6130393, "seconds": 0.0014}, {"phase": "restore_base_concurrency", "start": 1786174495.6131113, "end": 1786174495.6144464, "seconds": 0.0013}, {"phase": "abort_all_requests", "start": 1786174495.614497, "end": 1
+{"ts": "2026-08-08T05:16:07.655+00:00", "event": "regime_flip_done", "flip_at_step": 12, "triggered_step": 12, "new_response_length": 8192, "results": {"r1_server_0": [16384, 8192], "r2_server": [16384, 8192]}}
+{"ts": "2026-08-08T05:16:37.661+00:00", "event": "flip_readback", "values": {"r1_server_0": 8192, "r2_server": 8192}}
+
+===== POLL 2026-08-08T08:02:47Z =====
+Error from server (NotFound): pods "elastic-m3b-lcmvc" not found
+
+--- last policy lines ---
+--- last regime-flip lines ---
+--- last step/psync/response-length ---
+--- switch ops / decisions so far ---
+
+===== POLL: pod phase=, exiting 08:02:53Z =====
+===== POLLER EXIT 2026-08-08T08:02:53Z =====

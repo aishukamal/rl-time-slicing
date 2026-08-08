@@ -1,0 +1,35 @@
+# Cloud Build for the M1 elastic-rl-poc image (verl base + NCCL C/R shim).
+# Submit:  gcloud builds submit --config cloudbuild.yaml --project aishuk-test .
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - us-central1-docker.pkg.dev/aishuk-test/rl-images/verl-cr-shim:m1
+      - .
+
+  # Smoke: the pip NCCL really exports ncclCommSuspend/Resume, both shims
+  # load, and the v1 shim interposes ncclCommInitRank.
+  - id: smoke
+    name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - --rm
+      - us-central1-docker.pkg.dev/aishuk-test/rl-images/verl-cr-shim:m1
+      - bash
+      - -c
+      - |
+        set -euo pipefail
+        nm -D /opt/cr/nccl/nvidia/nccl/lib/libnccl.so.2 | grep -E 'ncclCommSuspend|ncclCommResume'
+        nm -D /opt/cr/libcr-shim.so | grep ncclCommInitRank
+        python3 -c "import ctypes; ctypes.CDLL('/opt/cr/libcr-shim.so'); ctypes.CDLL('/opt/cr/libcr-shim-v2.so'); print('shims load OK')"
+        echo SMOKE-OK
+
+images:
+  - us-central1-docker.pkg.dev/aishuk-test/rl-images/verl-cr-shim:m1
+
+timeout: 7200s
+options:
+  machineType: E2_HIGHCPU_32
+  diskSizeGb: 400

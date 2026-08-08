@@ -1,0 +1,710 @@
+Defaulted container "snapshot-agent" out of: snapshot-agent, install-cuda-checkpoint (init)
+{"time":"2026-08-06T03:16:59.991539919Z","level":"INFO","msg":"Starting Snapshot Agent","port":9001,"deploymentMode":"k8s"}
+{"time":"2026-08-06T03:16:59.994745539Z","level":"INFO","msg":"Starting pod watcher","nodeName":"gke-verl-research-clus-h100-2gpu-pool-02b8c734-trb7"}
+{"time":"2026-08-06T03:17:00.094934253Z","level":"INFO","msg":"Starting gRPC server","port":9001}
+{"time":"2026-08-06T03:21:05.010215966Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-4tmp2","jobID":"elastic-r2","group":""}
+{"time":"2026-08-06T03:21:05.061682202Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-4tmp2","jobID":"elastic-r2","group":""}
+{"time":"2026-08-06T03:21:05.106428723Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:05.117952019Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:05.565422668Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-4tmp2","jobID":"elastic-r2","group":""}
+{"time":"2026-08-06T03:21:06.106866552Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:06.110696284Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:07.106218042Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:07.110039556Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:08.107254169Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:08.111221486Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:09.102834801Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:09.106708541Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:10.109782739Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:10.113494383Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:11.106764167Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:11.110732434Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:12.108836287Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:12.112677846Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:13.106770847Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:13.110667382Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:14.105670021Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:14.109432118Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:15.10612588Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:15.109888702Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:16.108990185Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:16.112839577Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:17.111690579Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:17.115647459Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:18.106154314Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:18.110145404Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:19.105485918Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:19.10927416Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:20.106186291Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:20.110136153Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:21.104428519Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:21.108321472Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:22.106336752Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:22.110645232Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:23.106780635Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:23.110859022Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:24.104674234Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:24.108548981Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:25.105977791Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:25.139492Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:26.105733886Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:26.10967649Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:27.104800263Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:27.109002317Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:28.10478873Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:28.108733292Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:29.103132304Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:29.106982263Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:30.104695337Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:30.108760163Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:31.10742264Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:31.111340757Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:32.105492785Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:32.109310202Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:33.108035606Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:33.112042287Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:34.106284434Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:34.110160909Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:35.105226606Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:35.109083491Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:36.108051119Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:36.111826195Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:37.105246187Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:37.109157615Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:38.105126182Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:38.109061875Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:39.105985726Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:39.109939619Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:40.10604698Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:40.110174035Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:41.106851793Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:41.110995884Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:42.105966135Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:42.110250028Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:43.105751865Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:43.109573816Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:44.109831627Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:44.113951077Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:45.105179337Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:45.109107384Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:46.107259646Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:46.111148989Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:47.105493474Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:47.109299325Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:48.108278957Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:48.112115426Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:49.105422979Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:49.109303364Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:50.106094953Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:50.110056518Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:51.104397506Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:51.108199981Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:52.10496963Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:52.10888056Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:53.108003861Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:53.111876448Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:54.105744505Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:54.109613488Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:55.106356581Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:55.110356784Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:56.105352298Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:56.109189541Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:57.10824786Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:57.112106589Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:58.103787605Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:58.107733819Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:21:59.116927475Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:21:59.120741423Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:00.106373737Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:00.110386078Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:01.105412491Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:01.109477603Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:02.105258664Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:02.109341038Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:03.11481234Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:03.118643899Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:04.106912722Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:04.110840574Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:05.10522482Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:05.109074224Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:06.105694912Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:06.109644704Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:07.105639977Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:07.109520422Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:08.105075785Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:08.109505836Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:09.105770244Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:09.10974901Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:10.111013905Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:10.114735315Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:11.106975898Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:11.110896887Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:12.104675025Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:12.108486716Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:13.10928091Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:13.113157204Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:14.108289021Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:14.112208439Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:15.104019034Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:15.107949524Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:16.105928169Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:16.109832133Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:17.10362004Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:17.107517127Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:18.110481634Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:18.114364594Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:19.104628149Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:19.111943518Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:20.105736077Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:20.109362104Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:21.106835883Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:21.110602611Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:22.104700124Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:22.1083367Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:23.109639337Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:23.113311459Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:24.107968202Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:24.111722478Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:25.108220397Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:25.112071601Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:26.107984772Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:26.111598311Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:27.106647817Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:27.110760992Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:28.107733811Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:28.113682382Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:29.11166402Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:29.115452047Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:30.107542055Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:30.111273307Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:31.112794897Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:31.117238035Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:32.106742154Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:32.110438374Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:33.10777673Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:33.111707696Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:34.107762974Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:34.113297284Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:35.108406449Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:35.112083697Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:36.105204725Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:36.10900316Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:37.104919307Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:37.110417804Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:38.105977708Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:38.109663347Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:39.106920807Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:39.110770061Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:40.105498343Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:40.110094091Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:41.105642522Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:41.10942818Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:42.104639129Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:42.108232927Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:43.106001373Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:43.109601528Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:44.104634267Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:44.108425676Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:45.104439298Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:45.108130084Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:46.105570698Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:46.109115583Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:47.107917419Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:47.111814011Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:48.106769708Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:48.110303553Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:49.111183786Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:49.114913835Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:50.113225139Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:50.117028349Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:51.107808717Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:51.111784629Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:52.106553238Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:52.110239984Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:53.106407748Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:53.110403748Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:54.109820807Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:54.113407003Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:55.116754272Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:55.120583465Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:56.106767394Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:56.117522527Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:57.11216037Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:57.11582612Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:58.105343625Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:58.109035179Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:22:59.106776717Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:22:59.110291478Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:00.106535679Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:00.110415417Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:01.106085196Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:01.112001281Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:02.105031068Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:02.109090212Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:03.11946683Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:03.123351597Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:04.107524055Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:04.111277722Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:05.105875776Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:05.109785393Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:06.105966243Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:06.11002079Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:07.106211142Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:07.109768103Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:08.113567611Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:08.117092681Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:09.105462349Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:09.109289393Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:10.107961379Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:10.112298469Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:11.107963981Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:11.111573624Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:12.103476999Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:12.107343618Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:13.107776338Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:13.111376081Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:14.107811323Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:14.111573775Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:15.110075047Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:15.113749839Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:16.105690618Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:16.111487853Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:17.104853033Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:17.108615221Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:18.106516019Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:18.110282634Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:19.108880778Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:19.112472184Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:20.103873467Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:20.107502298Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:21.108239153Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:21.112000203Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:22.116096855Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:22.120406394Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:23.105227421Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:23.108812057Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:24.106688112Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:24.11039374Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:25.107134863Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:25.11086205Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:26.107935892Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:26.111639681Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:27.105230285Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:27.109003528Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:28.108300128Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:28.11198653Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:29.104974869Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:29.108957157Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:30.10617528Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:30.109998416Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:31.103928127Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:31.107619897Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:32.10769387Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:32.111437284Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:33.107710077Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:33.111521953Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:34.106643942Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:34.110409338Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:35.106473367Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:35.110132961Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:36.106612756Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:36.112570807Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:37.106524588Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:37.110276308Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:38.107410248Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:38.111177772Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:39.104912501Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:39.108598394Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:40.104936662Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:40.110233083Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:41.105955974Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:41.109676719Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:42.110188256Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:42.113948822Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:43.104875283Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:23:43.108310238Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:23:43.125006805Z","level":"INFO","msg":"Detected GPU activity for job, transitioning to RUNNING","jobID":"elastic-r2","pids":[2164168]}
+{"time":"2026-08-06T03:25:12.124494972Z","level":"INFO","msg":"Snapshot called","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T03:25:12.124603438Z","level":"INFO","msg":"Background: Starting snapshot","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T03:25:12.124628954Z","level":"INFO","msg":"Snapshotting PIDs","pids":["2167075","2167608","2167865"],"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T03:25:12.125236079Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:13.126099217Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:14.126967949Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:15.127727368Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:16.128604001Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:17.129490534Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:18.130392569Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:19.131177752Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:20.131975389Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:21.132728715Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:22.133493906Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:23.134253996Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:24.13501691Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:25.135688922Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:26.136441322Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:27.137222376Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:28.137999066Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:29.138813505Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:30.139589675Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:31.14035666Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:32.141170484Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:33.141967118Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:34.142740578Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:35.143504247Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:36.144298806Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:37.145143599Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:38.145930536Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:39.146667752Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:40.147384367Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:25:40.714213516Z","level":"INFO","msg":"cuda-checkpoint action took","duration":28589564621,"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T03:25:41.14818599Z","level":"INFO","msg":"GetOperation called","operationID":"0ee77fd1-e7db-4e77-a495-a20e29951d24","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T03:45:51.879066701Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-4tmp2","jobID":"elastic-trainer","group":""}
+{"time":"2026-08-06T03:45:52.107083726Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-06T03:45:52.111792757Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-06T03:45:52.131975002Z","level":"INFO","msg":"Detected GPU activity for job, transitioning to RUNNING","jobID":"elastic-trainer","pids":[2162544,2164168,2171457]}
+{"time":"2026-08-06T03:51:07.263995306Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+{"time":"2026-08-06T04:01:55.446083256Z","level":"INFO","msg":"Snapshot called","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:01:55.446167148Z","level":"INFO","msg":"Background: Starting snapshot","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:01:55.44620685Z","level":"INFO","msg":"Snapshotting PIDs","pids":["2171457"],"ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:01:55.446620186Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:01:56.447358218Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:01:57.448523231Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:01:58.449615296Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:01:59.450398367Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:00.451240744Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:01.452074381Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:02.452841019Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:03.453600218Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:04.45440838Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:05.455320175Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:06.456139442Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:07.456902954Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:08.457805805Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:09.458585119Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:10.459378638Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:11.330748637Z","level":"INFO","msg":"cuda-checkpoint action took","duration":15884525161,"ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:02:11.460218421Z","level":"INFO","msg":"GetOperation called","operationID":"4ffe9297-d4ee-482a-973c-a95ed3a7150d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:11.470665692Z","level":"INFO","msg":"Restore called","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:02:11.470745212Z","level":"INFO","msg":"Background: Starting restore","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:02:11.470787028Z","level":"INFO","msg":"Restoring PIDs","pids":["2167075","2167608","2167865"],"backend":"cuda","ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:02:11.470804074Z","level":"INFO","msg":"Restoring PIDs","pids":["2167075","2167608","2167865"],"ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:02:11.471146312Z","level":"INFO","msg":"GetOperation called","operationID":"560fea08-e8e1-4d4f-8938-f1dc4db85eae","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:12.471903379Z","level":"INFO","msg":"GetOperation called","operationID":"560fea08-e8e1-4d4f-8938-f1dc4db85eae","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:13.472685482Z","level":"INFO","msg":"GetOperation called","operationID":"560fea08-e8e1-4d4f-8938-f1dc4db85eae","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:14.473441437Z","level":"INFO","msg":"GetOperation called","operationID":"560fea08-e8e1-4d4f-8938-f1dc4db85eae","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:15.474288434Z","level":"INFO","msg":"GetOperation called","operationID":"560fea08-e8e1-4d4f-8938-f1dc4db85eae","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:16.475054391Z","level":"INFO","msg":"GetOperation called","operationID":"560fea08-e8e1-4d4f-8938-f1dc4db85eae","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:17.475827315Z","level":"INFO","msg":"GetOperation called","operationID":"560fea08-e8e1-4d4f-8938-f1dc4db85eae","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:18.476626435Z","level":"INFO","msg":"GetOperation called","operationID":"560fea08-e8e1-4d4f-8938-f1dc4db85eae","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:19.477406272Z","level":"INFO","msg":"GetOperation called","operationID":"560fea08-e8e1-4d4f-8938-f1dc4db85eae","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:20.478182805Z","level":"INFO","msg":"GetOperation called","operationID":"560fea08-e8e1-4d4f-8938-f1dc4db85eae","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:21.479008559Z","level":"INFO","msg":"GetOperation called","operationID":"560fea08-e8e1-4d4f-8938-f1dc4db85eae","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:21.479413326Z","level":"INFO","msg":"cuda-checkpoint toggle took","duration":10008595141,"pids":["2167075","2167608","2167865"],"ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:02:22.479975915Z","level":"INFO","msg":"GetOperation called","operationID":"560fea08-e8e1-4d4f-8938-f1dc4db85eae","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:02:59.712256112Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+{"time":"2026-08-06T04:05:30.772309275Z","level":"INFO","msg":"Snapshot called","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:05:30.772384645Z","level":"INFO","msg":"Background: Starting snapshot","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:05:30.772438187Z","level":"INFO","msg":"Snapshotting PIDs","pids":["2167075","2167608","2167865"],"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:05:30.772822947Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:31.773528382Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:32.774331264Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:33.775090907Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:34.775857789Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:35.776716388Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:36.777461961Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:37.778252723Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:38.779019165Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:39.779760488Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:40.780494413Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:41.781300836Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:42.782042595Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:43.782790976Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:44.783592865Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:45.784340738Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:46.785069424Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:47.785893276Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:48.786798015Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:49.787722724Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:50.78851335Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:51.789382461Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:52.79029786Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:53.791184943Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:54.792143841Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:55.793055699Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:56.793978247Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:57.794757909Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:58.796005258Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:59.509570411Z","level":"INFO","msg":"cuda-checkpoint action took","duration":28737114187,"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:05:59.796872219Z","level":"INFO","msg":"GetOperation called","operationID":"eefe57da-ab6c-4017-9d6c-52904af77eb9","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:05:59.802855588Z","level":"INFO","msg":"Restore called","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:05:59.802928331Z","level":"INFO","msg":"Background: Starting restore","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:05:59.802970392Z","level":"INFO","msg":"Restoring PIDs","pids":["2171457"],"backend":"cuda","ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:05:59.802986607Z","level":"INFO","msg":"Restoring PIDs","pids":["2171457"],"ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:05:59.803374406Z","level":"INFO","msg":"GetOperation called","operationID":"9dbec771-55fd-41b3-abbc-a29c0e58b4ce","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:06:00.804124515Z","level":"INFO","msg":"GetOperation called","operationID":"9dbec771-55fd-41b3-abbc-a29c0e58b4ce","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:06:01.805012292Z","level":"INFO","msg":"GetOperation called","operationID":"9dbec771-55fd-41b3-abbc-a29c0e58b4ce","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:06:02.805806609Z","level":"INFO","msg":"GetOperation called","operationID":"9dbec771-55fd-41b3-abbc-a29c0e58b4ce","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:06:03.806692776Z","level":"INFO","msg":"GetOperation called","operationID":"9dbec771-55fd-41b3-abbc-a29c0e58b4ce","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:06:04.807504865Z","level":"INFO","msg":"GetOperation called","operationID":"9dbec771-55fd-41b3-abbc-a29c0e58b4ce","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:06:05.192168383Z","level":"INFO","msg":"cuda-checkpoint toggle took","duration":5389167950,"pids":["2171457"],"ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:06:05.808301508Z","level":"INFO","msg":"GetOperation called","operationID":"9dbec771-55fd-41b3-abbc-a29c0e58b4ce","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:11:47.847799714Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+{"time":"2026-08-06T04:19:51.668394406Z","level":"INFO","msg":"Snapshot called","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:19:51.668466839Z","level":"INFO","msg":"Background: Starting snapshot","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:19:51.668523686Z","level":"INFO","msg":"Snapshotting PIDs","pids":["2171457"],"ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:19:51.668954466Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:19:52.669754816Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:19:53.670501537Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:19:54.671315579Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:19:55.672129622Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:19:56.6729448Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:19:57.67367888Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:19:58.674410156Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:19:59.675285102Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:00.676094352Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:01.676950416Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:02.677787815Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:03.67850853Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:04.679258502Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:05.680576711Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:06.681354669Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:07.49713995Z","level":"INFO","msg":"cuda-checkpoint action took","duration":15828597444,"ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:20:07.682207521Z","level":"INFO","msg":"GetOperation called","operationID":"cad2c49e-8bed-4a37-bb01-12c4c62014f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:07.721403345Z","level":"INFO","msg":"Restore called","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:20:07.721468649Z","level":"INFO","msg":"Background: Starting restore","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:20:07.721518088Z","level":"INFO","msg":"Restoring PIDs","pids":["2167075","2167608","2167865"],"backend":"cuda","ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:20:07.721528991Z","level":"INFO","msg":"Restoring PIDs","pids":["2167075","2167608","2167865"],"ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:20:07.721869124Z","level":"INFO","msg":"GetOperation called","operationID":"2cdc828a-9b7c-40f0-964c-bfd3e291d205","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:08.722631265Z","level":"INFO","msg":"GetOperation called","operationID":"2cdc828a-9b7c-40f0-964c-bfd3e291d205","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:09.72343885Z","level":"INFO","msg":"GetOperation called","operationID":"2cdc828a-9b7c-40f0-964c-bfd3e291d205","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:10.724214494Z","level":"INFO","msg":"GetOperation called","operationID":"2cdc828a-9b7c-40f0-964c-bfd3e291d205","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:11.725016662Z","level":"INFO","msg":"GetOperation called","operationID":"2cdc828a-9b7c-40f0-964c-bfd3e291d205","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:12.72582566Z","level":"INFO","msg":"GetOperation called","operationID":"2cdc828a-9b7c-40f0-964c-bfd3e291d205","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:13.726614368Z","level":"INFO","msg":"GetOperation called","operationID":"2cdc828a-9b7c-40f0-964c-bfd3e291d205","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:14.727336323Z","level":"INFO","msg":"GetOperation called","operationID":"2cdc828a-9b7c-40f0-964c-bfd3e291d205","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:15.72809292Z","level":"INFO","msg":"GetOperation called","operationID":"2cdc828a-9b7c-40f0-964c-bfd3e291d205","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:16.728905395Z","level":"INFO","msg":"GetOperation called","operationID":"2cdc828a-9b7c-40f0-964c-bfd3e291d205","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:17.729652596Z","level":"INFO","msg":"GetOperation called","operationID":"2cdc828a-9b7c-40f0-964c-bfd3e291d205","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:20:17.827565943Z","level":"INFO","msg":"cuda-checkpoint toggle took","duration":10106019861,"pids":["2167075","2167608","2167865"],"ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:20:18.730370279Z","level":"INFO","msg":"GetOperation called","operationID":"2cdc828a-9b7c-40f0-964c-bfd3e291d205","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:21:06.518683069Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+{"time":"2026-08-06T04:23:02.521332008Z","level":"INFO","msg":"Snapshot called","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:23:02.521398499Z","level":"INFO","msg":"Background: Starting snapshot","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:23:02.521444925Z","level":"INFO","msg":"Snapshotting PIDs","pids":["2167075","2167608","2167865"],"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:23:02.521906186Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:03.522688136Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:04.523387384Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:05.524169766Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:06.524984272Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:07.525805365Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:08.526613478Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:09.527432963Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:10.528297414Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:11.529164001Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:12.529962704Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:13.530751004Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:14.531597067Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:15.532443584Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:16.533249178Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:17.534236124Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:18.535066589Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:19.535934962Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:20.536759488Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:21.537604295Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:22.538360154Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:23.539193106Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:24.540040356Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:25.540852289Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:26.541610275Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:27.542437596Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:28.54326657Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:29.544118753Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:30.544951811Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:31.147361145Z","level":"INFO","msg":"cuda-checkpoint action took","duration":28625902643,"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:23:31.545727213Z","level":"INFO","msg":"GetOperation called","operationID":"3b574843-8ab0-4d65-90fb-ad9534094497","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:31.551479859Z","level":"INFO","msg":"Restore called","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:23:31.551543239Z","level":"INFO","msg":"Background: Starting restore","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:23:31.551597188Z","level":"INFO","msg":"Restoring PIDs","pids":["2171457"],"backend":"cuda","ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:23:31.551609Z","level":"INFO","msg":"Restoring PIDs","pids":["2171457"],"ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:23:31.55192292Z","level":"INFO","msg":"GetOperation called","operationID":"d602ea62-1f8c-4d11-a2a7-120a73c66ebb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:32.552688742Z","level":"INFO","msg":"GetOperation called","operationID":"d602ea62-1f8c-4d11-a2a7-120a73c66ebb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:33.553604672Z","level":"INFO","msg":"GetOperation called","operationID":"d602ea62-1f8c-4d11-a2a7-120a73c66ebb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:34.55436469Z","level":"INFO","msg":"GetOperation called","operationID":"d602ea62-1f8c-4d11-a2a7-120a73c66ebb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:35.555187914Z","level":"INFO","msg":"GetOperation called","operationID":"d602ea62-1f8c-4d11-a2a7-120a73c66ebb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:36.555994711Z","level":"INFO","msg":"GetOperation called","operationID":"d602ea62-1f8c-4d11-a2a7-120a73c66ebb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:23:36.869165673Z","level":"INFO","msg":"cuda-checkpoint toggle took","duration":5317544513,"pids":["2171457"],"ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:23:37.556778015Z","level":"INFO","msg":"GetOperation called","operationID":"d602ea62-1f8c-4d11-a2a7-120a73c66ebb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:28:34.718175523Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+{"time":"2026-08-06T04:37:50.715745799Z","level":"INFO","msg":"Snapshot called","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:37:50.715862626Z","level":"INFO","msg":"Background: Starting snapshot","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:37:50.715915849Z","level":"INFO","msg":"Snapshotting PIDs","pids":["2171457"],"ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:37:50.716364387Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:37:51.717097659Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:37:52.717890935Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:37:53.718610248Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:37:54.719345125Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:37:55.720131066Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:37:56.720921449Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:37:57.721733004Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:37:58.722608976Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:37:59.7234946Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:00.724411104Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:01.725255727Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:02.726169563Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:03.726916442Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:04.727665Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:05.728406725Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:06.72912045Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:06.834481242Z","level":"INFO","msg":"cuda-checkpoint action took","duration":16118551618,"ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:38:07.729872091Z","level":"INFO","msg":"GetOperation called","operationID":"962f5bfe-f41e-4fde-8f5f-e755cf32db85","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:07.764471023Z","level":"INFO","msg":"Restore called","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:38:07.764530895Z","level":"INFO","msg":"Background: Starting restore","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:38:07.76457654Z","level":"INFO","msg":"Restoring PIDs","pids":["2167075","2167608","2167865"],"backend":"cuda","ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:38:07.764593192Z","level":"INFO","msg":"Restoring PIDs","pids":["2167075","2167608","2167865"],"ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:38:07.764917596Z","level":"INFO","msg":"GetOperation called","operationID":"a6704370-b38a-488d-8cac-707ea3fede4d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:08.76559709Z","level":"INFO","msg":"GetOperation called","operationID":"a6704370-b38a-488d-8cac-707ea3fede4d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:09.766390431Z","level":"INFO","msg":"GetOperation called","operationID":"a6704370-b38a-488d-8cac-707ea3fede4d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:10.767123867Z","level":"INFO","msg":"GetOperation called","operationID":"a6704370-b38a-488d-8cac-707ea3fede4d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:11.767895962Z","level":"INFO","msg":"GetOperation called","operationID":"a6704370-b38a-488d-8cac-707ea3fede4d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:12.768989234Z","level":"INFO","msg":"GetOperation called","operationID":"a6704370-b38a-488d-8cac-707ea3fede4d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:13.770015031Z","level":"INFO","msg":"GetOperation called","operationID":"a6704370-b38a-488d-8cac-707ea3fede4d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:14.770774697Z","level":"INFO","msg":"GetOperation called","operationID":"a6704370-b38a-488d-8cac-707ea3fede4d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:15.771666365Z","level":"INFO","msg":"GetOperation called","operationID":"a6704370-b38a-488d-8cac-707ea3fede4d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:16.772483493Z","level":"INFO","msg":"GetOperation called","operationID":"a6704370-b38a-488d-8cac-707ea3fede4d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:38:17.558057293Z","level":"INFO","msg":"cuda-checkpoint toggle took","duration":9793450121,"pids":["2167075","2167608","2167865"],"ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:38:17.773247247Z","level":"INFO","msg":"GetOperation called","operationID":"a6704370-b38a-488d-8cac-707ea3fede4d","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:39:05.108084549Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+{"time":"2026-08-06T04:41:01.392906758Z","level":"INFO","msg":"Snapshot called","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:41:01.392981465Z","level":"INFO","msg":"Background: Starting snapshot","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:41:01.393024886Z","level":"INFO","msg":"Snapshotting PIDs","pids":["2167075","2167608","2167865"],"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:41:01.393481368Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:02.394218542Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:03.395101438Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:04.39589372Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:05.396683201Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:06.397599008Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:07.398376757Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:08.399127159Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:09.399985836Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:10.400837922Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:11.401642091Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:12.402420018Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:13.403309044Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:14.404036908Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:15.404787008Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:16.40548633Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:17.406260971Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:18.407139993Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:19.407968715Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:20.408850452Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:21.409680986Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:22.410622333Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:23.411378315Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:24.41219788Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:25.412990684Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:26.413771767Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:27.414602282Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:28.415394555Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:29.416136707Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:30.324013509Z","level":"INFO","msg":"cuda-checkpoint action took","duration":28930972745,"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:41:30.416907575Z","level":"INFO","msg":"GetOperation called","operationID":"ad86222e-3a17-462a-9bd6-052e3955e56e","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:30.423454711Z","level":"INFO","msg":"Restore called","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:41:30.423525354Z","level":"INFO","msg":"Background: Starting restore","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:41:30.423605243Z","level":"INFO","msg":"Restoring PIDs","pids":["2171457"],"backend":"cuda","ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:41:30.423623181Z","level":"INFO","msg":"Restoring PIDs","pids":["2171457"],"ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:41:30.424009237Z","level":"INFO","msg":"GetOperation called","operationID":"c212395c-0def-420d-bff7-be21646db12c","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:31.424731494Z","level":"INFO","msg":"GetOperation called","operationID":"c212395c-0def-420d-bff7-be21646db12c","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:32.425661927Z","level":"INFO","msg":"GetOperation called","operationID":"c212395c-0def-420d-bff7-be21646db12c","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:33.426466388Z","level":"INFO","msg":"GetOperation called","operationID":"c212395c-0def-420d-bff7-be21646db12c","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:34.427538306Z","level":"INFO","msg":"GetOperation called","operationID":"c212395c-0def-420d-bff7-be21646db12c","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:35.42840053Z","level":"INFO","msg":"GetOperation called","operationID":"c212395c-0def-420d-bff7-be21646db12c","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:41:35.789841527Z","level":"INFO","msg":"cuda-checkpoint toggle took","duration":5366203350,"pids":["2171457"],"ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:41:36.42918698Z","level":"INFO","msg":"GetOperation called","operationID":"c212395c-0def-420d-bff7-be21646db12c","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:46:33.718153583Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+{"time":"2026-08-06T04:54:16.54019634Z","level":"INFO","msg":"Snapshot called","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:54:16.540292106Z","level":"INFO","msg":"Background: Starting snapshot","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:54:16.540337966Z","level":"INFO","msg":"Snapshotting PIDs","pids":["2171457"],"ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:54:16.540792862Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:17.541716761Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:18.542802959Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:19.543738308Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:20.544505735Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:21.545275769Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:22.546099108Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:23.546941398Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:24.54777124Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:25.54860435Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:26.549328472Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:27.55009866Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:28.550980236Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:29.551805993Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:30.552631897Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:31.553480526Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:32.318403024Z","level":"INFO","msg":"cuda-checkpoint action took","duration":15778050100,"ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:54:32.554256309Z","level":"INFO","msg":"GetOperation called","operationID":"9a1a4cf7-8f4d-4ceb-8c16-4897be9a2ecb","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:32.592970253Z","level":"INFO","msg":"Restore called","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:54:32.593055533Z","level":"INFO","msg":"Background: Starting restore","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:54:32.593089773Z","level":"INFO","msg":"Restoring PIDs","pids":["2167075","2167608","2167865"],"backend":"cuda","ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:54:32.593101536Z","level":"INFO","msg":"Restoring PIDs","pids":["2167075","2167608","2167865"],"ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:54:32.593478433Z","level":"INFO","msg":"GetOperation called","operationID":"c32ef20c-3527-4428-bcb7-279ef35bc740","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:33.594211068Z","level":"INFO","msg":"GetOperation called","operationID":"c32ef20c-3527-4428-bcb7-279ef35bc740","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:34.595042889Z","level":"INFO","msg":"GetOperation called","operationID":"c32ef20c-3527-4428-bcb7-279ef35bc740","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:35.595896982Z","level":"INFO","msg":"GetOperation called","operationID":"c32ef20c-3527-4428-bcb7-279ef35bc740","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:36.596673638Z","level":"INFO","msg":"GetOperation called","operationID":"c32ef20c-3527-4428-bcb7-279ef35bc740","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:37.597471292Z","level":"INFO","msg":"GetOperation called","operationID":"c32ef20c-3527-4428-bcb7-279ef35bc740","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:38.598414209Z","level":"INFO","msg":"GetOperation called","operationID":"c32ef20c-3527-4428-bcb7-279ef35bc740","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:39.599183728Z","level":"INFO","msg":"GetOperation called","operationID":"c32ef20c-3527-4428-bcb7-279ef35bc740","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:40.599975926Z","level":"INFO","msg":"GetOperation called","operationID":"c32ef20c-3527-4428-bcb7-279ef35bc740","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:41.600738746Z","level":"INFO","msg":"GetOperation called","operationID":"c32ef20c-3527-4428-bcb7-279ef35bc740","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:42.601552084Z","level":"INFO","msg":"GetOperation called","operationID":"c32ef20c-3527-4428-bcb7-279ef35bc740","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:54:42.608897349Z","level":"INFO","msg":"cuda-checkpoint toggle took","duration":10015787133,"pids":["2167075","2167608","2167865"],"ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:54:43.602428329Z","level":"INFO","msg":"GetOperation called","operationID":"c32ef20c-3527-4428-bcb7-279ef35bc740","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:55:31.085121454Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+{"time":"2026-08-06T04:57:57.464122953Z","level":"INFO","msg":"Snapshot called","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:57:57.464201604Z","level":"INFO","msg":"Background: Starting snapshot","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:57:57.464252008Z","level":"INFO","msg":"Snapshotting PIDs","pids":["2167075","2167608","2167865"],"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:57:57.464763006Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:57:58.465650928Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:57:59.46648785Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:00.467373073Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:01.468296362Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:02.469113066Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:03.469865491Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:04.470616465Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:05.471445574Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:06.47236602Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:07.47321232Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:08.47397237Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:09.474853023Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:10.475614265Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:11.476343318Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:12.477143938Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:13.47796387Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:14.478719628Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:15.479473511Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:16.480291669Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:17.481170703Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:18.482256411Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:19.483287758Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:20.484061629Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:21.484863178Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:22.485642057Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:23.486418303Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:24.487169186Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:25.487957402Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:26.010728914Z","level":"INFO","msg":"cuda-checkpoint action took","duration":28546458113,"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T04:58:26.488703451Z","level":"INFO","msg":"GetOperation called","operationID":"ac356fb9-9641-43b7-a06b-82e6421c80de","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:26.494950524Z","level":"INFO","msg":"Restore called","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:58:26.495014182Z","level":"INFO","msg":"Background: Starting restore","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:58:26.495049591Z","level":"INFO","msg":"Restoring PIDs","pids":["2171457"],"backend":"cuda","ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:58:26.495060193Z","level":"INFO","msg":"Restoring PIDs","pids":["2171457"],"ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:58:26.495395846Z","level":"INFO","msg":"GetOperation called","operationID":"86304a9a-bb31-402a-83bd-407b2a2ef305","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:27.496086005Z","level":"INFO","msg":"GetOperation called","operationID":"86304a9a-bb31-402a-83bd-407b2a2ef305","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:28.496826005Z","level":"INFO","msg":"GetOperation called","operationID":"86304a9a-bb31-402a-83bd-407b2a2ef305","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:29.497671309Z","level":"INFO","msg":"GetOperation called","operationID":"86304a9a-bb31-402a-83bd-407b2a2ef305","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:30.49858294Z","level":"INFO","msg":"GetOperation called","operationID":"86304a9a-bb31-402a-83bd-407b2a2ef305","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:31.49932703Z","level":"INFO","msg":"GetOperation called","operationID":"86304a9a-bb31-402a-83bd-407b2a2ef305","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T04:58:31.919113367Z","level":"INFO","msg":"cuda-checkpoint toggle took","duration":5424043722,"pids":["2171457"],"ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T04:58:32.500058843Z","level":"INFO","msg":"GetOperation called","operationID":"86304a9a-bb31-402a-83bd-407b2a2ef305","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T05:03:59.242996331Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+{"time":"2026-08-06T05:21:59.463678834Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}

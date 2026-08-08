@@ -1,0 +1,39 @@
+[2026-08-06T03:46:07Z] [cycles] waiting for steady state (>=3 param syncs)...
+[2026-08-06T03:51:07Z] [cycles] steady state: 4 param syncs
+[2026-08-06T03:51:07Z] [cycles] waiting for agent job elastic-trainer to be RUNNING (operator relabel)...
+agent jobs: {'elastic-r2': 'JOB_STATE_SAVED', 'elastic-trainer': 'JOB_STATE_RUNNING'}
+[2026-08-06T03:51:07Z] [cycles] elastic-trainer RUNNING confirmed
+[2026-08-06T03:51:07Z] [cycles] baseline mq capture (120s)
+[2026-08-06T03:53:16Z] [cycles] === cycle 1: waiting for a fresh gen-wait block ===
+[2026-08-06T04:01:44Z] [cycles] cycle 1: gen-wait open (collected=26/64); switch-to-rollout
+[2026-08-06T04:02:25Z] [cycles] cycle 1: switch-to-rollout rc=0
+[2026-08-06T04:02:25Z] [cycles] cycle 1: R2 active; holding until collected>=56/64 or 600s
+[2026-08-06T04:05:15Z] [cycles] cycle 1: collected=57/64 — batch near-ready, switching back
+[2026-08-06T04:05:17Z] [cycles] cycle 1: switch-to-trainer
+[2026-08-06T04:06:08Z] [cycles] cycle 1: switch-to-trainer rc=0
+[2026-08-06T04:11:38Z] [cycles] cycle 1: step completed, param_sync ok (total 8)
+[2026-08-06T04:11:50Z] [cycles] === cycle 2: waiting for a fresh gen-wait block ===
+[2026-08-06T04:19:50Z] [cycles] cycle 2: gen-wait open (collected=35/64); switch-to-rollout
+[2026-08-06T04:20:32Z] [cycles] cycle 2: switch-to-rollout rc=0
+[2026-08-06T04:20:32Z] [cycles] cycle 2: R2 active; holding until collected>=56/64 or 600s
+[2026-08-06T04:22:47Z] [cycles] cycle 2: collected=56/64 — batch near-ready, switching back
+[2026-08-06T04:22:49Z] [cycles] cycle 2: switch-to-trainer
+[2026-08-06T04:23:40Z] [cycles] cycle 2: switch-to-trainer rc=0
+[2026-08-06T04:28:25Z] [cycles] cycle 2: step completed, param_sync ok (total 12)
+[2026-08-06T04:28:36Z] [cycles] === cycle 3: waiting for a fresh gen-wait block ===
+[2026-08-06T04:37:49Z] [cycles] cycle 3: gen-wait open (collected=29/64); switch-to-rollout
+[2026-08-06T04:38:30Z] [cycles] cycle 3: switch-to-rollout rc=0
+[2026-08-06T04:38:30Z] [cycles] cycle 3: R2 active; holding until collected>=56/64 or 600s
+[2026-08-06T04:40:45Z] [cycles] cycle 3: collected=57/64 — batch near-ready, switching back
+[2026-08-06T04:40:48Z] [cycles] cycle 3: switch-to-trainer
+[2026-08-06T04:41:39Z] [cycles] cycle 3: switch-to-trainer rc=0
+[2026-08-06T04:46:24Z] [cycles] cycle 3: step completed, param_sync ok (total 16)
+[2026-08-06T04:46:35Z] [cycles] === cycle 4: waiting for a fresh gen-wait block ===
+[2026-08-06T04:54:15Z] [cycles] cycle 4: gen-wait open (collected=28/64); switch-to-rollout
+[2026-08-06T04:54:56Z] [cycles] cycle 4: switch-to-rollout rc=0
+[2026-08-06T04:54:56Z] [cycles] cycle 4: R2 active; holding until collected>=56/64 or 600s
+[2026-08-06T04:57:41Z] [cycles] cycle 4: collected=57/64 — batch near-ready, switching back
+[2026-08-06T04:57:44Z] [cycles] cycle 4: switch-to-trainer
+[2026-08-06T04:58:35Z] [cycles] cycle 4: switch-to-trainer rc=0
+[2026-08-06T05:03:50Z] [cycles] cycle 4: step completed, param_sync ok (total 20)
+[2026-08-06T05:04:01Z] [cycles] cycle driver done: 4/4 cycles completed

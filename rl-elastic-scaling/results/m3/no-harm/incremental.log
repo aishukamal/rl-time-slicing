@@ -1,0 +1,176 @@
+===== POLL 2026-08-08T04:08:20Z pod= =====
+(no running elastic-m3c pod)
+
+===== POLL 2026-08-08T04:28:21Z pod=elastic-m3c-control-rzffj =====
+phase=Running label=elastic-r2
+--- last policy lines ---
+--- last steps: gen-wait vs step decomposition ---
+timing_s/step:40.3424770059064
+Requesting 64 samples
+sample collected 64/64.
+step:11 - 
+step:11 - 
+timing_s/gen:9.837170570041053
+timing_s/update_actor:22.42164964193944
+timing_s/step:42.903770881006494
+Requesting 64 samples
+sample collected 64/64.
+--- decisions/switches ---
+1
+
+===== POLL 2026-08-08T04:48:28Z pod=elastic-m3c-control-rzffj =====
+phase=Running label=elastic-r2
+--- last policy lines ---
+--- last steps: gen-wait vs step decomposition ---
+timing_s/step:44.32658203097526
+Requesting 64 samples
+sample collected 64/64.
+step:40 - 
+step:40 - 
+timing_s/gen:11.363179206033237
+timing_s/update_actor:22.01221446308773
+timing_s/step:42.84211320907343
+Requesting 64 samples
+sample collected 64/64.
+--- decisions/switches ---
+1
+
+===== POLL 2026-08-08T05:08:36Z pod=elastic-m3c-control-rzffj =====
+phase=Running label=elastic-r2
+--- last policy lines ---
+--- last steps: gen-wait vs step decomposition ---
+timing_s/step:42.56119968101848
+Requesting 64 samples
+sample collected 64/64.
+step:68 - 
+step:68 - 
+timing_s/gen:10.412301750970073
+timing_s/update_actor:21.8625662450213
+timing_s/step:42.15962573105935
+Requesting 64 samples
+sample collected 64/64.
+--- decisions/switches ---
+1
+
+===== POLL 2026-08-08T05:28:44Z pod=elastic-m3c-control-rzffj =====
+phase=Running label=elastic-r2
+--- last policy lines ---
+--- last steps: gen-wait vs step decomposition ---
+timing_s/update_actor:21.523176018032245
+timing_s/step:36.250734045985155
+Requesting 64 samples
+sample collected 64/64.
+step:80 - 
+step:80 - 
+timing_s/gen:14.275805982993916
+timing_s/update_actor:21.623635320924222
+timing_s/step:41.8080758319702
+Requesting 64 samples
+--- decisions/switches ---
+1
+
+===== POLL 2026-08-08T05:48:53Z pod=elastic-m3c-armed-6lcrx =====
+phase=Running label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T05:46:04.182+00:00] [policy] waiting for steady state (>= 3 param syncs)...
+--- last steps: gen-wait vs step decomposition ---
+step:0 - 
+Requesting 64 samples
+sample collected 64/64.
+--- decisions/switches ---
+1 /workspace/results/decisions.jsonl
+1
+
+===== POLL 2026-08-08T06:09:00Z pod=elastic-m3c-armed-6lcrx =====
+phase=Running label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T05:52:48.911+00:00] [policy] auto-live held: 3 dry steps done but 0 would-in decisions yet (need >=1 for alignment; failsafe at 4 steps)
+[2026-08-08T05:52:50.916+00:00] [policy] auto-live held: 3 dry steps done but 0 would-in decisions yet (need >=1 for alignment; failsafe at 4 steps)
+[2026-08-08T05:52:52.921+00:00] [policy] auto-live held: 3 dry steps done but 0 would-in decisions yet (need >=1 for alignment; failsafe at 4 steps)
+[2026-08-08T05:52:54.926+00:00] [policy] LIVE mode enabled after 4 dry-run steps (would_in=0, would_back=0, via=auto_failsafe_no_would_in)
+[2026-08-08T06:00:20.041+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=296 decisions=298 would_in/back=0/0 live_in/back=0/0 cycles_verified=0 param_syncs=17 steps=15 last_action=mode_change@2026-08-08T05:52:54.926+00:00
+--- last steps: gen-wait vs step decomposition ---
+timing_s/step:34.542967761983164
+Requesting 64 samples
+sample collected 64/64.
+step:28 - 
+step:28 - 
+timing_s/gen:18.3306714160135
+timing_s/update_actor:21.9132853099145
+timing_s/step:46.20906376396306
+Requesting 64 samples
+sample collected 64/64.
+--- decisions/switches ---
+561 /workspace/results/decisions.jsonl
+1
+
+===== POLL 2026-08-08T06:29:08Z pod=elastic-m3c-armed-6lcrx =====
+phase=Running label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T06:00:20.041+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=296 decisions=298 would_in/back=0/0 live_in/back=0/0 cycles_verified=0 param_syncs=17 steps=15 last_action=mode_change@2026-08-08T05:52:54.926+00:00
+[2026-08-08T06:10:21.599+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=596 decisions=598 would_in/back=0/0 live_in/back=0/0 cycles_verified=0 param_syncs=31 steps=29 last_action=mode_change@2026-08-08T05:52:54.926+00:00
+[2026-08-08T06:20:23.108+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=896 decisions=898 would_in/back=0/0 live_in/back=0/0 cycles_verified=0 param_syncs=45 steps=43 last_action=mode_change@2026-08-08T05:52:54.926+00:00
+--- last steps: gen-wait vs step decomposition ---
+timing_s/update_actor:22.37269691308029
+timing_s/step:42.111785748042166
+Requesting 64 samples
+sample collected 64/64.
+step:57 - 
+step:57 - 
+timing_s/gen:11.281355942017399
+timing_s/update_actor:22.123333585914224
+timing_s/step:39.18154732696712
+Requesting 64 samples
+--- decisions/switches ---
+1164 /workspace/results/decisions.jsonl
+1
+
+===== POLL 2026-08-08T06:49:16Z pod=elastic-m3c-armed-6lcrx =====
+phase=Running label=elastic-trainer
+--- last policy lines ---
+[2026-08-08T06:20:23.108+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=896 decisions=898 would_in/back=0/0 live_in/back=0/0 cycles_verified=0 param_syncs=45 steps=43 last_action=mode_change@2026-08-08T05:52:54.926+00:00
+[2026-08-08T06:30:24.618+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=1196 decisions=1198 would_in/back=0/0 live_in/back=0/0 cycles_verified=0 param_syncs=59 steps=57 last_action=mode_change@2026-08-08T05:52:54.926+00:00
+[2026-08-08T06:40:26.134+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=1496 decisions=1498 would_in/back=0/0 live_in/back=0/0 cycles_verified=0 param_syncs=73 steps=71 last_action=mode_change@2026-08-08T05:52:54.926+00:00
+[2026-08-08T06:45:40.917+00:00] [policy] stop flag seen; exiting cleanly
+--- last steps: gen-wait vs step decomposition ---
+timing_s/update_actor:21.908683701069094
+timing_s/step:48.824762202915736
+Requesting 64 samples
+sample collected 64/64.
+step:80 - 
+step:80 - 
+timing_s/gen:10.535862652002834
+timing_s/update_actor:21.766997666913085
+timing_s/step:40.01699155499227
+Requesting 64 samples
+--- decisions/switches ---
+1656 /workspace/results/decisions.jsonl
+1
+
+===== POLL 2026-08-08T07:09:24Z pod= =====
+(no running elastic-m3c pod)
+
+===== POLL 2026-08-08T07:29:25Z pod= =====
+(no running elastic-m3c pod)
+
+===== POLL 2026-08-08T07:49:26Z pod= =====
+(no running elastic-m3c pod)
+
+===== POLL 2026-08-08T08:09:27Z pod= =====
+(no running elastic-m3c pod)
+
+===== POLL 2026-08-08T08:29:28Z pod= =====
+(no running elastic-m3c pod)
+
+===== POLL 2026-08-08T08:49:29Z pod= =====
+(no running elastic-m3c pod)
+
+===== POLL 2026-08-08T09:09:30Z pod= =====
+(no running elastic-m3c pod)
+
+===== POLL 2026-08-08T09:29:31Z pod= =====
+(no running elastic-m3c pod)
+
+===== POLL 2026-08-08T09:49:32Z pod= =====
+(no running elastic-m3c pod)
+

@@ -1,0 +1,110 @@
+===== POLL 2026-08-08T06:57:00Z =====
+m3d-head-l5n95=Running m3d-worker-85vzm=Running 
+--- head last phase/step ---
+=== Setup 1: install verl (pinned, same as M0) ===
+=== Setup 1: install verl (pinned, same as M0) ===
+=== Setup 1b: pyext shim ===
+=== Setup 1b: pyext shim ===
+=== Setup 2: download model (bounded + resume-retry) ===
+=== Setup 2: download model (bounded + resume-retry) ===
+=== Head: prepare dataset ===
+=== Head: prepare dataset ===
+
+===== POLL 2026-08-08T07:17:04Z =====
+m3d-head-l5n95=Running m3d-worker-85vzm=Running 
+--- head last phase/step ---
+=== Head: fully-async code-RLVR, STATIC 1 trainer + 2 rollout engines ===
+=== Head: fully-async code-RLVR, STATIC 1 trainer + 2 rollout engines ===
+step:0 - 
+step:1 - 
+step:2 - 
+step:2 - 
+timing_s/gen:326.20801052695606
+timing_s/step:599.0662226449931
+
+===== POLL 2026-08-08T07:37:09Z =====
+m3d-head-l5n95=Running m3d-worker-85vzm=Running 
+--- head last phase/step ---
+step:4 - 
+step:4 - 
+timing_s/gen:49.87434156797826
+timing_s/step:365.6788738659816
+step:5 - 
+step:5 - 
+timing_s/gen:23.194411574979313
+timing_s/step:328.85533975006547
+
+===== POLL 2026-08-08T07:57:14Z =====
+m3d-head-l5n95=Running m3d-worker-85vzm=Running 
+--- head last phase/step ---
+step:8 - 
+step:8 - 
+timing_s/gen:35.39534631604329
+timing_s/step:322.8384168749908
+step:9 - 
+step:9 - 
+timing_s/gen:26.713231628993526
+timing_s/step:327.5815146820387
+
+===== POLL 2026-08-08T08:17:20Z =====
+m3d-head-l5n95=Running m3d-worker-85vzm=Running 
+--- head last phase/step ---
+step:12 - 
+step:12 - 
+timing_s/gen:12.288024334004149
+timing_s/step:306.22744436806533
+step:13 - 
+step:13 - 
+timing_s/gen:26.08219561795704
+timing_s/step:298.9068718099734
+
+===== POLL 2026-08-08T08:37:25Z =====
+m3d-head-l5n95=Running m3d-worker-85vzm=Running 
+--- head last phase/step ---
+step:16 - 
+step:16 - 
+timing_s/gen:37.96755600103643
+timing_s/step:349.30369793297723
+step:17 - 
+step:17 - 
+timing_s/gen:1.5096099579241127
+timing_s/step:288.98123142507393
+
+===== POLL 2026-08-08T08:57:30Z =====
+m3d-head-l5n95=Running m3d-worker-85vzm=Running 
+--- head last phase/step ---
+step:20 - 
+step:20 - 
+timing_s/gen:15.838765699998476
+timing_s/step:294.7623415979324
+step:21 - 
+step:21 - 
+timing_s/gen:20.642252895981073
+timing_s/step:321.4349326340016
+
+===== POLL 2026-08-08T09:17:36Z =====
+m3d-head-l5n95=Running m3d-worker-85vzm=Running 
+--- head last phase/step ---
+step:23 - 
+step:23 - 
+timing_s/gen:56.046261140028946
+timing_s/step:368.0039870700566
+step:24 - 
+step:24 - 
+timing_s/gen:1.5338861169293523
+timing_s/step:301.71622065396514
+
+===== POLL 2026-08-08T09:37:41Z =====
+m3d-head-l5n95=Running m3d-worker-85vzm=Running 
+--- head last phase/step ---
+step:25 - 
+step:25 - 
+timing_s/gen:1.5065049820113927
+timing_s/step:298.1707372929668
+step:26 - 
+step:26 - 
+timing_s/gen:51.3478867050726
+timing_s/step:363.55786074802745
+
+===== POLL: head GPUCSV-END 09:37:47Z =====
+===== POLLER EXIT 2026-08-08T09:37:47Z =====

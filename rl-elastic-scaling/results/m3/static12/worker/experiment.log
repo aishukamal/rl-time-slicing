@@ -1,0 +1,117 @@
++ RESULTS_DIR=/workspace/results
++ mkdir -p /workspace/results
++ bash /workspace/scripts/common_setup.sh
++ RESULTS_DIR=/workspace/results
++ MODEL_PATH=/workspace/models/DeepSeek-R1-Distill-Qwen-1.5B
++ mkdir -p /workspace/results
++ echo '=== Setup 1: install verl (pinned, same as M0) ==='
+=== Setup 1: install verl (pinned, same as M0) ===
++ pip install datasets TransferQueue
++ tail -5
+    Uninstalling nvidia-cudnn-cu13-9.22.0.52:
+      Successfully uninstalled nvidia-cudnn-cu13-9.22.0.52
+
+Successfully installed TransferQueue-0.1.9 nvidia-cudnn-cu13-9.19.0.56 nvidia-nccl-cu13-2.28.9
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
++ VERL_COMMIT=983cb0f24443f87b3d161fad318445130a620b07
++ mkdir -p /workspace/verl-src
++ cd /workspace/verl-src
++ git init -q
++ git remote add origin https://github.com/verl-project/verl.git
++ git fetch -q --depth 1 origin 983cb0f24443f87b3d161fad318445130a620b07
++ git checkout -q FETCH_HEAD
++ git rev-parse HEAD
++ tee /workspace/results/verl_commit
+983cb0f24443f87b3d161fad318445130a620b07
++ pip install -e '.[gpu]'
++ tail -10
+    Found existing installation: numpy 1.26.4
+    Uninstalling numpy-1.26.4:
+      Successfully uninstalled numpy-1.26.4
+
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+mistral-common 1.11.2 requires numpy<2.4,>=1.25; python_version <= "3.12", but you have numpy 2.5.1 which is incompatible.
+vllm 0.20.2 requires transformers!=5.0.*,!=5.1.*,!=5.2.*,!=5.3.*,!=5.4.*,!=5.5.0,>=4.56.0, but you have transformers 5.3.0 which is incompatible.
+numba 0.65.0 requires numpy<2.5,>=1.22, but you have numpy 2.5.1 which is incompatible.
+Successfully installed numpy-2.5.1 verl-0.9.0.dev0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
++ cd /workspace
++ pip install cupy-cuda12x
++ tail -3
+
+Successfully installed cuda-pathfinder-1.6.0 cupy-cuda12x-14.1.1
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
++ python3 -c 'import verl; print('\''verl version:'\'', verl.__version__)'
+verl version: 0.9.0.dev
++ echo '=== Setup 1b: pyext shim ==='
+=== Setup 1b: pyext shim ===
++ pip install pyext
++ tail -2
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+ERROR: Failed to build 'pyext' when getting requirements to build wheel
++ true
++ python3
+pyext shim installed at /usr/local/lib/python3.12/dist-packages/pyext.py
++ echo '=== Setup 2: download model (bounded + resume-retry) ==='
+=== Setup 2: download model (bounded + resume-retry) ===
++ export HF_HUB_DOWNLOAD_TIMEOUT=30
++ HF_HUB_DOWNLOAD_TIMEOUT=30
++ MODEL_OK=0
+++ seq 1 20
++ for i in $(seq 1 20)
++ timeout 300 python3 -c '
+from huggingface_hub import snapshot_download
+snapshot_download('\''deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B'\'', local_dir='\''/workspace/models/DeepSeek-R1-Distill-Qwen-1.5B'\'')
+print('\''Model download complete'\'')
+'
+Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s]Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Fetching 9 files:  11%|█         | 1/9 [00:00<00:02,  3.39it/s]Fetching 9 files:  78%|███████▊  | 7/9 [00:11<00:03,  1.65s/it]Fetching 9 files: 100%|██████████| 9/9 [00:11<00:00,  1.24s/it]
+Model download complete
++ MODEL_OK=1
++ break
++ '[' 1 = 1 ']'
++ echo '=== Worker: resolve head and join ray cluster (1 GPU: rollout engine 2) ==='
+=== Worker: resolve head and join ray cluster (1 GPU: rollout engine 2) ===
++ export NCCL_SOCKET_IFNAME=eth0
++ NCCL_SOCKET_IFNAME=eth0
++ export NCCL_IB_DISABLE=1
++ NCCL_IB_DISABLE=1
++ HEAD_IP=
+++ seq 1 240
++ for i in $(seq 1 240)
+++ python3 -c 'import socket; print(socket.gethostbyname('\''m3d-head.default.svc.cluster.local'\''))'
++ HEAD_IP=10.96.2.7
++ '[' -n 10.96.2.7 ']'
++ echo 'waiting for head (10.96.2.7)'
+waiting for head (10.96.2.7)
++ HEAD_IP=
++ sleep 15
++ for i in $(seq 1 240)
+++ python3 -c 'import socket; print(socket.gethostbyname('\''m3d-head.default.svc.cluster.local'\''))'
++ HEAD_IP=10.96.2.7
++ '[' -n 10.96.2.7 ']'
++ echo 'waiting for head (10.96.2.7)'
+waiting for head (10.96.2.7)
++ HEAD_IP=
++ sleep 15
++ for i in $(seq 1 240)
+++ python3 -c 'import socket; print(socket.gethostbyname('\''m3d-head.default.svc.cluster.local'\''))'
++ HEAD_IP=10.96.2.7
++ '[' -n 10.96.2.7 ']'
++ exec
++ echo 'head ray port open at 10.96.2.7'
+head ray port open at 10.96.2.7
++ break
++ '[' -n 10.96.2.7 ']'
++ ray start --address=10.96.2.7:6379 --num-gpus=1 --disable-usage-stats
+2026-08-08 06:57:35,578	INFO scripts.py:1128 -- [37mLocal node IP[39m: [1m10.96.0.10[22m
+2026-08-08 06:57:36,796	SUCC scripts.py:1144 -- [32m--------------------[39m
+2026-08-08 06:57:36,796	SUCC scripts.py:1145 -- [32mRay runtime started.[39m
+2026-08-08 06:57:36,796	SUCC scripts.py:1146 -- [32m--------------------[39m
+2026-08-08 06:57:36,796	INFO scripts.py:1148 -- To terminate the Ray runtime, run
+2026-08-08 06:57:36,796	INFO scripts.py:1149 -- [1m  ray stop[22m
++ echo '=== Worker: GPU monitor (100ms, worker node GPUs) ==='
+=== Worker: GPU monitor (100ms, worker node GPUs) ===
++ MONITOR_PID=601
++ sleep 16200
++ bash /workspace/scripts/gpu_monitor.sh /workspace/results/gpu_util_worker.csv 100

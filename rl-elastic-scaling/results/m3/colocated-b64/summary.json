@@ -1,0 +1,128 @@
+{
+  "steps_logged": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+  ],
+  "steady_window": [
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+  ],
+  "step_time": {
+    "n": 15,
+    "mean": 522.7,
+    "min": 449.8,
+    "max": 576.3,
+    "stdev": 29.9
+  },
+  "gen": {
+    "n": 15,
+    "mean": 332.3,
+    "min": 281.1,
+    "max": 371.2,
+    "stdev": 22.8
+  },
+  "old_log_prob": {
+    "n": 15,
+    "mean": 41.2,
+    "min": 36.8,
+    "max": 44.2,
+    "stdev": 2.0
+  },
+  "update_actor": {
+    "n": 15,
+    "mean": 145.8,
+    "min": 128.8,
+    "max": 157.2,
+    "stdev": 7.8
+  },
+  "update_weights": {
+    "n": 15,
+    "mean": 1.9,
+    "min": 1.9,
+    "max": 2.0,
+    "stdev": 0.0
+  },
+  "reward": null,
+  "adv": {
+    "n": 15,
+    "mean": 1.3,
+    "min": 1.2,
+    "max": 1.7,
+    "stdev": 0.1
+  },
+  "score_mean_per_step": [
+    0.156,
+    0.161,
+    0.204,
+    0.18,
+    0.205,
+    0.201,
+    0.265,
+    0.199,
+    0.219,
+    0.149,
+    0.223,
+    0.221,
+    0.11,
+    0.218,
+    0.225
+  ],
+  "response_length_mean": {
+    "n": 15,
+    "mean": 11505.6,
+    "min": 10265.6,
+    "max": 12306.1,
+    "stdev": 544.3
+  },
+  "timing_keys_seen": [
+    "timing_s/adv",
+    "timing_s/gen",
+    "timing_s/old_log_prob",
+    "timing_s/step",
+    "timing_s/update_actor",
+    "timing_s/update_weights"
+  ],
+  "resp_tokens_per_gpu_hour": 2535766.0,
+  "gpu": {
+    "0": {
+      "samples": 64141,
+      "mean_util": 84.0,
+      "idle_lt10": 0.149,
+      "busy_ge50": 0.849
+    },
+    "1": {
+      "samples": 64141,
+      "mean_util": 84.2,
+      "idle_lt10": 0.146,
+      "busy_ge50": 0.852
+    }
+  }
+}

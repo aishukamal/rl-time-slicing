@@ -1,0 +1,625 @@
+# M3 RUN C — TRAIN-HEAVY NO-HARM CONTROL (elastic-rl-poc, claim C5): the M2
+# elastic config with the workload balance INVERTED so gen-wait blocks are
+# small/absent (trainer-bound): max_response_length 16384 -> ${RESPONSE_CAP:-2048},
+# rollout.n 8 -> ${ROLLOUT_N:-4} (64 samples/step = 16 prompts x 4). Everything
+# else identical to the M2 PASS run (image verl-cr-shim:m1, elastic driver, R2
+# parked, same model/data, s=8).
+#
+# TWO PHASES, same manifest:
+#   1. CONTROL (this file as-is): job elastic-m3c-control, CONTROLLER_ENABLED=0
+#      — full elastic scaffolding but NO policy controller. RUN_SECONDS=5400.
+#      Establishes the static step-time reference AND verifies the regime is
+#      trainer-bound (gen-wait << update_actor in the first 3 steps; if not,
+#      relaunch with RESPONSE_CAP=1024).
+#   2. ARMED: derived by sed at launch (job elastic-m3c-armed,
+#      CONTROLLER_ENABLED=1). Controller fully live. RUN_SECONDS=5400.
+#      Success = zero switches, a no-action reason logged every tick
+#      (expected: not_blocked / eta_below_threshold), step time within noise
+#      of phase 1. Note: with no gen-wait blocks the dry-run window produces
+#      no would-in decisions, so --auto-live engages via the documented
+#      failsafe (auto_failsafe_no_would_in after dry_run_steps+2) — live gate
+#      identical to shadow gate, no-harm holds by construction.
+#
+# DEPLOY (per phase; recycle the snapshot-agent pod on trb7 first — pod
+# delete only, never helm):
+#   kubectl --context <ctx> create configmap elastic-m3c-code \
+#     --from-file=m1/fully_async_main_elastic.py --from-file=m1/elastic_trainer.py \
+#     --from-file=m1/r2_lifecycle.py --from-file=m2/policy_controller.py \
+#     -n default --dry-run=client -o yaml | kubectl --context <ctx> apply -f -
+#   kubectl --context <ctx> apply -f m3/k8s-job-m3c-noharm.yaml       # control
+#   sed -e 's/elastic-m3c-control/elastic-m3c-armed/' \
+#       -e 's/^\(        - name: CONTROLLER_ENABLED\n          value: \)"0"/\1"1"/' ...  # armed (see launch notes)
+# Armed phase needs the one-time pod relabel to timeslice.io/job-id=elastic-trainer
+# after auto-park (controller agent gate). Control phase needs no relabel.
+#
+# ---- everything below is the m1 manifest with the renames applied ----
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: code-rlvr-m3c
+  namespace: default
+data:
+  gpu_monitor.sh: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+    OUTPUT="${1:?Usage: $0 <output.csv> [interval_ms]}"
+    INTERVAL_MS="${2:-100}"
+    echo "timestamp_ms,gpu_index,gpu_util_pct,mem_util_pct,power_w" > "$OUTPUT"
+    trap 'exit 0' SIGINT SIGTERM
+    SLEEP_S=$(python3 -c "print($INTERVAL_MS/1000)")
+    while true; do
+        ts=$(date +%s%3N)
+        nvidia-smi --query-gpu=index,utilization.gpu,utilization.memory,power.draw \
+                   --format=csv,noheader,nounits 2>/dev/null | \
+        while IFS=', ' read -r idx gpu mem pwr; do
+            echo "${ts},${idx},${gpu},${mem},${pwr}"
+        done >> "$OUTPUT"
+        sleep "$SLEEP_S"
+    done
+
+  data_prep.py: |
+    #!/usr/bin/env python3
+    """Prepare the Eurus-2-RL-Data CODE subset (verbatim from the M0 baseline;
+    see k8s-job-m0-baseline.yaml for the full transformation rationale)."""
+
+    import argparse
+    import json
+    import os
+
+    import pandas as pd
+    from huggingface_hub import hf_hub_download
+
+    CODE_SOURCES = {"codecontests", "apps", "codeforces", "taco"}
+
+
+    def truncate_ground_truth(gt_str, max_tests, max_bytes):
+        """Return truncated JSON ground truth, or None if the row is unusable."""
+        try:
+            gt = json.loads(gt_str)
+        except Exception:
+            return None
+        if not isinstance(gt, dict):
+            return None
+        ins, outs = gt.get("inputs"), gt.get("outputs")
+        if not isinstance(ins, list) or not isinstance(outs, list):
+            return None
+        n = min(len(ins), len(outs), max_tests)
+        if n < 1:
+            return None
+        new_gt = {"inputs": ins[:n], "outputs": outs[:n]}
+        if gt.get("fn_name"):
+            new_gt["fn_name"] = gt["fn_name"]
+        try:
+            s = json.dumps(new_gt)
+        except Exception:
+            return None
+        if len(s) > max_bytes:
+            return None
+        return s
+
+
+    def main():
+        ap = argparse.ArgumentParser()
+        ap.add_argument("--repo_id", default="PRIME-RL/Eurus-2-RL-Data")
+        ap.add_argument("--filename", default="train.parquet")
+        ap.add_argument("--tokenizer", required=True)
+        ap.add_argument("--out_dir", default="/workspace/data/eurus_code")
+        ap.add_argument("--train_size", type=int, default=512)
+        ap.add_argument("--val_size", type=int, default=64)
+        ap.add_argument("--max_tests", type=int, default=8)
+        ap.add_argument("--max_gt_bytes", type=int, default=200000)
+        ap.add_argument("--max_prompt_tokens", type=int, default=1900)
+        ap.add_argument("--candidates", type=int, default=3000)
+        ap.add_argument("--seed", type=int, default=17)
+        args = ap.parse_args()
+
+        local = hf_hub_download(repo_id=args.repo_id, filename=args.filename, repo_type="dataset")
+        df = pd.read_parquet(local)
+        print(f"loaded {len(df)} rows, columns: {list(df.columns)}")
+
+        df = df[df["ability"] == "code"].reset_index(drop=True)
+        print(f"{len(df)} code rows; data_source counts:\n{df['data_source'].value_counts()}")
+        df = df[df["data_source"].isin(CODE_SOURCES)].reset_index(drop=True)
+        print(f"{len(df)} rows with prime_code-routable data_source")
+
+        rows = []
+        n_bad_gt, n_bad_prompt = 0, 0
+        for _, r in df.iterrows():
+            msgs = [dict(m) for m in r["prompt"]]
+            user = [m for m in msgs if m.get("role") == "user"]
+            if len(user) != 1 or "```python" not in user[0].get("content", ""):
+                n_bad_prompt += 1
+                continue
+            gt = truncate_ground_truth(dict(r["reward_model"])["ground_truth"], args.max_tests, args.max_gt_bytes)
+            if gt is None:
+                n_bad_gt += 1
+                continue
+            rows.append(
+                {
+                    "data_source": r["data_source"],
+                    "prompt": [{"role": "user", "content": user[0]["content"]}],
+                    "ability": "code",
+                    "reward_model": {"style": "rule", "ground_truth": gt},
+                    "extra_info": dict(r["extra_info"]) if r["extra_info"] is not None else {},
+                    "_ptext": user[0]["content"],
+                }
+            )
+        print(f"kept {len(rows)} rows (dropped {n_bad_prompt} bad-prompt, {n_bad_gt} bad-ground-truth)")
+
+        out = pd.DataFrame(rows).drop_duplicates("_ptext").reset_index(drop=True)
+        print(f"{len(out)} unique problems after dedup")
+
+        out = out[out["_ptext"].str.len() <= 7000].reset_index(drop=True)
+        print(f"{len(out)} rows after 7000-char prefilter")
+        cand = out.sample(n=min(args.candidates, len(out)), random_state=args.seed).reset_index(drop=True)
+
+        from transformers import AutoTokenizer
+
+        tok = AutoTokenizer.from_pretrained(args.tokenizer)
+        keep_idx, tok_lens = [], []
+        for i, r in cand.iterrows():
+            ntok = len(tok.apply_chat_template(list(r["prompt"]), add_generation_prompt=True))
+            if ntok <= args.max_prompt_tokens:
+                keep_idx.append(i)
+                tok_lens.append(ntok)
+        cand = cand.loc[keep_idx].reset_index(drop=True)
+        print(
+            f"{len(cand)} candidates <= {args.max_prompt_tokens} prompt tokens "
+            f"(mean {sum(tok_lens) / max(len(tok_lens), 1):.0f})"
+        )
+
+        n = args.train_size + args.val_size
+        assert len(cand) >= n, f"only {len(cand)} candidates for {n} needed"
+        sub = cand.sample(n=n, random_state=args.seed + 1).reset_index(drop=True)
+        train = sub.iloc[: args.train_size].drop(columns="_ptext")
+        val = sub.iloc[args.train_size : n].drop(columns="_ptext")
+
+        row = train.iloc[0]
+        assert row["data_source"] in CODE_SOURCES
+        p0 = dict(row["prompt"][0])
+        assert p0["role"] == "user" and "```python" in p0["content"]
+        gt = json.loads(dict(row["reward_model"])["ground_truth"])
+        assert len(gt["inputs"]) >= 1 and len(gt["inputs"]) == len(gt["outputs"])
+
+        os.makedirs(args.out_dir, exist_ok=True)
+        train.to_parquet(os.path.join(args.out_dir, "train.parquet"), index=False)
+        val.to_parquet(os.path.join(args.out_dir, "val.parquet"), index=False)
+        print(f"wrote {len(train)} train / {len(val)} val -> {args.out_dir}")
+
+
+    if __name__ == "__main__":
+        main()
+
+  run_elastic_m3c.sh: |
+    #!/usr/bin/env bash
+    set -xeuo pipefail
+
+    trap 'kill $(jobs -p) 2>/dev/null || true' EXIT
+
+    RESULTS_DIR="/workspace/results"
+    MODEL_PATH="/workspace/models/DeepSeek-R1-Distill-Qwen-1.5B"
+    TRAIN_FILE="/workspace/data/eurus_code/train.parquet"
+    VAL_FILE="/workspace/data/eurus_code/val.parquet"
+    RUN_SECONDS="${RUN_SECONDS:-5400}"
+
+    mkdir -p "$RESULTS_DIR"
+
+    echo "=== Phase 1: install verl (pinned, same as M0) ==="
+    pip install datasets TransferQueue 2>&1 | tail -5
+    VERL_COMMIT=983cb0f24443f87b3d161fad318445130a620b07
+    mkdir -p /workspace/verl-src && cd /workspace/verl-src
+    git init -q && git remote add origin https://github.com/verl-project/verl.git
+    git fetch -q --depth 1 origin "$VERL_COMMIT"
+    git checkout -q FETCH_HEAD
+    git rev-parse HEAD | tee "$RESULTS_DIR/verl_commit"
+    pip install -e ".[gpu]" 2>&1 | tail -10
+    cd /workspace
+    pip install cupy-cuda12x 2>&1 | tail -3
+    python3 -c "import verl; print('verl version:', verl.__version__)"
+    python3 -c "import transfer_queue; print('transfer_queue OK')"
+
+    echo "=== Phase 1b: pyext shim (prime_code dependency; same as M0) ==="
+    pip install pyext 2>&1 | tail -2 || true
+    python3 << 'PYEXTFIX'
+    try:
+        from pyext import RuntimeModule  # noqa: F401
+        print("pyext OK (pip)")
+    except Exception:
+        import os
+        import sysconfig
+
+        SHIM = '''"""Minimal pyext shim (see M0 baseline)."""
+    import types
+
+
+    class RuntimeModule:
+        @staticmethod
+        def from_string(name, docstring, code):
+            mod = types.ModuleType(name, docstring)
+            exec(compile(code, name, "exec"), mod.__dict__)
+            return mod
+    '''
+        sp = sysconfig.get_paths()["purelib"]
+        with open(os.path.join(sp, "pyext.py"), "w") as f:
+            f.write(SHIM)
+        from pyext import RuntimeModule  # noqa: F401
+
+        print(f"pyext shim installed at {sp}/pyext.py")
+    PYEXTFIX
+
+    echo "=== Phase 1c: timeslice snapshot-agent python client ==="
+    pip install "git+https://github.com/llm-d-incubation/llm-d-rl-time-slicing.git#subdirectory=pkg/client/python" 2>&1 | tail -3
+    python3 -c "from timeslice.snapshot_agent import SnapshotAgentClient; print('timeslice client OK')"
+    # fail-fast agent reachability probe (non-fatal: driver can fall back to
+    # manual park; but log loudly)
+    python3 - <<'AGENTCHECK' || echo "WARNING: snapshot-agent not reachable at $AGENT_ENDPOINT"
+    import os
+    from timeslice.snapshot_agent import SnapshotAgentClient
+    ep = os.environ.get("AGENT_ENDPOINT", "")
+    with SnapshotAgentClient(ep) as c:
+        print("agent health:", c.check_health().status, "at", ep)
+    AGENTCHECK
+
+    echo "=== Phase 2: download model (bounded + resume-retry; M3 RUN A stall hardening) ==="
+    export HF_HUB_DOWNLOAD_TIMEOUT=30
+    MODEL_OK=0
+    for i in $(seq 1 20); do
+        if timeout 300 python3 -c "
+    from huggingface_hub import snapshot_download
+    snapshot_download('deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B', local_dir='$MODEL_PATH')
+    print('Model download complete')
+    "; then MODEL_OK=1; break; fi
+        echo "model download attempt $i timed out/failed; retrying (resume) in 5s"
+        sleep 5
+    done
+    [ "$MODEL_OK" = "1" ] || { echo "FATAL: model download failed after 20 attempts"; exit 1; }
+
+    echo "=== Phase 3: prepare dataset (512 Eurus-2 code prompts) ==="
+    python3 /workspace/scripts/data_prep.py --out_dir /workspace/data/eurus_code \
+        --tokenizer "$MODEL_PATH" --train_size 512 --val_size 64
+
+    echo "=== Phase 4: start GPU monitor (100ms) ==="
+    bash /workspace/scripts/gpu_monitor.sh "$RESULTS_DIR/gpu_util.csv" 100 &
+    MONITOR_PID=$!
+    date +%s%3N > "$RESULTS_DIR/start_ts"
+
+    echo "=== Phase 5: ELASTIC fully-async code-RLVR (trainer GPUx + R1 GPUy + parked R2 GPUx) ==="
+    nvidia-smi
+
+    export PYTHONUNBUFFERED=1
+    export HYDRA_FULL_ERROR=1
+    export PYTHONPATH="/workspace/m1:${PYTHONPATH:-}"
+    # --- multi-GPU C/R shim (v1 recipe) --------------------------------------
+    # Preload the ncclCommSuspend shim + NCCL>=2.29.7 (baked into the image
+    # under /opt/cr, see m1/image/Dockerfile) into the whole Ray process tree,
+    # so the trainer's dormant checkpoint-engine comm can be suspended
+    # (kill -35) before cuda-checkpoint freeze and resumed (kill -36) after
+    # restore. Scoped here (not pod-wide) so Phases 1-4 run clean.
+    # Source: GPU-CR/multi-gpu-cr/REPORT.md "Required Configuration" +
+    # universal_cr_shim.c header.
+    export LD_LIBRARY_PATH="/opt/cr/nccl/nvidia/nccl/lib:${LD_LIBRARY_PATH:-}"
+    export LD_PRELOAD="/opt/cr/libcr-shim.so:/opt/cr/nccl/nvidia/nccl/lib/libnccl.so.2"
+    # elastic knobs (see fully_async_main_elastic.py):
+    export ELASTIC_AUTO_PARK="${ELASTIC_AUTO_PARK:-1}"
+    export ELASTIC_R2_WARMUP="${ELASTIC_R2_WARMUP:-1}"
+    export ELASTIC_SYNC_EXCLUDE_RANKS="${ELASTIC_SYNC_EXCLUDE_RANKS:-1}"
+
+    TOTAL_ROLLOUT_STEPS=65536
+
+    set +e
+    # M2: training runs in the background so the policy controller can be
+    # launched by the job itself (no kubectl-exec dependency). The controller
+    # self-gates: waits for the handles actor, >=3 param syncs (steady state),
+    # the agent's elastic-trainer job RUNNING (operator relabel), dry-runs 2
+    # steps, then goes LIVE automatically (--auto-live).
+    ( timeout --signal=INT --kill-after=120 "$RUN_SECONDS" \
+    python3 /workspace/m1/fully_async_main_elastic.py \
+        data.train_files="$TRAIN_FILE" \
+        data.val_files="$VAL_FILE" \
+        data.prompt_key=prompt \
+        data.truncation=left \
+        data.max_prompt_length=2048 \
+        data.max_response_length="${RESPONSE_CAP:-2048}" \
+        data.train_batch_size=0 \
+        data.gen_batch_size=1 \
+        data.return_raw_chat=True \
+        actor_rollout_ref.model.path="$MODEL_PATH" \
+        actor_rollout_ref.model.use_remove_padding=True \
+        actor_rollout_ref.model.enable_gradient_checkpointing=True \
+        actor_rollout_ref.hybrid_engine=False \
+        actor_rollout_ref.actor.strategy=fsdp \
+        actor_rollout_ref.actor.ppo_mini_batch_size=64 \
+        actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=1 \
+        actor_rollout_ref.actor.use_kl_loss=False \
+        actor_rollout_ref.actor.kl_loss_coef=0.0 \
+        actor_rollout_ref.actor.entropy_coeff=0 \
+        actor_rollout_ref.actor.grad_clip=1.0 \
+        actor_rollout_ref.actor.loss_agg_mode=token-mean \
+        actor_rollout_ref.actor.use_dynamic_bsz=True \
+        actor_rollout_ref.actor.ppo_max_token_len_per_gpu=32768 \
+        actor_rollout_ref.actor.optim.lr=1e-6 \
+        actor_rollout_ref.actor.optim.lr_warmup_steps=-1 \
+        actor_rollout_ref.actor.fsdp_config.param_offload=False \
+        actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
+        actor_rollout_ref.ref.log_prob_use_dynamic_bsz=True \
+        actor_rollout_ref.ref.log_prob_max_token_len_per_gpu=32768 \
+        actor_rollout_ref.rollout.name=vllm \
+        actor_rollout_ref.rollout.mode=async \
+        actor_rollout_ref.rollout.n="${ROLLOUT_N:-4}" \
+        actor_rollout_ref.rollout.calculate_log_probs=True \
+        actor_rollout_ref.rollout.checkpoint_engine.backend=nccl \
+        actor_rollout_ref.rollout.gpu_memory_utilization=0.8 \
+        actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
+        actor_rollout_ref.rollout.enable_chunked_prefill=True \
+        actor_rollout_ref.rollout.temperature=1.0 \
+        actor_rollout_ref.rollout.top_p=1.0 \
+        actor_rollout_ref.rollout.top_k=-1 \
+        algorithm.adv_estimator=grpo \
+        algorithm.use_kl_in_reward=False \
+        algorithm.kl_ctrl.kl_coef=0.0 \
+        trainer.logger="['console']" \
+        trainer.val_before_train=False \
+        trainer.save_freq=-1 \
+        trainer.resume_mode=disable \
+        trainer.nnodes=1 \
+        trainer.n_gpus_per_node=1 \
+        trainer.total_epochs=10 \
+        trainer.test_freq=-1 \
+        trainer.project_name=elastic-m3c \
+        trainer.experiment_name=r1distill1.5b-euruscode-trainheavy-s"${STALENESS_THRESHOLD:-8}" \
+        trainer.default_local_dir="$RESULTS_DIR/ckpts" \
+        rollout.nnodes=1 \
+        rollout.n_gpus_per_node=1 \
+        rollout.total_rollout_steps="$TOTAL_ROLLOUT_STEPS" \
+        async_training.staleness_threshold="${STALENESS_THRESHOLD:-8}" \
+        async_training.trigger_parameter_sync_step=1 \
+        2>&1 | tee "$RESULTS_DIR/train.log"
+      echo "${PIPESTATUS[0]}" > "$RESULTS_DIR/train_rc" ) &
+    TRAIN_WAIT_PID=$!
+
+    # Controller stdout MUST survive emptyDir destruction (attempt-1 lesson:
+    # its log died with the pod). NOTE hostPID=true makes /proc/1/fd/1 the
+    # HOST init, not this container — so we rely on fd inheritance instead:
+    # this subshell's stdout flows run-script -> tee experiment.log -> pod
+    # log. tee keeps the in-pod copy for the CTRLLOG insurance dump.
+    if [ "${CONTROLLER_ENABLED:-1}" = "1" ]; then
+      ( set +e; sleep 120; cd /workspace/m1
+        PYTHONPATH=/workspace/m1 \
+        python3 /workspace/m1/policy_controller.py --dry-run-steps 2 --auto-live 2>&1 \
+          | tee "$RESULTS_DIR/policy_controller.log"
+        rc=${PIPESTATUS[0]}
+        echo "policy controller exited rc=$rc" | tee -a "$RESULTS_DIR/policy_controller.log" ) &
+      CONTROLLER_PID=$!
+      echo "policy controller launcher pid=$CONTROLLER_PID"
+    else
+      CONTROLLER_PID=""
+      echo "CONTROLLER_ENABLED=0: no policy controller (control phase)"
+    fi
+
+    wait "$TRAIN_WAIT_PID"
+    TRAIN_RC=$(cat "$RESULTS_DIR/train_rc" 2>/dev/null || echo 1)
+    # graceful controller stop (flag), then hard fallback
+    touch "$RESULTS_DIR/controller_stop.flag"
+    sleep 8
+    pkill -f policy_controller.py 2>/dev/null || true
+    [ -n "$CONTROLLER_PID" ] && kill "$CONTROLLER_PID" 2>/dev/null || true
+    set -e
+    if [ "$TRAIN_RC" = "124" ]; then
+        echo "Training stopped by planned ${RUN_SECONDS}s timeout (expected end state)"
+    elif [ "$TRAIN_RC" != "0" ]; then
+        echo "WARNING: training exited rc=$TRAIN_RC before planned timeout"
+    fi
+
+    date +%s%3N > "$RESULTS_DIR/end_ts"
+    kill "$MONITOR_PID" 2>/dev/null || true
+    wait "$MONITOR_PID" 2>/dev/null || true
+    wc -l "$RESULTS_DIR/gpu_util.csv" || true
+
+    echo "=== Per-GPU summary ==="
+    python3 -c "
+    import csv
+    from collections import defaultdict
+    traces = defaultdict(list)
+    with open('$RESULTS_DIR/gpu_util.csv') as f:
+        for row in csv.DictReader(f):
+            traces[int(row['gpu_index'])].append(float(row['gpu_util_pct']))
+    for gi in sorted(traces.keys()):
+        u = traces[gi]
+        n = len(u)
+        mean_u = sum(u)/n
+        idle = sum(1 for v in u if v <= 15)/n
+        busy = sum(1 for v in u if v >= 50)/n
+        print(f'GPU {gi}: mean={mean_u:.1f}% idle={idle:.1%} busy={busy:.1%} samples={n}')
+    " || true
+
+    echo "=== switch timings collected ==="
+    cat "$RESULTS_DIR/switch_timings.jsonl" 2>/dev/null || echo "(none)"
+
+    # Small M2 artifacts FIRST (container log rotation cuts the tail; the
+    # bulky GPU trace goes last). Prefixed gzip+base64 + md5, one artifact
+    # each (same recovery pattern as GPUCSV — attempt-1 hardening: these
+    # insurance dumps are the artifacts of record if the emptyDir dies).
+    echo "=== policy controller log dump (prefix CTRLLOG:) ==="
+    echo "CTRLLOG-BEGIN md5=$(md5sum "$RESULTS_DIR/policy_controller.log" 2>/dev/null | cut -d' ' -f1)"
+    gzip -c "$RESULTS_DIR/policy_controller.log" 2>/dev/null | base64 -w 3000 | sed 's/^/CTRLLOG:/' || true
+    echo "CTRLLOG-END"
+    echo "=== decisions dump (prefix DECISIONS:) ==="
+    echo "DECISIONS-BEGIN md5=$(md5sum "$RESULTS_DIR/decisions.jsonl" 2>/dev/null | cut -d' ' -f1)"
+    gzip -c "$RESULTS_DIR/decisions.jsonl" 2>/dev/null | base64 -w 3000 | sed 's/^/DECISIONS:/' || true
+    echo "DECISIONS-END"
+    echo "=== switch timings dump (prefix SWTIMINGS:) ==="
+    echo "SWTIMINGS-BEGIN md5=$(md5sum "$RESULTS_DIR/switch_timings.jsonl" 2>/dev/null | cut -d' ' -f1)"
+    gzip -c "$RESULTS_DIR/switch_timings.jsonl" 2>/dev/null | base64 -w 3000 | sed 's/^/SWTIMINGS:/' || true
+    echo "SWTIMINGS-END"
+
+    echo "=== GPU trace dump (gzip+base64, prefix GPUCSV:) ==="
+    echo "GPUCSV-BEGIN md5=$(md5sum "$RESULTS_DIR/gpu_util.csv" | cut -d' ' -f1)"
+    gzip -c "$RESULTS_DIR/gpu_util.csv" | base64 -w 3000 | sed 's/^/GPUCSV:/' || true
+    echo "GPUCSV-END"
+
+    echo "=== Keeping pod alive for switch driving / result collection ==="
+    sleep 14400
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: elastic-m3c-control
+  namespace: default
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 604800
+  template:
+    metadata:
+      labels:
+        app: elastic-m3c
+        # The k8s-mode agent gates snapshots on per-jobID RUNNING state, and
+        # ONLY its pod watcher transitions IDLE->RUNNING (pod with this label
+        # + GPU PIDs). Two logical jobs (elastic-r2, elastic-trainer) live in
+        # this one pod; snapshots pass EXPLICIT PIDs, so the label is needed
+        # purely to drive the state machine. Start as elastic-r2 so the
+        # driver's auto-park (first snapshot) works unattended; the operator
+        # relabels to elastic-trainer once, any time after auto-park and
+        # before the first switch cycle (cycles.sh blocks on it).
+        timeslice.io/job-id: elastic-r2
+    spec:
+      restartPolicy: Never
+      # Host PID namespace: (a) PIDs gathered in-pod (os.getpid / /proc walk)
+      # must be valid for the node-local snapshot-agent; (b) pidfd_getfd used
+      # by C/R tooling needs it (see GKE note: SYS_PTRACE + hostPID +
+      # Unconfined seccomp).
+      hostPID: true
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-h100-80gb
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cloud.google.com/gke-nodepool
+                operator: In
+                values:
+                - h100-2gpu-pool
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - gke-verl-research-clus-h100-2gpu-pool-02b8c734-w0x7
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      - key: timeslice.io/shared
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      containers:
+      - name: benchmark
+        # verlai/verl:vllm020.dev2 (the M0 base) + /opt/cr C/R shim layer.
+        # Built by m1/image/{Dockerfile,cloudbuild.yaml} via GCP Cloud Build
+        # (project aishuk-test). Python env is untouched — run script still
+        # pip-installs verl at the 983cb0f2 pin, same as M0.
+        image: us-central1-docker.pkg.dev/aishuk-test/rl-images/verl-cr-shim:m1
+        env:
+        - name: VLLM_USE_V1
+          value: "1"
+        # --- C/R-able NCCL env (must be set at launch, before any NCCL init) --
+        # TCP-loopback transport for all NCCL comms: cuda-checkpoint cannot
+        # restore cross-process GPU state from P2P/SHM/NVLS transports, and
+        # without it the frozen trainer+R1 checkpoint-engine group breaks.
+        # Source: GPU-CR/multi-gpu-cr/REPORT.md "Required Configuration"
+        # (v1 recipe; NVIDIA/cuda-checkpoint#27).
+        - name: NCCL_P2P_DISABLE
+          value: "1"
+        - name: NCCL_SHM_DISABLE
+          value: "1"
+        - name: NCCL_NVLS_ENABLE
+          value: "0"
+        # No VMM (cuMemCreate) allocations anywhere in NCCL — cuda-checkpoint
+        # does not preserve them (post-restore comm creation dies with CUDA
+        # error 101 otherwise). Source: GPU-CR/async-poc/nccl-restore-diagnosis.md
+        # "Fix" (validated in POC1/POC2 timeslice runs).
+        - name: NCCL_CUMEM_ENABLE
+          value: "0"
+        # Symmetric-memory allreduce creates cuMem state outside NCCL comms.
+        # Source: GPU-CR/multi-gpu-cr/REPORT.md (vLLM-specific flags).
+        - name: VLLM_ALLREDUCE_USE_SYMM_MEM
+          value: "0"
+        - name: STALENESS_THRESHOLD
+          value: "8"
+        - name: RUN_SECONDS
+          value: "5400"
+        - name: CONTROLLER_ENABLED
+          value: "0"
+        - name: RESPONSE_CAP
+          value: "2048"
+        - name: ROLLOUT_N
+          value: "4"
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: AGENT_ENDPOINT
+          value: "$(NODE_IP):9001"
+        # Auto-park works unattended because the pod template is labeled
+        # timeslice.io/job-id=elastic-r2: the watcher transitions elastic-r2
+        # to RUNNING as soon as R1's engine holds the GPU (minutes before the
+        # park snapshot fires).
+        - name: ELASTIC_AUTO_PARK
+          value: "1"
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          set -euo pipefail
+          echo "=== M3 RUN C: train-heavy no-harm (cap=${RESPONSE_CAP}, n=${ROLLOUT_N}, controller=${CONTROLLER_ENABLED}) ==="
+          echo "Node: $(hostname)"
+          echo "Date: $(date)"
+          echo "Agent: ${AGENT_ENDPOINT}"
+          nvidia-smi
+          bash /workspace/scripts/run_elastic_m3c.sh 2>&1 | tee /workspace/results/experiment.log
+        # h100-2gpu-pool is a GKE time-sharing pool (max 1 nvidia.com/gpu per
+        # container). Request 1 shared unit for driver mounts; privileged so
+        # BOTH physical H100s are visible (node exclusively claimed).
+        # privileged + hostPID + Unconfined seccomp + SYS_PTRACE: required by
+        # cuda-checkpoint / pidfd_getfd on GKE (privileged already implies
+        # SYS_PTRACE; listed explicitly for documentation).
+        securityContext:
+          privileged: true
+          seccompProfile:
+            type: Unconfined
+          capabilities:
+            add: ["SYS_PTRACE"]
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+          requests:
+            nvidia.com/gpu: 1
+            cpu: "40"
+            memory: "160Gi"
+        volumeMounts:
+        - name: scripts
+          mountPath: /workspace/scripts
+        - name: m1-code
+          mountPath: /workspace/m1
+        - name: results
+          mountPath: /workspace/results
+        - name: dshm
+          mountPath: /dev/shm
+      volumes:
+      - name: scripts
+        configMap:
+          name: code-rlvr-m3c
+          defaultMode: 0755
+      # Created out-of-band from the source files (keeps one source of truth):
+      #   kubectl create configmap elastic-m3c-code \
+      #     --from-file=fully_async_main_elastic.py \
+      #     --from-file=elastic_trainer.py \
+      #     --from-file=r2_lifecycle.py
+      - name: m1-code
+        configMap:
+          name: elastic-m3c-code
+          defaultMode: 0755
+      - name: results
+        emptyDir: {}
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Gi

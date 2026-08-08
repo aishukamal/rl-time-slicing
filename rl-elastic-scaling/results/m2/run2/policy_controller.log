@@ -1,0 +1,2494 @@
+[cr-shim] PID 1289305: ready (suspend=sig35, resume=sig36)
+2026-08-06 23:06:41,200	INFO worker.py:1814 -- Connecting to existing Ray cluster at address: 10.96.1.20:44273...
+2026-08-06 23:06:41,229	INFO worker.py:2003 -- Connected to Ray cluster. View the dashboard at [1m[32mhttp://127.0.0.1:8265 [39m[22m
+/usr/local/lib/python3.12/dist-packages/ray/_private/worker.py:2051: FutureWarning: Tip: In future versions of Ray, Ray will no longer override accelerator visible devices env var if num_gpus=0 or num_gpus=None (default). To enable this behavior and turn off this error message, set RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO=0
+  warnings.warn(
+[2026-08-06T23:06:41.279+00:00] [policy] waiting for steady state (>= 3 param syncs)...
+[33m(raylet)[0m [cr-shim] PID 1289425: ready (suspend=sig35, resume=sig36)
+[33m(raylet)[0m [cr-shim] PID 1293284: ready (suspend=sig35, resume=sig36)[32m [repeated 3x across cluster] (Ray deduplicates logs by default. Set RAY_DEDUP_LOGS=0 to disable log deduplication, or see https://docs.ray.io/en/master/ray-observability/user-guides/configure-logging.html#log-deduplication for more options.)[0m
+[33m(raylet)[0m [cr-shim] PID 1293819: ready (suspend=sig35, resume=sig36)[32m [repeated 3x across cluster][0m
+[33m(raylet)[0m [cr-shim] PID 1294593: ready (suspend=sig35, resume=sig36)[32m [repeated 3x across cluster][0m
+[2026-08-06T23:26:41.293+00:00] [policy] WARNING: still waiting for steady state after 1200s (2/3 param syncs); hard cap 2700s
+[2026-08-06T23:33:56.297+00:00] [policy] steady state: 3 param syncs, version=2
+[2026-08-06T23:33:56.297+00:00] [policy] waiting for agent job elastic-trainer RUNNING (operator relabel)...
+[2026-08-06T23:33:56.329+00:00] [policy] agent jobs: {'elastic-trainer': 'JOB_STATE_RUNNING', 'elastic-r2': 'JOB_STATE_SAVED'} — elastic-trainer RUNNING confirmed
+[2026-08-06T23:33:56.329+00:00] [policy] entering poll loop (dry-run for 2 steps, auto_live=True)
+[2026-08-06T23:33:56.329+00:00] [policy] PROGRESS mode=dry state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=0 decisions=2 would_in/back=0/0 live_in/back=0/0 cycles_verified=0 param_syncs=3 steps=1 last_action=dry_run_start@2026-08-06T23:33:56.329+00:00
+[2026-08-06T23:34:35.037+00:00] [policy] [dry] would SWITCH-IN (block 3, collected 33, ETA 151.9s)
+[2026-08-06T23:38:37.583+00:00] [policy] [dry] would SWITCH-BACK (predictive_eta, collected 58, ETA 49.8s)
+[2026-08-06T23:43:58.329+00:00] [policy] PROGRESS mode=dry state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=297 decisions=298 would_in/back=1/1 live_in/back=0/0 cycles_verified=0 param_syncs=3 steps=1 last_action=would_switch_to_trainer@2026-08-06T23:38:37.582+00:00
+[2026-08-06T23:45:18.515+00:00] [policy] [dry] would SWITCH-IN (block 4, collected 31, ETA 424.0s)
+[2026-08-06T23:49:41.109+00:00] [policy] [dry] would SWITCH-BACK (predictive_eta, collected 58, ETA 53.3s)
+[2026-08-06T23:53:59.702+00:00] [policy] PROGRESS mode=dry state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=597 decisions=598 would_in/back=2/2 live_in/back=0/0 cycles_verified=0 param_syncs=4 steps=2 last_action=would_switch_to_trainer@2026-08-06T23:49:41.108+00:00
+[2026-08-06T23:56:20.032+00:00] [policy] LIVE mode enabled after 2 dry-run steps (would_in=2, would_back=2, via=auto)
+[2026-08-06T23:56:20.032+00:00] [policy] SWITCH-IN firing (block 5, collected 31/64, ETA 675.5s > 128.4s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-06T23:56:20.033+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-06T23:56:20.034+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.001s)
+[2026-08-06T23:56:20.034+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+INFO 08-06 23:56:21 [nixl_utils.py:20] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+WARNING 08-06 23:56:21 [nixl_utils.py:34] NIXL is not available
+WARNING 08-06 23:56:21 [nixl_utils.py:44] NIXL agent config is not available
+[cr-shim] PID 2088400: ready (suspend=sig35, resume=sig36)
+discover_ce_worker_pids: replicas=1 ce_pids=[1285000]
+[2026-08-06T23:56:22.009+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (1.974s)
+[2026-08-06T23:56:22.009+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-06T23:56:22.009+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-06T23:56:22.009+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-06T23:56:22.209+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-06T23:56:22.209+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16267ms
+[2026-08-06T23:56:39.226+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.017s)
+[mq] pre-resume depth=0 produced=288 consumed=288 dropped=0 fill_rate=n/a
+[2026-08-06T23:56:39.229+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 9947ms
+[2026-08-06T23:56:49.241+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (10.012s)
+[2026-08-06T23:56:49.241+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=4
+[2026-08-06T23:56:49.265+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.024s)
+[2026-08-06T23:56:49.265+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-06T23:56:49.274+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.009s)
+[2026-08-06T23:56:49.274+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-06T23:56:49.276+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.002s)
+[2026-08-06T23:56:49.276+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-06T23:56:49.286+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.010s)
+[2026-08-06T23:56:49.286+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-06T23:56:49.288+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.003s)
+[mq] post-resume depth=0 produced=293 consumed=293 dropped=0 fill_rate=0.497 samples/s
+
+=== switch-to-rollout timing breakdown (total 29.258s) ===
+  get_trainer_pids                           0.001s
+  get_ce_worker_pids                         1.974s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.017s
+  cuda_restore_r2                           10.012s
+  set_global_steps                           0.024s
+  clear_kv_cache                             0.009s
+  resume_generation                          0.002s
+  lb_add_servers                             0.010s
+  raise_concurrency                          0.003s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-06T23:58:51.578+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 56/64, ETA 52.2s)
+[mq] pre-suspend depth=0 produced=312 consumed=312 dropped=0 fill_rate=n/a
+[2026-08-06T23:58:51.580+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-06T23:58:51.581+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-06T23:58:51.581+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-06T23:58:51.582+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-06T23:58:51.582+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 71 aborted
+[2026-08-06T23:58:52.398+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (0.815s)
+[2026-08-06T23:58:52.398+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-06T23:58:52.399+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-06T23:58:52.399+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=312 consumed=312 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 73}, 'total_inflight': 73, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-06T23:58:53.401+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-06T23:58:53.401+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-06T23:58:53.403+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.002s)
+[2026-08-06T23:58:53.403+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28466ms
+[2026-08-06T23:59:22.430+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.027s)
+[mq] post-suspend depth=0 produced=316 consumed=316 dropped=0 fill_rate=0.133 samples/s
+[2026-08-06T23:59:22.433+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5548ms
+[2026-08-06T23:59:28.441+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-06T23:59:28.441+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-06T23:59:28.441+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-06T23:59:28.441+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-06T23:59:28.642+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.065s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         0.815s
+  wait_for_requests_to_drain                 0.001s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.027s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T00:04:01.290+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=864 decisions=868 would_in/back=2/2 live_in/back=1/1 cycles_verified=0 param_syncs=5 steps=3 last_action=switch_back_done@2026-08-06T23:59:28.644+00:00
+[2026-08-07T00:04:01.294+00:00] [policy] cycle 1 verified: param_sync ok (version 5)
+[2026-08-07T00:04:01.295+00:00] [policy] SWITCH-IN firing (block 6, collected 39/64, ETA 213.2s > 113.9s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T00:04:01.295+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T00:04:01.295+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T00:04:01.295+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T00:04:01.295+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T00:04:01.295+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T00:04:01.295+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T00:04:01.295+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T00:04:01.496+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T00:04:01.496+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16616ms
+[2026-08-07T00:04:18.512+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.016s)
+[mq] pre-resume depth=0 produced=359 consumed=359 dropped=0 fill_rate=n/a
+[2026-08-07T00:04:18.515+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 9853ms
+[2026-08-07T00:04:28.526+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (10.011s)
+[2026-08-07T00:04:28.526+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=5
+[2026-08-07T00:04:28.529+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.003s)
+[2026-08-07T00:04:28.529+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T00:04:28.537+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-07T00:04:28.537+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T00:04:28.539+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.002s)
+[2026-08-07T00:04:28.539+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T00:04:28.542+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T00:04:28.542+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T00:04:28.543+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=359 consumed=359 dropped=0 fill_rate=0.000 samples/s
+
+=== switch-to-rollout timing breakdown (total 27.251s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.016s
+  cuda_restore_r2                           10.011s
+  set_global_steps                           0.003s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.002s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T00:06:18.822+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 56/64, ETA 47.3s)
+[mq] pre-suspend depth=0 produced=376 consumed=376 dropped=0 fill_rate=n/a
+[2026-08-07T00:06:18.823+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T00:06:18.824+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T00:06:18.825+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T00:06:18.826+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.002s)
+[2026-08-07T00:06:18.826+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 106 aborted
+[2026-08-07T00:06:20.169+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.343s)
+[2026-08-07T00:06:20.169+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T00:06:20.171+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.002s)
+[2026-08-07T00:06:20.171+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=376 consumed=376 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 106}, 'total_inflight': 106, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T00:06:21.173+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T00:06:21.173+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T00:06:21.175+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.001s)
+[2026-08-07T00:06:21.175+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28070ms
+[2026-08-07T00:06:50.201+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.026s)
+[mq] post-suspend depth=0 produced=379 consumed=379 dropped=0 fill_rate=0.100 samples/s
+[2026-08-07T00:06:50.205+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5619ms
+[2026-08-07T00:06:56.213+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T00:06:56.213+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T00:06:56.213+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T00:06:56.213+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T00:06:56.414+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.593s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.002s
+  abort_all_requests                         1.343s
+  wait_for_requests_to_drain                 0.002s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.026s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T00:12:17.166+00:00] [policy] cycle 2 verified: param_sync ok (version 6)
+[2026-08-07T00:12:17.167+00:00] [policy] SWITCH-IN firing (block 7, collected 37/64, ETA 225.8s > 105.6s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T00:12:17.167+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T00:12:17.167+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T00:12:17.167+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T00:12:17.167+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T00:12:17.167+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T00:12:17.167+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T00:12:17.167+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T00:12:17.368+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T00:12:17.368+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16516ms
+[2026-08-07T00:12:34.384+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.017s)
+[mq] pre-resume depth=0 produced=421 consumed=421 dropped=0 fill_rate=n/a
+[2026-08-07T00:12:34.387+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 9743ms
+[2026-08-07T00:12:44.398+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (10.011s)
+[2026-08-07T00:12:44.398+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=6
+[2026-08-07T00:12:44.402+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.004s)
+[2026-08-07T00:12:44.402+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T00:12:44.412+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.010s)
+[2026-08-07T00:12:44.412+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T00:12:44.414+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.002s)
+[2026-08-07T00:12:44.414+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T00:12:44.417+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T00:12:44.417+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T00:12:44.419+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=421 consumed=421 dropped=0 fill_rate=0.000 samples/s
+
+=== switch-to-rollout timing breakdown (total 27.255s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.017s
+  cuda_restore_r2                           10.011s
+  set_global_steps                           0.004s
+  clear_kv_cache                             0.010s
+  resume_generation                          0.002s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T00:14:02.601+00:00] [policy] PROGRESS mode=live state=R2_ACTIVE sim=TRAINER_ACTIVE tick=1118 decisions=1127 would_in/back=2/2 live_in/back=3/2 cycles_verified=2 param_syncs=7 steps=5 last_action=switch_in_done@2026-08-07T00:12:44.422+00:00
+[2026-08-07T00:14:56.734+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 57/64, ETA 45.6s)
+[mq] pre-suspend depth=0 produced=441 consumed=441 dropped=0 fill_rate=n/a
+[2026-08-07T00:14:56.736+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T00:14:56.737+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.002s)
+[2026-08-07T00:14:56.737+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T00:14:56.739+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T00:14:56.739+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 91 aborted
+[2026-08-07T00:14:58.551+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.813s)
+[2026-08-07T00:14:58.551+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T00:14:58.553+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.002s)
+[2026-08-07T00:14:58.553+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=441 consumed=441 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 92}, 'total_inflight': 92, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T00:14:59.556+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T00:14:59.556+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T00:14:59.557+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.002s)
+[2026-08-07T00:14:59.557+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28775ms
+[2026-08-07T00:15:28.585+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.027s)
+[mq] post-suspend depth=0 produced=444 consumed=444 dropped=0 fill_rate=0.100 samples/s
+[2026-08-07T00:15:28.588+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5502ms
+[2026-08-07T00:15:34.596+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T00:15:34.596+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T00:15:34.596+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T00:15:34.596+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T00:15:34.797+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 38.064s) ===
+  lb_remove_servers                          0.002s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         1.813s
+  wait_for_requests_to_drain                 0.002s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.027s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T00:21:09.582+00:00] [policy] cycle 3 verified: param_sync ok (version 7)
+[2026-08-07T00:21:09.582+00:00] [policy] SWITCH-IN firing (block 8, collected 41/64, ETA 228.4s > 101.8s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T00:21:09.582+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T00:21:09.582+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T00:21:09.582+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T00:21:09.582+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T00:21:09.582+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T00:21:09.583+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T00:21:09.583+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T00:21:09.583+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.000s)
+[2026-08-07T00:21:09.583+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16626ms
+[2026-08-07T00:21:26.599+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.017s)
+[mq] pre-resume depth=0 produced=490 consumed=490 dropped=0 fill_rate=n/a
+[2026-08-07T00:21:26.602+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 9984ms
+[2026-08-07T00:21:36.613+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (10.011s)
+[2026-08-07T00:21:36.613+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=7
+[2026-08-07T00:21:36.617+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.003s)
+[2026-08-07T00:21:36.617+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T00:21:36.627+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.010s)
+[2026-08-07T00:21:36.627+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T00:21:36.628+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.001s)
+[2026-08-07T00:21:36.628+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T00:21:36.631+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T00:21:36.631+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T00:21:36.633+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=490 consumed=490 dropped=0 fill_rate=0.000 samples/s
+
+=== switch-to-rollout timing breakdown (total 27.053s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.000s
+  cuda_snapshot_trainer                     17.017s
+  cuda_restore_r2                           10.011s
+  set_global_steps                           0.003s
+  clear_kv_cache                             0.010s
+  resume_generation                          0.001s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T00:23:10.861+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 56/64, ETA 49.4s)
+[mq] pre-suspend depth=0 produced=504 consumed=504 dropped=0 fill_rate=n/a
+[2026-08-07T00:23:10.863+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T00:23:10.865+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T00:23:10.865+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T00:23:10.866+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.002s)
+[2026-08-07T00:23:10.866+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 103 aborted
+[2026-08-07T00:23:11.950+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.084s)
+[2026-08-07T00:23:11.950+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T00:23:11.951+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.002s)
+[2026-08-07T00:23:11.951+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=504 consumed=504 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 104}, 'total_inflight': 104, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T00:23:12.954+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T00:23:12.954+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T00:23:12.955+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.001s)
+[2026-08-07T00:23:12.955+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28208ms
+[2026-08-07T00:23:41.981+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.026s)
+[mq] post-suspend depth=0 produced=509 consumed=509 dropped=0 fill_rate=0.166 samples/s
+[2026-08-07T00:23:41.984+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5505ms
+[2026-08-07T00:23:47.991+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.007s)
+[2026-08-07T00:23:47.991+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T00:23:47.992+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T00:23:47.992+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T00:23:48.192+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.332s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.002s
+  abort_all_requests                         1.084s
+  wait_for_requests_to_drain                 0.002s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.026s
+  cuda_restore_trainer                       6.007s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T00:24:04.227+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=1367 decisions=1380 would_in/back=2/2 live_in/back=4/4 cycles_verified=3 param_syncs=8 steps=6 last_action=switch_back_done@2026-08-07T00:23:48.195+00:00
+[2026-08-07T00:29:30.987+00:00] [policy] cycle 4 verified: param_sync ok (version 8)
+[2026-08-07T00:29:30.987+00:00] [policy] SWITCH-IN firing (block 9, collected 38/64, ETA 307.1s > 99.2s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T00:29:30.987+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T00:29:30.987+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T00:29:30.987+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T00:29:30.987+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T00:29:30.987+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T00:29:30.987+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T00:29:30.987+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T00:29:31.188+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T00:29:31.188+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16584ms
+[2026-08-07T00:29:48.204+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.016s)
+[mq] pre-resume depth=0 produced=554 consumed=554 dropped=0 fill_rate=n/a
+[2026-08-07T00:29:48.207+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 10002ms
+[2026-08-07T00:29:58.218+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (10.011s)
+[2026-08-07T00:29:58.218+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=8
+[2026-08-07T00:29:58.222+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.004s)
+[2026-08-07T00:29:58.222+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T00:29:58.233+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.011s)
+[2026-08-07T00:29:58.233+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T00:29:58.234+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.001s)
+[2026-08-07T00:29:58.234+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T00:29:58.237+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T00:29:58.237+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T00:29:58.239+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=555 consumed=555 dropped=0 fill_rate=0.100 samples/s
+
+=== switch-to-rollout timing breakdown (total 27.255s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.016s
+  cuda_restore_r2                           10.011s
+  set_global_steps                           0.004s
+  clear_kv_cache                             0.011s
+  resume_generation                          0.002s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T00:32:14.568+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 58/64, ETA 48.0s)
+[mq] pre-suspend depth=0 produced=570 consumed=570 dropped=0 fill_rate=n/a
+[2026-08-07T00:32:14.569+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T00:32:14.571+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T00:32:14.571+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T00:32:14.572+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T00:32:14.572+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 85 aborted
+[2026-08-07T00:32:15.920+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.348s)
+[2026-08-07T00:32:15.920+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T00:32:15.921+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.002s)
+[2026-08-07T00:32:15.921+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=570 consumed=570 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 81}, 'total_inflight': 81, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T00:32:16.924+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T00:32:16.924+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T00:32:16.925+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.002s)
+[2026-08-07T00:32:16.925+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28407ms
+[2026-08-07T00:32:45.952+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.027s)
+[mq] post-suspend depth=0 produced=572 consumed=572 dropped=0 fill_rate=0.067 samples/s
+[2026-08-07T00:32:45.955+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5560ms
+[2026-08-07T00:32:51.963+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T00:32:51.963+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T00:32:51.963+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T00:32:51.963+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T00:32:52.163+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.597s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         1.347s
+  wait_for_requests_to_drain                 0.002s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.026s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T00:34:04.352+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=1634 decisions=1650 would_in/back=2/2 live_in/back=5/5 cycles_verified=4 param_syncs=9 steps=7 last_action=switch_back_done@2026-08-07T00:32:52.165+00:00
+[2026-08-07T00:37:52.888+00:00] [policy] cycle 5 verified: param_sync ok (version 9)
+[2026-08-07T00:37:52.888+00:00] [policy] SWITCH-IN firing (block 10, collected 41/64, ETA 244.9s > 98.2s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T00:37:52.889+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T00:37:52.889+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T00:37:52.889+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T00:37:52.889+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T00:37:52.889+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T00:37:52.889+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T00:37:52.889+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T00:37:53.089+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T00:37:53.089+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16634ms
+[2026-08-07T00:38:10.106+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.017s)
+[mq] pre-resume depth=0 produced=619 consumed=619 dropped=0 fill_rate=n/a
+[2026-08-07T00:38:10.110+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 9925ms
+[2026-08-07T00:38:20.121+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (10.012s)
+[2026-08-07T00:38:20.121+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=9
+[2026-08-07T00:38:20.125+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.004s)
+[2026-08-07T00:38:20.125+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T00:38:20.133+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-07T00:38:20.133+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T00:38:20.134+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.001s)
+[2026-08-07T00:38:20.134+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T00:38:20.138+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T00:38:20.138+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T00:38:20.139+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=620 consumed=620 dropped=0 fill_rate=0.100 samples/s
+
+=== switch-to-rollout timing breakdown (total 27.254s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.017s
+  cuda_restore_r2                           10.012s
+  set_global_steps                           0.004s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.001s
+  lb_add_servers                             0.004s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T00:40:20.426+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 58/64, ETA 43.1s)
+[mq] pre-suspend depth=0 produced=634 consumed=634 dropped=0 fill_rate=n/a
+[2026-08-07T00:40:20.428+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T00:40:20.429+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T00:40:20.429+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T00:40:20.431+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T00:40:20.431+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 89 aborted
+[2026-08-07T00:40:21.535+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.104s)
+[2026-08-07T00:40:21.535+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T00:40:21.536+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-07T00:40:21.536+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=634 consumed=634 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 88}, 'total_inflight': 88, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T00:40:22.538+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T00:40:22.538+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T00:40:22.540+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.001s)
+[2026-08-07T00:40:22.540+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28551ms
+[2026-08-07T00:40:51.565+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.026s)
+[mq] post-suspend depth=0 produced=638 consumed=638 dropped=0 fill_rate=0.133 samples/s
+[2026-08-07T00:40:51.569+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5743ms
+[2026-08-07T00:40:57.577+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T00:40:57.577+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T00:40:57.577+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T00:40:57.577+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T00:40:57.777+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.352s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         1.104s
+  wait_for_requests_to_drain                 0.001s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.001s
+  cuda_snapshot_r2                          29.026s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T00:44:06.210+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=1902 decisions=1921 would_in/back=2/2 live_in/back=6/6 cycles_verified=5 param_syncs=10 steps=8 last_action=switch_back_done@2026-08-07T00:40:57.779+00:00
+[2026-08-07T00:46:06.496+00:00] [policy] cycle 6 verified: param_sync ok (version 10)
+[2026-08-07T00:46:06.497+00:00] [policy] SWITCH-IN firing (block 11, collected 43/64, ETA 205.8s > 97.6s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T00:46:06.497+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T00:46:06.497+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T00:46:06.497+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T00:46:06.497+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T00:46:06.497+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T00:46:06.497+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T00:46:06.497+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T00:46:06.698+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T00:46:06.698+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16546ms
+[2026-08-07T00:46:23.716+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.018s)
+[mq] pre-resume depth=0 produced=684 consumed=684 dropped=0 fill_rate=n/a
+[2026-08-07T00:46:23.719+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 10361ms
+[2026-08-07T00:46:34.730+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (11.011s)
+[2026-08-07T00:46:34.730+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=10
+[2026-08-07T00:46:34.734+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.004s)
+[2026-08-07T00:46:34.734+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T00:46:34.741+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-07T00:46:34.741+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T00:46:34.743+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.002s)
+[2026-08-07T00:46:34.743+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T00:46:34.746+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T00:46:34.746+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T00:46:34.748+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=685 consumed=685 dropped=0 fill_rate=0.091 samples/s
+
+=== switch-to-rollout timing breakdown (total 28.254s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.018s
+  cuda_restore_r2                           11.011s
+  set_global_steps                           0.004s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.002s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T00:48:27.018+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 58/64, ETA 48.2s)
+[mq] pre-suspend depth=0 produced=698 consumed=698 dropped=0 fill_rate=n/a
+[2026-08-07T00:48:27.020+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T00:48:27.021+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T00:48:27.021+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T00:48:27.022+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T00:48:27.022+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 106 aborted
+[2026-08-07T00:48:28.485+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.463s)
+[2026-08-07T00:48:28.485+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T00:48:28.487+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-07T00:48:28.487+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=698 consumed=698 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 104}, 'total_inflight': 104, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T00:48:29.489+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T00:48:29.489+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T00:48:29.490+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.001s)
+[2026-08-07T00:48:29.490+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28591ms
+[2026-08-07T00:48:58.517+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.027s)
+[mq] post-suspend depth=0 produced=700 consumed=700 dropped=0 fill_rate=0.067 samples/s
+[2026-08-07T00:48:58.520+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5688ms
+[2026-08-07T00:49:04.528+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.007s)
+[2026-08-07T00:49:04.528+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T00:49:04.528+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T00:49:04.528+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T00:49:04.728+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.711s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         1.463s
+  wait_for_requests_to_drain                 0.002s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.001s
+  cuda_snapshot_r2                          29.027s
+  cuda_restore_trainer                       6.007s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T00:54:07.430+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=2169 decisions=2191 would_in/back=2/2 live_in/back=7/7 cycles_verified=6 param_syncs=11 steps=9 last_action=switch_back_done@2026-08-07T00:49:04.730+00:00
+[2026-08-07T00:54:49.531+00:00] [policy] cycle 7 verified: param_sync ok (version 11)
+[2026-08-07T00:54:49.531+00:00] [policy] SWITCH-IN firing (block 12, collected 23/64, ETA 324.1s > 98.3s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T00:54:49.532+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T00:54:49.532+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T00:54:49.532+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T00:54:49.532+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T00:54:49.532+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T00:54:49.532+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T00:54:49.532+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T00:54:49.733+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T00:54:49.733+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16625ms
+[2026-08-07T00:55:06.750+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.017s)
+[mq] pre-resume depth=0 produced=749 consumed=749 dropped=0 fill_rate=n/a
+[2026-08-07T00:55:06.753+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 10101ms
+[2026-08-07T00:55:17.764+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (11.012s)
+[2026-08-07T00:55:17.764+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=11
+[2026-08-07T00:55:17.768+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.003s)
+[2026-08-07T00:55:17.768+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T00:55:17.776+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-07T00:55:17.776+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T00:55:17.777+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.001s)
+[2026-08-07T00:55:17.777+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T00:55:17.780+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T00:55:17.780+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T00:55:17.781+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=750 consumed=750 dropped=0 fill_rate=0.091 samples/s
+
+=== switch-to-rollout timing breakdown (total 28.252s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.017s
+  cuda_restore_r2                           11.012s
+  set_global_steps                           0.003s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.001s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T00:56:23.940+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 56/64, ETA 48.5s)
+[mq] pre-suspend depth=0 produced=760 consumed=760 dropped=0 fill_rate=n/a
+[2026-08-07T00:56:23.942+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T00:56:23.943+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T00:56:23.943+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T00:56:23.945+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T00:56:23.945+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 106 aborted
+[2026-08-07T00:56:24.785+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (0.840s)
+[2026-08-07T00:56:24.785+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T00:56:24.786+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-07T00:56:24.787+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=760 consumed=760 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 107}, 'total_inflight': 107, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T00:56:25.789+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T00:56:25.789+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T00:56:25.790+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.002s)
+[2026-08-07T00:56:25.791+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28634ms
+[2026-08-07T00:56:54.818+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.027s)
+[mq] post-suspend depth=0 produced=762 consumed=762 dropped=0 fill_rate=0.067 samples/s
+[2026-08-07T00:56:54.820+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5784ms
+[2026-08-07T00:57:00.828+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.007s)
+[2026-08-07T00:57:00.828+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T00:57:00.828+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T00:57:00.828+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T00:57:01.028+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.090s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         0.841s
+  wait_for_requests_to_drain                 0.001s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.027s
+  cuda_restore_trainer                       6.007s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.201s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T01:03:07.887+00:00] [policy] cycle 8 verified: param_sync ok (version 12)
+[2026-08-07T01:03:07.887+00:00] [policy] SWITCH-IN firing (block 13, collected 41/64, ETA 265.2s > 98.1s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T01:03:07.887+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T01:03:07.887+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T01:03:07.887+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T01:03:07.887+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T01:03:07.887+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T01:03:07.887+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T01:03:07.888+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T01:03:08.088+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T01:03:08.088+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16547ms
+[2026-08-07T01:03:25.105+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.017s)
+[mq] pre-resume depth=0 produced=809 consumed=809 dropped=0 fill_rate=n/a
+[2026-08-07T01:03:25.108+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 10170ms
+[2026-08-07T01:03:36.120+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (11.011s)
+[2026-08-07T01:03:36.120+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=12
+[2026-08-07T01:03:36.123+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.003s)
+[2026-08-07T01:03:36.123+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T01:03:36.131+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-07T01:03:36.131+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T01:03:36.133+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.002s)
+[2026-08-07T01:03:36.133+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T01:03:36.136+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T01:03:36.136+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T01:03:36.137+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.001s)
+[mq] post-resume depth=0 produced=813 consumed=813 dropped=0 fill_rate=0.363 samples/s
+
+=== switch-to-rollout timing breakdown (total 28.253s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.017s
+  cuda_restore_r2                           11.011s
+  set_global_steps                           0.003s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.002s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T01:04:08.210+00:00] [policy] PROGRESS mode=live state=R2_ACTIVE sim=TRAINER_ACTIVE tick=2422 decisions=2449 would_in/back=2/2 live_in/back=9/8 cycles_verified=8 param_syncs=13 steps=11 last_action=switch_in_done@2026-08-07T01:03:36.140+00:00
+[2026-08-07T01:05:08.355+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 57/64, ETA 50.0s)
+[mq] pre-suspend depth=0 produced=825 consumed=825 dropped=0 fill_rate=n/a
+[2026-08-07T01:05:08.356+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T01:05:08.358+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T01:05:08.358+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T01:05:08.359+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T01:05:08.359+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 105 aborted
+[2026-08-07T01:05:09.588+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.229s)
+[2026-08-07T01:05:09.588+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T01:05:09.589+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.002s)
+[2026-08-07T01:05:09.589+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=825 consumed=825 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 105}, 'total_inflight': 105, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T01:05:10.592+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T01:05:10.592+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T01:05:10.593+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.001s)
+[2026-08-07T01:05:10.593+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28572ms
+[2026-08-07T01:05:39.621+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.027s)
+[mq] post-suspend depth=0 produced=829 consumed=829 dropped=0 fill_rate=0.133 samples/s
+[2026-08-07T01:05:39.624+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5596ms
+[2026-08-07T01:05:45.632+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T01:05:45.632+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T01:05:45.632+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T01:05:45.632+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T01:05:45.832+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.479s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         1.229s
+  wait_for_requests_to_drain                 0.002s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.001s
+  cuda_snapshot_r2                          29.027s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.201s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T01:11:44.665+00:00] [policy] cycle 9 verified: param_sync ok (version 13)
+[2026-08-07T01:11:44.666+00:00] [policy] SWITCH-IN firing (block 14, collected 40/64, ETA 192.1s > 98.4s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T01:11:44.666+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T01:11:44.666+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T01:11:44.666+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T01:11:44.666+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T01:11:44.666+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T01:11:44.666+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T01:11:44.666+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T01:11:44.867+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T01:11:44.867+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16704ms
+[2026-08-07T01:12:01.884+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.017s)
+[mq] pre-resume depth=0 produced=875 consumed=875 dropped=0 fill_rate=n/a
+[2026-08-07T01:12:01.887+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 9997ms
+[2026-08-07T01:12:11.898+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (10.011s)
+[2026-08-07T01:12:11.898+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=13
+[2026-08-07T01:12:11.901+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.003s)
+[2026-08-07T01:12:11.901+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T01:12:11.909+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-07T01:12:11.909+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T01:12:11.911+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.001s)
+[2026-08-07T01:12:11.911+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T01:12:11.913+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T01:12:11.913+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T01:12:11.915+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=876 consumed=876 dropped=0 fill_rate=0.100 samples/s
+
+=== switch-to-rollout timing breakdown (total 27.252s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.017s
+  cuda_restore_r2                           10.011s
+  set_global_steps                           0.003s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.001s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T01:14:10.191+00:00] [policy] PROGRESS mode=live state=R2_ACTIVE sim=TRAINER_ACTIVE tick=2690 decisions=2720 would_in/back=2/2 live_in/back=10/9 cycles_verified=9 param_syncs=14 steps=12 last_action=switch_in_done@2026-08-07T01:12:11.918+00:00
+[2026-08-07T01:14:24.229+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 59/64, ETA 33.7s)
+[mq] pre-suspend depth=0 produced=891 consumed=891 dropped=0 fill_rate=n/a
+[2026-08-07T01:14:24.230+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T01:14:24.232+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T01:14:24.232+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T01:14:24.233+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.002s)
+[2026-08-07T01:14:24.233+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 93 aborted
+[2026-08-07T01:14:25.434+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.201s)
+[2026-08-07T01:14:25.435+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T01:14:25.436+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-07T01:14:25.436+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=891 consumed=891 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 94}, 'total_inflight': 94, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T01:14:26.438+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T01:14:26.438+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T01:14:26.440+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.001s)
+[2026-08-07T01:14:26.440+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28397ms
+[2026-08-07T01:14:55.468+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.028s)
+[mq] post-suspend depth=0 produced=893 consumed=893 dropped=0 fill_rate=0.067 samples/s
+[2026-08-07T01:14:55.471+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5702ms
+[2026-08-07T01:15:01.479+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T01:15:01.479+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T01:15:01.479+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T01:15:01.479+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T01:15:01.679+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.452s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.002s
+  abort_all_requests                         1.201s
+  wait_for_requests_to_drain                 0.001s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.001s
+  cuda_snapshot_r2                          29.028s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T01:20:14.416+00:00] [policy] cycle 10 verified: param_sync ok (version 14)
+[2026-08-07T01:20:14.416+00:00] [policy] SWITCH-IN firing (block 15, collected 25/64, ETA 356.3s > 97.7s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T01:20:14.416+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T01:20:14.416+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T01:20:14.416+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T01:20:14.416+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T01:20:14.416+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T01:20:14.417+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T01:20:14.417+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T01:20:14.617+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T01:20:14.617+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16549ms
+[2026-08-07T01:20:31.651+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.034s)
+[mq] pre-resume depth=0 produced=935 consumed=935 dropped=0 fill_rate=n/a
+[2026-08-07T01:20:31.654+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 10090ms
+[2026-08-07T01:20:42.666+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (11.012s)
+[2026-08-07T01:20:42.666+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=14
+[2026-08-07T01:20:42.670+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.004s)
+[2026-08-07T01:20:42.670+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T01:20:42.677+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-07T01:20:42.678+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T01:20:42.679+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.001s)
+[2026-08-07T01:20:42.679+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T01:20:42.682+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T01:20:42.682+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T01:20:42.683+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=938 consumed=938 dropped=0 fill_rate=0.272 samples/s
+
+=== switch-to-rollout timing breakdown (total 28.270s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.034s
+  cuda_restore_r2                           11.012s
+  set_global_steps                           0.004s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.001s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T01:22:52.990+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 57/64, ETA 47.4s)
+[mq] pre-suspend depth=0 produced=953 consumed=953 dropped=0 fill_rate=n/a
+[2026-08-07T01:22:52.991+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T01:22:52.992+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T01:22:52.992+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T01:22:52.994+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T01:22:52.994+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 89 aborted
+[2026-08-07T01:22:54.236+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.242s)
+[2026-08-07T01:22:54.236+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T01:22:54.237+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-07T01:22:54.238+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=953 consumed=953 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 88}, 'total_inflight': 88, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T01:22:55.240+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T01:22:55.240+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T01:22:55.241+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.001s)
+[2026-08-07T01:22:55.241+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28287ms
+[2026-08-07T01:23:24.268+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.026s)
+[mq] post-suspend depth=0 produced=958 consumed=958 dropped=0 fill_rate=0.166 samples/s
+[2026-08-07T01:23:24.270+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5773ms
+[2026-08-07T01:23:30.278+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T01:23:30.278+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T01:23:30.278+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T01:23:30.278+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T01:23:30.479+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.490s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         1.242s
+  wait_for_requests_to_drain                 0.002s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.026s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T01:24:10.571+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=2938 decisions=2972 would_in/back=2/2 live_in/back=11/11 cycles_verified=10 param_syncs=15 steps=13 last_action=switch_back_done@2026-08-07T01:23:30.481+00:00
+[2026-08-07T01:28:49.231+00:00] [policy] cycle 11 verified: param_sync ok (version 15)
+[2026-08-07T01:28:49.231+00:00] [policy] SWITCH-IN firing (block 16, collected 38/64, ETA 296.0s > 98.2s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T01:28:49.232+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T01:28:49.232+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T01:28:49.232+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T01:28:49.232+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T01:28:49.232+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T01:28:49.232+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T01:28:49.232+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T01:28:49.432+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T01:28:49.433+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16594ms
+[2026-08-07T01:29:06.449+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.017s)
+[mq] pre-resume depth=0 produced=1000 consumed=1000 dropped=0 fill_rate=n/a
+[2026-08-07T01:29:06.452+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 9991ms
+[2026-08-07T01:29:16.463+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (10.011s)
+[2026-08-07T01:29:16.463+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=15
+[2026-08-07T01:29:16.467+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.004s)
+[2026-08-07T01:29:16.467+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T01:29:16.475+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-07T01:29:16.475+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T01:29:16.476+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.001s)
+[2026-08-07T01:29:16.476+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T01:29:16.479+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T01:29:16.479+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T01:29:16.481+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=1002 consumed=1002 dropped=0 fill_rate=0.199 samples/s
+
+=== switch-to-rollout timing breakdown (total 27.253s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.017s
+  cuda_restore_r2                           10.011s
+  set_global_steps                           0.004s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.001s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T01:30:56.714+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 58/64, ETA 39.8s)
+[mq] pre-suspend depth=0 produced=1018 consumed=1018 dropped=0 fill_rate=n/a
+[2026-08-07T01:30:56.715+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T01:30:56.717+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.002s)
+[2026-08-07T01:30:56.717+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T01:30:56.718+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T01:30:56.718+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 101 aborted
+[2026-08-07T01:30:57.937+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.219s)
+[2026-08-07T01:30:57.937+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T01:30:57.939+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.002s)
+[2026-08-07T01:30:57.939+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=1018 consumed=1018 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 102}, 'total_inflight': 102, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T01:30:58.941+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T01:30:58.941+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T01:30:58.943+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.001s)
+[2026-08-07T01:30:58.943+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28401ms
+[2026-08-07T01:31:27.970+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.028s)
+[mq] post-suspend depth=0 produced=1019 consumed=1019 dropped=0 fill_rate=0.033 samples/s
+[2026-08-07T01:31:27.973+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5723ms
+[2026-08-07T01:31:33.981+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T01:31:33.981+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T01:31:33.981+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T01:31:33.981+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T01:31:34.182+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.470s) ===
+  lb_remove_servers                          0.002s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         1.219s
+  wait_for_requests_to_drain                 0.002s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.028s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.201s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T01:34:12.549+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=3206 decisions=3243 would_in/back=2/2 live_in/back=12/12 cycles_verified=11 param_syncs=16 steps=14 last_action=switch_back_done@2026-08-07T01:31:34.184+00:00
+[2026-08-07T01:37:14.979+00:00] [policy] cycle 12 verified: param_sync ok (version 16)
+[2026-08-07T01:37:14.979+00:00] [policy] SWITCH-IN firing (block 17, collected 43/64, ETA 212.7s > 97.6s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T01:37:14.979+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T01:37:14.979+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T01:37:14.979+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T01:37:14.979+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T01:37:14.979+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T01:37:14.980+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T01:37:14.980+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T01:37:15.180+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T01:37:15.180+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16474ms
+[2026-08-07T01:37:32.197+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.017s)
+[mq] pre-resume depth=0 produced=1068 consumed=1068 dropped=0 fill_rate=n/a
+[2026-08-07T01:37:32.200+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 10210ms
+[2026-08-07T01:37:43.212+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (11.012s)
+[2026-08-07T01:37:43.212+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=16
+[2026-08-07T01:37:43.215+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.004s)
+[2026-08-07T01:37:43.216+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T01:37:43.223+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.007s)
+[2026-08-07T01:37:43.223+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T01:37:43.224+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.001s)
+[2026-08-07T01:37:43.224+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T01:37:43.228+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T01:37:43.228+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T01:37:43.229+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=1070 consumed=1070 dropped=0 fill_rate=0.181 samples/s
+
+=== switch-to-rollout timing breakdown (total 28.253s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.017s
+  cuda_restore_r2                           11.012s
+  set_global_steps                           0.004s
+  clear_kv_cache                             0.007s
+  resume_generation                          0.001s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T01:38:43.372+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 57/64, ETA 43.5s)
+[mq] pre-suspend depth=0 produced=1081 consumed=1081 dropped=0 fill_rate=n/a
+[2026-08-07T01:38:43.373+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T01:38:43.375+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T01:38:43.375+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T01:38:43.376+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T01:38:43.376+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 116 aborted
+[2026-08-07T01:38:44.315+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (0.939s)
+[2026-08-07T01:38:44.315+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T01:38:44.316+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-07T01:38:44.316+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=1082 consumed=1082 dropped=0 fill_rate=1.059 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 110}, 'total_inflight': 110, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T01:38:45.318+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T01:38:45.318+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T01:38:45.320+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.001s)
+[2026-08-07T01:38:45.320+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28254ms
+[2026-08-07T01:39:14.346+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.026s)
+[mq] post-suspend depth=0 produced=1084 consumed=1084 dropped=0 fill_rate=0.067 samples/s
+[2026-08-07T01:39:14.349+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5818ms
+[2026-08-07T01:39:20.356+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T01:39:20.356+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T01:39:20.356+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T01:39:20.356+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T01:39:20.557+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.187s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         0.939s
+  wait_for_requests_to_drain                 0.001s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.026s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T01:44:13.237+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=3473 decisions=3513 would_in/back=2/2 live_in/back=13/13 cycles_verified=12 param_syncs=17 steps=15 last_action=switch_back_done@2026-08-07T01:39:20.559+00:00
+[2026-08-07T01:45:17.396+00:00] [policy] cycle 13 verified: param_sync ok (version 17)
+[2026-08-07T01:45:17.396+00:00] [policy] SWITCH-IN firing (block 18, collected 40/64, ETA 208.7s > 97.9s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T01:45:17.396+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T01:45:17.396+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T01:45:17.396+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T01:45:17.396+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T01:45:17.396+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T01:45:17.397+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T01:45:17.397+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T01:45:17.597+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T01:45:17.597+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16472ms
+[2026-08-07T01:45:34.614+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.017s)
+[mq] pre-resume depth=0 produced=1129 consumed=1129 dropped=0 fill_rate=n/a
+[2026-08-07T01:45:34.617+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 9979ms
+[2026-08-07T01:45:44.627+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (10.011s)
+[2026-08-07T01:45:44.627+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=17
+[2026-08-07T01:45:44.631+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.003s)
+[2026-08-07T01:45:44.631+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T01:45:44.638+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-07T01:45:44.639+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T01:45:44.640+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.001s)
+[2026-08-07T01:45:44.640+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T01:45:44.643+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T01:45:44.643+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T01:45:44.645+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=1130 consumed=1130 dropped=0 fill_rate=0.100 samples/s
+
+=== switch-to-rollout timing breakdown (total 27.251s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.017s
+  cuda_restore_r2                           10.011s
+  set_global_steps                           0.003s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.001s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T01:47:26.888+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 56/64, ETA 50.1s)
+[mq] pre-suspend depth=0 produced=1144 consumed=1144 dropped=0 fill_rate=n/a
+[2026-08-07T01:47:26.889+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T01:47:26.891+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T01:47:26.891+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T01:47:26.892+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T01:47:26.892+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 107 aborted
+[2026-08-07T01:47:28.028+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.136s)
+[2026-08-07T01:47:28.028+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T01:47:28.030+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.002s)
+[2026-08-07T01:47:28.030+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=1144 consumed=1144 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 103}, 'total_inflight': 103, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T01:47:29.032+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T01:47:29.032+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T01:47:29.034+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.002s)
+[2026-08-07T01:47:29.034+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28643ms
+[2026-08-07T01:47:58.060+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.027s)
+[mq] post-suspend depth=0 produced=1147 consumed=1147 dropped=0 fill_rate=0.100 samples/s
+[2026-08-07T01:47:58.063+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5585ms
+[2026-08-07T01:48:04.071+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T01:48:04.071+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T01:48:04.072+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T01:48:04.072+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T01:48:04.272+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.386s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         1.136s
+  wait_for_requests_to_drain                 0.002s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.027s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.201s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T01:54:01.110+00:00] [policy] cycle 14 verified: param_sync ok (version 18)
+[2026-08-07T01:54:01.110+00:00] [policy] SWITCH-IN firing (block 19, collected 42/64, ETA 150.9s > 97.4s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T01:54:01.111+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T01:54:01.111+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T01:54:01.111+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T01:54:01.111+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T01:54:01.111+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T01:54:01.111+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T01:54:01.111+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T01:54:01.311+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T01:54:01.311+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16522ms
+[2026-08-07T01:54:18.327+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.016s)
+[mq] pre-resume depth=0 produced=1196 consumed=1196 dropped=0 fill_rate=n/a
+[2026-08-07T01:54:18.330+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 9945ms
+[2026-08-07T01:54:28.340+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (10.010s)
+[2026-08-07T01:54:28.340+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=18
+[2026-08-07T01:54:28.344+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.003s)
+[2026-08-07T01:54:28.344+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T01:54:28.352+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-07T01:54:28.352+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T01:54:28.354+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.002s)
+[2026-08-07T01:54:28.354+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T01:54:28.356+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T01:54:28.357+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T01:54:28.358+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.001s)
+[mq] post-resume depth=0 produced=1197 consumed=1197 dropped=0 fill_rate=0.100 samples/s
+
+=== switch-to-rollout timing breakdown (total 27.250s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.016s
+  cuda_restore_r2                           10.010s
+  set_global_steps                           0.003s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.002s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T01:54:30.361+00:00] [policy] PROGRESS mode=live state=R2_ACTIVE sim=TRAINER_ACTIVE tick=3735 decisions=3780 would_in/back=2/2 live_in/back=15/14 cycles_verified=14 param_syncs=19 steps=17 last_action=switch_in_done@2026-08-07T01:54:28.361+00:00
+[2026-08-07T01:56:22.631+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 58/64, ETA 48.7s)
+[mq] pre-suspend depth=0 produced=1210 consumed=1210 dropped=0 fill_rate=n/a
+[2026-08-07T01:56:22.633+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T01:56:22.634+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T01:56:22.634+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T01:56:22.635+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T01:56:22.635+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 96 aborted
+[2026-08-07T01:56:23.841+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.206s)
+[2026-08-07T01:56:23.841+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T01:56:23.843+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-07T01:56:23.843+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=1211 consumed=1211 dropped=0 fill_rate=0.825 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 95}, 'total_inflight': 95, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T01:56:24.845+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T01:56:24.845+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T01:56:24.846+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.002s)
+[2026-08-07T01:56:24.847+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28240ms
+[2026-08-07T01:56:53.879+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.033s)
+[mq] post-suspend depth=0 produced=1213 consumed=1213 dropped=0 fill_rate=0.067 samples/s
+[2026-08-07T01:56:53.882+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5753ms
+[2026-08-07T01:56:59.890+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T01:56:59.890+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T01:56:59.890+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T01:56:59.890+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T01:57:00.090+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.461s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         1.206s
+  wait_for_requests_to_drain                 0.001s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.033s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.201s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T02:02:40.908+00:00] [policy] cycle 15 verified: param_sync ok (version 19)
+[2026-08-07T02:02:40.908+00:00] [policy] SWITCH-IN firing (block 20, collected 45/64, ETA 199.1s > 97.2s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T02:02:40.909+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T02:02:40.909+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T02:02:40.909+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T02:02:40.909+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T02:02:40.909+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T02:02:40.909+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T02:02:40.909+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T02:02:40.909+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.000s)
+[2026-08-07T02:02:40.909+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16691ms
+[2026-08-07T02:02:57.927+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.017s)
+[mq] pre-resume depth=0 produced=1261 consumed=1261 dropped=0 fill_rate=n/a
+[2026-08-07T02:02:57.930+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 9963ms
+[2026-08-07T02:03:07.940+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (10.011s)
+[2026-08-07T02:03:07.940+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=19
+[2026-08-07T02:03:07.944+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.004s)
+[2026-08-07T02:03:07.944+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T02:03:07.953+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.009s)
+[2026-08-07T02:03:07.953+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T02:03:07.954+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.002s)
+[2026-08-07T02:03:07.954+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T02:03:07.957+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T02:03:07.957+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T02:03:07.959+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=1261 consumed=1261 dropped=0 fill_rate=0.000 samples/s
+
+=== switch-to-rollout timing breakdown (total 27.053s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.000s
+  cuda_snapshot_trainer                     17.017s
+  cuda_restore_r2                           10.011s
+  set_global_steps                           0.004s
+  clear_kv_cache                             0.009s
+  resume_generation                          0.002s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T02:04:32.158+00:00] [policy] PROGRESS mode=live state=R2_ACTIVE sim=TRAINER_ACTIVE tick=4003 decisions=4051 would_in/back=2/2 live_in/back=16/15 cycles_verified=15 param_syncs=20 steps=18 last_action=switch_in_done@2026-08-07T02:03:07.962+00:00
+[2026-08-07T02:04:44.192+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 58/64, ETA 46.1s)
+[mq] pre-suspend depth=0 produced=1274 consumed=1274 dropped=0 fill_rate=n/a
+[2026-08-07T02:04:44.193+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T02:04:44.195+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T02:04:44.195+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T02:04:44.196+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T02:04:44.196+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 94 aborted
+[2026-08-07T02:04:45.403+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.206s)
+[2026-08-07T02:04:45.403+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T02:04:45.404+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-07T02:04:45.404+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=1274 consumed=1274 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 95}, 'total_inflight': 95, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T02:04:46.406+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T02:04:46.406+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T02:04:46.408+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.002s)
+[2026-08-07T02:04:46.408+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28719ms
+[2026-08-07T02:05:15.434+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.026s)
+[mq] post-suspend depth=0 produced=1277 consumed=1277 dropped=0 fill_rate=0.100 samples/s
+[2026-08-07T02:05:15.437+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5732ms
+[2026-08-07T02:05:21.445+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T02:05:21.445+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T02:05:21.445+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T02:05:21.445+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T02:05:21.646+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.455s) ===
+  lb_remove_servers                          0.002s
+  restore_base_concurrency                   0.002s
+  abort_all_requests                         1.206s
+  wait_for_requests_to_drain                 0.001s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.026s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T02:10:40.399+00:00] [policy] cycle 16 verified: param_sync ok (version 20)
+[2026-08-07T02:10:40.399+00:00] [policy] SWITCH-IN firing (block 21, collected 34/64, ETA 232.1s > 97.0s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T02:10:40.399+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T02:10:40.400+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T02:10:40.400+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T02:10:40.400+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T02:10:40.400+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T02:10:40.400+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T02:10:40.400+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T02:10:40.600+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T02:10:40.600+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16731ms
+[2026-08-07T02:10:57.617+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.017s)
+[mq] pre-resume depth=0 produced=1319 consumed=1319 dropped=0 fill_rate=n/a
+[2026-08-07T02:10:57.620+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 10210ms
+[2026-08-07T02:11:08.632+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (11.011s)
+[2026-08-07T02:11:08.632+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=20
+[2026-08-07T02:11:08.635+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.003s)
+[2026-08-07T02:11:08.635+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T02:11:08.643+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-07T02:11:08.643+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T02:11:08.644+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.002s)
+[2026-08-07T02:11:08.645+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T02:11:08.648+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T02:11:08.648+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T02:11:08.649+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=1321 consumed=1321 dropped=0 fill_rate=0.181 samples/s
+
+=== switch-to-rollout timing breakdown (total 28.253s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.017s
+  cuda_restore_r2                           11.011s
+  set_global_steps                           0.003s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.002s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T02:13:22.963+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 59/64, ETA 36.0s)
+[mq] pre-suspend depth=0 produced=1340 consumed=1340 dropped=0 fill_rate=n/a
+[2026-08-07T02:13:22.964+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T02:13:22.966+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T02:13:22.966+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T02:13:22.967+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T02:13:22.967+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 98 aborted
+[2026-08-07T02:13:24.266+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.299s)
+[2026-08-07T02:13:24.266+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T02:13:24.267+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-07T02:13:24.267+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=1340 consumed=1340 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 105}, 'total_inflight': 105, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T02:13:25.270+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T02:13:25.270+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T02:13:25.271+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.002s)
+[2026-08-07T02:13:25.272+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28403ms
+[2026-08-07T02:13:54.298+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.027s)
+[mq] post-suspend depth=0 produced=1341 consumed=1341 dropped=0 fill_rate=0.033 samples/s
+[2026-08-07T02:13:54.301+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5951ms
+[2026-08-07T02:14:00.309+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T02:14:00.309+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T02:14:00.309+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T02:14:00.309+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T02:14:00.510+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.548s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         1.299s
+  wait_for_requests_to_drain                 0.002s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.027s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T02:14:32.583+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=4251 decisions=4303 would_in/back=2/2 live_in/back=17/17 cycles_verified=16 param_syncs=21 steps=19 last_action=switch_back_done@2026-08-07T02:14:00.512+00:00
+[2026-08-07T02:19:19.266+00:00] [policy] cycle 17 verified: param_sync ok (version 21)
+[2026-08-07T02:19:19.266+00:00] [policy] SWITCH-IN firing (block 22, collected 40/64, ETA 267.9s > 97.9s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T02:19:19.266+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T02:19:19.267+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T02:19:19.267+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T02:19:19.267+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T02:19:19.267+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T02:19:19.267+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T02:19:19.267+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T02:19:19.467+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T02:19:19.467+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16679ms
+[2026-08-07T02:19:36.484+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.017s)
+[mq] pre-resume depth=0 produced=1387 consumed=1387 dropped=0 fill_rate=n/a
+[2026-08-07T02:19:36.487+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 9955ms
+[2026-08-07T02:19:46.499+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (10.012s)
+[2026-08-07T02:19:46.499+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=21
+[2026-08-07T02:19:46.503+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.004s)
+[2026-08-07T02:19:46.503+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T02:19:46.511+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-07T02:19:46.511+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T02:19:46.513+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.002s)
+[2026-08-07T02:19:46.513+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T02:19:46.516+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T02:19:46.516+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T02:19:46.518+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=1388 consumed=1388 dropped=0 fill_rate=0.100 samples/s
+
+=== switch-to-rollout timing breakdown (total 27.254s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.017s
+  cuda_restore_r2                           10.012s
+  set_global_steps                           0.004s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.002s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T02:21:58.829+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 59/64, ETA 40.6s)
+[mq] pre-suspend depth=0 produced=1403 consumed=1403 dropped=0 fill_rate=n/a
+[2026-08-07T02:21:58.831+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T02:21:58.832+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T02:21:58.832+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T02:21:58.834+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T02:21:58.834+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 97 aborted
+[2026-08-07T02:22:00.162+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.328s)
+[2026-08-07T02:22:00.162+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T02:22:00.164+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.002s)
+[2026-08-07T02:22:00.164+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=1403 consumed=1403 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 94}, 'total_inflight': 94, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T02:22:01.167+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T02:22:01.167+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T02:22:01.168+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.002s)
+[2026-08-07T02:22:01.168+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28573ms
+[2026-08-07T02:22:30.195+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.027s)
+[mq] post-suspend depth=0 produced=1404 consumed=1404 dropped=0 fill_rate=0.033 samples/s
+[2026-08-07T02:22:30.199+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5594ms
+[2026-08-07T02:22:36.206+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T02:22:36.206+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T02:22:36.206+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T02:22:36.206+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T02:22:36.407+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.579s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         1.328s
+  wait_for_requests_to_drain                 0.002s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.027s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T02:24:32.677+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=4518 decisions=4573 would_in/back=2/2 live_in/back=18/18 cycles_verified=17 param_syncs=22 steps=20 last_action=switch_back_done@2026-08-07T02:22:36.409+00:00
+[2026-08-07T02:28:15.204+00:00] [policy] cycle 18 verified: param_sync ok (version 22)
+[2026-08-07T02:28:15.204+00:00] [policy] SWITCH-IN firing (block 23, collected 42/64, ETA 306.9s > 97.6s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T02:28:15.205+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T02:28:15.205+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T02:28:15.205+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T02:28:15.205+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T02:28:15.205+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T02:28:15.205+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T02:28:15.205+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T02:28:15.405+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T02:28:15.406+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16471ms
+[2026-08-07T02:28:32.422+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.016s)
+[mq] pre-resume depth=0 produced=1452 consumed=1452 dropped=0 fill_rate=n/a
+[2026-08-07T02:28:32.425+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 10126ms
+[2026-08-07T02:28:43.436+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (11.011s)
+[2026-08-07T02:28:43.436+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=22
+[2026-08-07T02:28:43.440+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.004s)
+[2026-08-07T02:28:43.440+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T02:28:43.447+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.007s)
+[2026-08-07T02:28:43.447+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T02:28:43.449+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.002s)
+[2026-08-07T02:28:43.449+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T02:28:43.452+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T02:28:43.452+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T02:28:43.453+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=1452 consumed=1452 dropped=0 fill_rate=0.000 samples/s
+
+=== switch-to-rollout timing breakdown (total 28.251s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.016s
+  cuda_restore_r2                           11.011s
+  set_global_steps                           0.004s
+  clear_kv_cache                             0.007s
+  resume_generation                          0.002s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T02:29:45.608+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 57/64, ETA 40.7s)
+[mq] pre-suspend depth=0 produced=1465 consumed=1465 dropped=0 fill_rate=n/a
+[2026-08-07T02:29:45.609+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T02:29:45.610+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T02:29:45.610+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T02:29:45.612+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T02:29:45.612+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 111 aborted
+[2026-08-07T02:29:46.599+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (0.988s)
+[2026-08-07T02:29:46.600+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T02:29:46.601+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-07T02:29:46.601+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=1465 consumed=1465 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 111}, 'total_inflight': 111, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T02:29:47.604+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.003s)
+[2026-08-07T02:29:47.604+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T02:29:47.606+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.002s)
+[2026-08-07T02:29:47.606+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28197ms
+[2026-08-07T02:30:16.632+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.027s)
+[mq] post-suspend depth=0 produced=1465 consumed=1465 dropped=0 fill_rate=0.000 samples/s
+[2026-08-07T02:30:16.635+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5589ms
+[2026-08-07T02:30:22.642+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.007s)
+[2026-08-07T02:30:22.642+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T02:30:22.642+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T02:30:22.642+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T02:30:22.842+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.236s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         0.988s
+  wait_for_requests_to_drain                 0.002s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.026s
+  cuda_restore_trainer                       6.007s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T02:34:33.436+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=4785 decisions=4843 would_in/back=2/2 live_in/back=19/19 cycles_verified=18 param_syncs=23 steps=21 last_action=switch_back_done@2026-08-07T02:30:22.845+00:00
+[2026-08-07T02:37:05.804+00:00] [policy] cycle 19 verified: param_sync ok (version 23)
+[2026-08-07T02:37:05.805+00:00] [policy] SWITCH-IN firing (block 24, collected 9/64, ETA 231.7s > 97.9s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T02:37:05.805+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T02:37:05.805+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T02:37:05.805+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T02:37:05.805+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T02:37:05.805+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T02:37:05.805+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T02:37:05.805+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T02:37:06.006+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T02:37:06.006+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 17411ms
+[2026-08-07T02:37:24.025+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (18.019s)
+[mq] pre-resume depth=0 produced=1520 consumed=1520 dropped=0 fill_rate=n/a
+[2026-08-07T02:37:24.028+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 11465ms
+[2026-08-07T02:37:36.042+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (12.014s)
+[2026-08-07T02:37:36.042+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=23
+[2026-08-07T02:37:36.047+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.004s)
+[2026-08-07T02:37:36.047+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T02:37:36.059+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.012s)
+[2026-08-07T02:37:36.059+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T02:37:36.062+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.003s)
+[2026-08-07T02:37:36.062+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T02:37:36.065+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T02:37:36.065+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T02:37:36.067+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=1521 consumed=1521 dropped=0 fill_rate=0.083 samples/s
+
+=== switch-to-rollout timing breakdown (total 30.266s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     18.019s
+  cuda_restore_r2                           12.014s
+  set_global_steps                           0.004s
+  clear_kv_cache                             0.012s
+  resume_generation                          0.003s
+  lb_add_servers                             0.004s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T02:39:02.280+00:00] [policy] SWITCH-BACK firing (hard_collect_failsafe: collected 61/64, ETA 23.0s)
+[mq] pre-suspend depth=0 produced=1533 consumed=1533 dropped=0 fill_rate=n/a
+[2026-08-07T02:39:02.282+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T02:39:02.283+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T02:39:02.283+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T02:39:02.285+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T02:39:02.285+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 109 aborted
+[2026-08-07T02:39:03.643+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.358s)
+[2026-08-07T02:39:03.643+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T02:39:03.645+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-07T02:39:03.645+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=1534 consumed=1534 dropped=0 fill_rate=0.733 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 108}, 'total_inflight': 108, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T02:39:04.647+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T02:39:04.647+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T02:39:04.648+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.001s)
+[2026-08-07T02:39:04.648+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28872ms
+[2026-08-07T02:39:33.674+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.026s)
+[mq] post-suspend depth=0 produced=1536 consumed=1536 dropped=0 fill_rate=0.067 samples/s
+[2026-08-07T02:39:33.677+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5807ms
+[2026-08-07T02:39:39.684+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.007s)
+[2026-08-07T02:39:39.684+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T02:39:39.684+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T02:39:39.684+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T02:39:39.885+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.606s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         1.359s
+  wait_for_requests_to_drain                 0.001s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.026s
+  cuda_restore_trainer                       6.007s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.201s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T02:44:18.539+00:00] [policy] cycle 20 verified: param_sync ok (version 24)
+[2026-08-07T02:44:18.540+00:00] [policy] SWITCH-IN firing (block 25, collected 32/64, ETA 370.6s > 99.8s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T02:44:18.540+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T02:44:18.540+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T02:44:18.540+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T02:44:18.540+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T02:44:18.540+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T02:44:18.540+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T02:44:18.540+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T02:44:18.741+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T02:44:18.741+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16551ms
+[2026-08-07T02:44:35.757+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.016s)
+[mq] pre-resume depth=0 produced=1569 consumed=1569 dropped=0 fill_rate=n/a
+[2026-08-07T02:44:35.760+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 10516ms
+[2026-08-07T02:44:46.771+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (11.011s)
+[2026-08-07T02:44:46.771+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=24
+[2026-08-07T02:44:46.774+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.003s)
+[2026-08-07T02:44:46.774+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T02:44:46.784+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.010s)
+[2026-08-07T02:44:46.784+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T02:44:46.786+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.001s)
+[2026-08-07T02:44:46.786+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T02:44:46.789+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T02:44:46.789+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T02:44:46.790+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=1570 consumed=1570 dropped=0 fill_rate=0.091 samples/s
+
+=== switch-to-rollout timing breakdown (total 28.253s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.016s
+  cuda_restore_r2                           11.011s
+  set_global_steps                           0.003s
+  clear_kv_cache                             0.010s
+  resume_generation                          0.002s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T02:44:48.793+00:00] [policy] PROGRESS mode=live state=R2_ACTIVE sim=TRAINER_ACTIVE tick=5044 decisions=5107 would_in/back=2/2 live_in/back=21/20 cycles_verified=20 param_syncs=25 steps=23 last_action=switch_in_done@2026-08-07T02:44:46.793+00:00
+[2026-08-07T02:47:29.179+00:00] [policy] SWITCH-BACK firing (hard_collect_failsafe: collected 60/64, ETA 24.2s)
+[mq] pre-suspend depth=0 produced=1596 consumed=1596 dropped=0 fill_rate=n/a
+[2026-08-07T02:47:29.180+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T02:47:29.181+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T02:47:29.182+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T02:47:29.183+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T02:47:29.183+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 71 aborted
+[2026-08-07T02:47:30.167+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (0.984s)
+[2026-08-07T02:47:30.168+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T02:47:30.169+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-07T02:47:30.169+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=1597 consumed=1597 dropped=0 fill_rate=1.009 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 72}, 'total_inflight': 72, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T02:47:31.171+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T02:47:31.172+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T02:47:31.173+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.001s)
+[2026-08-07T02:47:31.173+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28713ms
+[2026-08-07T02:48:00.201+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.028s)
+[mq] post-suspend depth=8 produced=1608 consumed=1600 dropped=0 fill_rate=0.366 samples/s
+[2026-08-07T02:48:00.203+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5786ms
+[2026-08-07T02:48:06.211+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T02:48:06.211+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T02:48:06.211+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T02:48:06.211+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T02:48:06.412+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.235s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         0.984s
+  wait_for_requests_to_drain                 0.001s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.027s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T02:53:03.098+00:00] [policy] cycle 21 verified: param_sync ok (version 25)
+[2026-08-07T02:53:05.103+00:00] [policy] SWITCH-IN firing (block 26, collected 47/64, ETA 150.3s > 99.0s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T02:53:05.104+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T02:53:05.104+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T02:53:05.104+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T02:53:05.104+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T02:53:05.104+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T02:53:05.104+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T02:53:05.104+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T02:53:05.304+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T02:53:05.305+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16566ms
+[2026-08-07T02:53:22.321+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.017s)
+[mq] pre-resume depth=0 produced=1647 consumed=1647 dropped=0 fill_rate=n/a
+[2026-08-07T02:53:22.324+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 10419ms
+[2026-08-07T02:53:33.336+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (11.012s)
+[2026-08-07T02:53:33.337+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=25
+[2026-08-07T02:53:33.340+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.003s)
+[2026-08-07T02:53:33.340+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T02:53:33.350+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.010s)
+[2026-08-07T02:53:33.350+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T02:53:33.351+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.002s)
+[2026-08-07T02:53:33.351+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T02:53:33.354+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T02:53:33.354+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T02:53:33.356+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=1649 consumed=1649 dropped=0 fill_rate=0.181 samples/s
+
+=== switch-to-rollout timing breakdown (total 28.255s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.017s
+  cuda_restore_r2                           11.012s
+  set_global_steps                           0.003s
+  clear_kv_cache                             0.010s
+  resume_generation                          0.002s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T02:54:35.505+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 58/64, ETA 47.6s)
+[mq] pre-suspend depth=0 produced=1658 consumed=1658 dropped=0 fill_rate=n/a
+[2026-08-07T02:54:35.507+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T02:54:35.508+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T02:54:35.508+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T02:54:35.509+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T02:54:35.509+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 111 aborted
+[2026-08-07T02:54:36.475+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (0.966s)
+[2026-08-07T02:54:36.475+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T02:54:36.477+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.002s)
+[2026-08-07T02:54:36.477+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=1658 consumed=1658 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 110}, 'total_inflight': 110, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T02:54:37.479+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T02:54:37.479+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T02:54:37.481+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.001s)
+[2026-08-07T02:54:37.481+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28813ms
+[2026-08-07T02:55:06.507+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.027s)
+[mq] post-suspend depth=0 produced=1659 consumed=1659 dropped=0 fill_rate=0.033 samples/s
+[2026-08-07T02:55:06.510+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5820ms
+[2026-08-07T02:55:12.518+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T02:55:12.518+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T02:55:12.518+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T02:55:12.518+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T02:55:12.718+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.214s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         0.966s
+  wait_for_requests_to_drain                 0.002s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.026s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T02:55:14.721+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=5305 decisions=5372 would_in/back=2/2 live_in/back=22/22 cycles_verified=21 param_syncs=26 steps=24 last_action=switch_back_done@2026-08-07T02:55:12.720+00:00
+[2026-08-07T03:01:17.567+00:00] [policy] cycle 22 verified: param_sync ok (version 26)
+[2026-08-07T03:01:17.567+00:00] [policy] SWITCH-IN firing (block 27, collected 42/64, ETA 148.5s > 98.6s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T03:01:17.567+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T03:01:17.567+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T03:01:17.567+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T03:01:17.567+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T03:01:17.567+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T03:01:17.567+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T03:01:17.567+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T03:01:17.768+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T03:01:17.768+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16757ms
+[2026-08-07T03:01:34.784+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.016s)
+[mq] pre-resume depth=0 produced=1707 consumed=1707 dropped=0 fill_rate=n/a
+[2026-08-07T03:01:34.787+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 10393ms
+[2026-08-07T03:01:45.798+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (11.011s)
+[2026-08-07T03:01:45.798+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=26
+[2026-08-07T03:01:45.801+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.004s)
+[2026-08-07T03:01:45.802+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T03:01:45.809+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-07T03:01:45.809+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T03:01:45.811+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.002s)
+[2026-08-07T03:01:45.811+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T03:01:45.814+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T03:01:45.814+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T03:01:45.816+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=1707 consumed=1707 dropped=0 fill_rate=0.000 samples/s
+
+=== switch-to-rollout timing breakdown (total 28.251s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.016s
+  cuda_restore_r2                           11.011s
+  set_global_steps                           0.004s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.002s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T03:03:24.053+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 57/64, ETA 47.7s)
+[mq] pre-suspend depth=0 produced=1721 consumed=1721 dropped=0 fill_rate=n/a
+[2026-08-07T03:03:24.054+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T03:03:24.055+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T03:03:24.056+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T03:03:24.057+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T03:03:24.057+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 91 aborted
+[2026-08-07T03:03:25.061+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.004s)
+[2026-08-07T03:03:25.061+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T03:03:25.062+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-07T03:03:25.062+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=1721 consumed=1721 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 91}, 'total_inflight': 91, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T03:03:26.064+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T03:03:26.064+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T03:03:26.065+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.001s)
+[2026-08-07T03:03:26.066+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28378ms
+[2026-08-07T03:03:55.093+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.027s)
+[mq] post-suspend depth=0 produced=1728 consumed=1728 dropped=0 fill_rate=0.233 samples/s
+[2026-08-07T03:03:55.096+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5670ms
+[2026-08-07T03:04:01.103+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T03:04:01.103+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T03:04:01.103+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T03:04:01.103+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T03:04:01.304+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.253s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         1.004s
+  wait_for_requests_to_drain                 0.001s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.001s
+  cuda_snapshot_r2                          29.027s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.201s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T03:05:15.472+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=5572 decisions=5642 would_in/back=2/2 live_in/back=23/23 cycles_verified=22 param_syncs=27 steps=25 last_action=switch_back_done@2026-08-07T03:04:01.306+00:00
+[2026-08-07T03:09:02.007+00:00] [policy] cycle 23 verified: param_sync ok (version 27)
+[2026-08-07T03:09:02.007+00:00] [policy] SWITCH-IN firing (block 28, collected 37/64, ETA 303.3s > 98.4s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T03:09:02.007+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T03:09:02.008+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T03:09:02.008+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T03:09:02.008+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T03:09:02.008+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T03:09:02.008+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T03:09:02.008+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T03:09:02.208+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T03:09:02.208+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16624ms
+[2026-08-07T03:09:19.225+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.016s)
+[mq] pre-resume depth=0 produced=1766 consumed=1766 dropped=0 fill_rate=n/a
+[2026-08-07T03:09:19.228+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 10235ms
+[2026-08-07T03:09:30.240+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (11.012s)
+[2026-08-07T03:09:30.240+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=27
+[2026-08-07T03:09:30.243+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.003s)
+[2026-08-07T03:09:30.243+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T03:09:30.251+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-07T03:09:30.251+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T03:09:30.253+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.002s)
+[2026-08-07T03:09:30.253+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T03:09:30.256+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T03:09:30.256+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T03:09:30.258+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=1766 consumed=1766 dropped=0 fill_rate=0.000 samples/s
+
+=== switch-to-rollout timing breakdown (total 28.253s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.016s
+  cuda_restore_r2                           11.012s
+  set_global_steps                           0.003s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.002s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T03:10:40.425+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 54/64, ETA 51.4s)
+[mq] pre-suspend depth=0 produced=1782 consumed=1782 dropped=0 fill_rate=n/a
+[2026-08-07T03:10:40.427+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T03:10:40.428+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T03:10:40.428+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T03:10:40.430+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T03:10:40.430+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 119 aborted
+[2026-08-07T03:10:41.457+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.028s)
+[2026-08-07T03:10:41.457+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T03:10:41.459+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.001s)
+[2026-08-07T03:10:41.459+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=1782 consumed=1782 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 117}, 'total_inflight': 117, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T03:10:42.461+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T03:10:42.461+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T03:10:42.463+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.001s)
+[2026-08-07T03:10:42.463+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28831ms
+[2026-08-07T03:11:11.489+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.026s)
+[mq] post-suspend depth=0 produced=1782 consumed=1782 dropped=0 fill_rate=0.000 samples/s
+[2026-08-07T03:11:11.492+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5802ms
+[2026-08-07T03:11:17.500+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T03:11:17.500+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T03:11:17.501+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T03:11:17.501+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T03:11:17.501+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.000s)
+
+=== switch-to-trainer timing breakdown (total 37.077s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         1.028s
+  wait_for_requests_to_drain                 0.001s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.001s
+  cuda_snapshot_r2                          29.026s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.000s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T03:15:16.044+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=5839 decisions=5912 would_in/back=2/2 live_in/back=24/24 cycles_verified=23 param_syncs=28 steps=26 last_action=switch_back_done@2026-08-07T03:11:17.503+00:00
+[2026-08-07T03:17:30.363+00:00] [policy] cycle 24 verified: param_sync ok (version 28)
+[2026-08-07T03:17:30.363+00:00] [policy] SWITCH-IN firing (block 29, collected 39/64, ETA 176.8s > 98.2s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T03:17:30.363+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T03:17:30.363+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T03:17:30.363+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T03:17:30.363+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T03:17:30.363+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T03:17:30.363+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T03:17:30.363+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T03:17:30.564+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T03:17:30.564+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16736ms
+[2026-08-07T03:17:47.580+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.016s)
+[mq] pre-resume depth=0 produced=1831 consumed=1831 dropped=0 fill_rate=n/a
+[2026-08-07T03:17:47.583+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 10351ms
+[2026-08-07T03:17:58.595+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (11.012s)
+[2026-08-07T03:17:58.595+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=28
+[2026-08-07T03:17:58.599+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.003s)
+[2026-08-07T03:17:58.599+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T03:17:58.607+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.008s)
+[2026-08-07T03:17:58.607+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T03:17:58.608+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.001s)
+[2026-08-07T03:17:58.608+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T03:17:58.611+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T03:17:58.611+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T03:17:58.613+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=1833 consumed=1833 dropped=0 fill_rate=0.181 samples/s
+
+=== switch-to-rollout timing breakdown (total 28.253s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.016s
+  cuda_restore_r2                           11.012s
+  set_global_steps                           0.004s
+  clear_kv_cache                             0.008s
+  resume_generation                          0.001s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T03:20:28.974+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 59/64, ETA 33.5s)
+[mq] pre-suspend depth=0 produced=1851 consumed=1851 dropped=0 fill_rate=n/a
+[2026-08-07T03:20:28.975+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T03:20:28.976+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T03:20:28.976+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T03:20:28.978+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.001s)
+[2026-08-07T03:20:28.978+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 88 aborted
+[2026-08-07T03:20:30.541+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.563s)
+[2026-08-07T03:20:30.541+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T03:20:30.543+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.002s)
+[2026-08-07T03:20:30.543+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=1851 consumed=1851 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 87}, 'total_inflight': 87, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T03:20:31.545+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T03:20:31.545+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T03:20:31.547+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.001s)
+[2026-08-07T03:20:31.547+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28732ms
+[2026-08-07T03:21:00.573+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.026s)
+[mq] post-suspend depth=1 produced=1857 consumed=1856 dropped=0 fill_rate=0.200 samples/s
+[2026-08-07T03:21:00.576+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5785ms
+[2026-08-07T03:21:06.584+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.007s)
+[2026-08-07T03:21:06.584+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T03:21:06.584+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T03:21:06.584+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T03:21:06.784+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.812s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.001s
+  abort_all_requests                         1.563s
+  wait_for_requests_to_drain                 0.002s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.001s
+  cuda_snapshot_r2                          29.026s
+  cuda_restore_trainer                       6.007s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.200s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T03:25:17.364+00:00] [policy] PROGRESS mode=live state=TRAINER_ACTIVE sim=TRAINER_ACTIVE tick=6106 decisions=6182 would_in/back=2/2 live_in/back=25/25 cycles_verified=24 param_syncs=29 steps=27 last_action=switch_back_done@2026-08-07T03:21:06.786+00:00
+[2026-08-07T03:26:17.509+00:00] [policy] cycle 25 verified: param_sync ok (version 29)
+[2026-08-07T03:26:17.509+00:00] [policy] SWITCH-IN firing (block 30, collected 8/64, ETA 503.8s > 98.7s)
+REMINDER (M1 manual gate): trigger this only while the trainer log shows it is
+blocked in gen-wait, i.e. after '[FullyAsyncTrainer] Requesting N samples from queue'
+and while 'sample collected i/N' lines are still trickling in.
+Safety property if mistimed: the step stalls inside the first CUDA call of the
+frozen worker and completes after resume — param_sync cannot start while frozen
+(fit_step ordering, fully_async_trainer.py:584-594).
+[2026-08-07T03:26:17.509+00:00] [switch-to-rollout] PHASE START get_trainer_pids
+[2026-08-07T03:26:17.509+00:00] [switch-to-rollout] PHASE END   get_trainer_pids  (0.000s)
+[2026-08-07T03:26:17.509+00:00] [switch-to-rollout] PHASE START get_ce_worker_pids
+[2026-08-07T03:26:17.509+00:00] [switch-to-rollout] PHASE END   get_ce_worker_pids  (0.000s)
+[2026-08-07T03:26:17.509+00:00] [switch-to-rollout] PHASE START nccl_suspend_signal
+sent SIGRTMIN+1 ncclCommSuspend (trainer+CE) (signal 35) to pids=[1285000, 1293819]
+[2026-08-07T03:26:17.510+00:00] [switch-to-rollout] PHASE END   nccl_suspend_signal  (0.000s)
+[2026-08-07T03:26:17.510+00:00] [switch-to-rollout] PHASE START nccl_suspend_confirm
+suspend confirmed on all pids=[1285000, 1293819]
+[2026-08-07T03:26:17.710+00:00] [switch-to-rollout] PHASE END   nccl_suspend_confirm  (0.200s)
+[2026-08-07T03:26:17.710+00:00] [switch-to-rollout] PHASE START cuda_snapshot_trainer
+snapshot job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 16658ms
+[2026-08-07T03:26:34.726+00:00] [switch-to-rollout] PHASE END   cuda_snapshot_trainer  (17.016s)
+[mq] pre-resume depth=0 produced=1892 consumed=1892 dropped=0 fill_rate=n/a
+[2026-08-07T03:26:34.730+00:00] [switch-to-rollout] PHASE START cuda_restore_r2
+restore job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 10328ms
+[2026-08-07T03:26:45.741+00:00] [switch-to-rollout] PHASE END   cuda_restore_r2  (11.011s)
+[2026-08-07T03:26:45.741+00:00] [switch-to-rollout] PHASE START set_global_steps
+R2 global_steps set to current_param_version=29
+[2026-08-07T03:26:45.744+00:00] [switch-to-rollout] PHASE END   set_global_steps  (0.003s)
+[2026-08-07T03:26:45.745+00:00] [switch-to-rollout] PHASE START clear_kv_cache
+[2026-08-07T03:26:45.754+00:00] [switch-to-rollout] PHASE END   clear_kv_cache  (0.009s)
+[2026-08-07T03:26:45.754+00:00] [switch-to-rollout] PHASE START resume_generation
+[2026-08-07T03:26:45.755+00:00] [switch-to-rollout] PHASE END   resume_generation  (0.002s)
+[2026-08-07T03:26:45.755+00:00] [switch-to-rollout] PHASE START lb_add_servers
+[2026-08-07T03:26:45.758+00:00] [switch-to-rollout] PHASE END   lb_add_servers  (0.003s)
+[2026-08-07T03:26:45.758+00:00] [switch-to-rollout] PHASE START raise_concurrency
+[2026-08-07T03:26:45.760+00:00] [switch-to-rollout] PHASE END   raise_concurrency  (0.002s)
+[mq] post-resume depth=0 produced=1894 consumed=1894 dropped=0 fill_rate=0.181 samples/s
+
+=== switch-to-rollout timing breakdown (total 28.253s) ===
+  get_trainer_pids                           0.000s
+  get_ce_worker_pids                         0.000s
+  nccl_suspend_signal                        0.000s
+  nccl_suspend_confirm                       0.200s
+  cuda_snapshot_trainer                     17.016s
+  cuda_restore_r2                           11.011s
+  set_global_steps                           0.004s
+  clear_kv_cache                             0.009s
+  resume_generation                          0.002s
+  lb_add_servers                             0.003s
+  raise_concurrency                          0.002s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T03:29:28.165+00:00] [policy] SWITCH-BACK firing (predictive_eta: collected 58/64, ETA 42.7s)
+[mq] pre-suspend depth=0 produced=1914 consumed=1914 dropped=0 fill_rate=n/a
+[2026-08-07T03:29:28.166+00:00] [switch-to-trainer] PHASE START lb_remove_servers
+[2026-08-07T03:29:28.168+00:00] [switch-to-trainer] PHASE END   lb_remove_servers  (0.001s)
+[2026-08-07T03:29:28.168+00:00] [switch-to-trainer] PHASE START restore_base_concurrency
+[2026-08-07T03:29:28.170+00:00] [switch-to-trainer] PHASE END   restore_base_concurrency  (0.002s)
+[2026-08-07T03:29:28.170+00:00] [switch-to-trainer] PHASE START abort_all_requests
+abort_all_requests -> 86 aborted
+[2026-08-07T03:29:29.256+00:00] [switch-to-trainer] PHASE END   abort_all_requests  (1.086s)
+[2026-08-07T03:29:29.256+00:00] [switch-to-trainer] PHASE START wait_for_requests_to_drain
+[2026-08-07T03:29:29.258+00:00] [switch-to-trainer] PHASE END   wait_for_requests_to_drain  (0.002s)
+[2026-08-07T03:29:29.258+00:00] [switch-to-trainer] PHASE START lb_inflight_settle
+[mq] drain-poll depth=0 produced=1914 consumed=1914 dropped=0 fill_rate=0.000 samples/s
+[lb] {'servers': {'10.96.1.20:44021': 87}, 'total_inflight': 87, 'active_servers': 1, 'registered_handles': ['10.96.1.20:44021']}
+[2026-08-07T03:29:30.260+00:00] [switch-to-trainer] PHASE END   lb_inflight_settle  (1.002s)
+[2026-08-07T03:29:30.261+00:00] [switch-to-trainer] PHASE START discover_gpu_pids
+[2026-08-07T03:29:30.262+00:00] [switch-to-trainer] PHASE END   discover_gpu_pids  (0.002s)
+[2026-08-07T03:29:30.262+00:00] [switch-to-trainer] PHASE START cuda_snapshot_r2
+snapshot job=elastic-r2 pids=[1289425, 1289953, 1290207] -> OPERATION_STATUS_COMPLETE in 28831ms
+[2026-08-07T03:29:59.291+00:00] [switch-to-trainer] PHASE END   cuda_snapshot_r2  (29.029s)
+[mq] post-suspend depth=0 produced=1919 consumed=1919 dropped=0 fill_rate=0.166 samples/s
+[2026-08-07T03:29:59.294+00:00] [switch-to-trainer] PHASE START cuda_restore_trainer
+restore job=elastic-trainer pids=[1293819] -> OPERATION_STATUS_COMPLETE in 5829ms
+[2026-08-07T03:30:05.302+00:00] [switch-to-trainer] PHASE END   cuda_restore_trainer  (6.008s)
+[2026-08-07T03:30:05.302+00:00] [switch-to-trainer] PHASE START nccl_resume_signal
+sent SIGRTMIN+2 ncclCommResume (trainer+CE) (signal 36) to pids=[1285000, 1293819]
+[2026-08-07T03:30:05.302+00:00] [switch-to-trainer] PHASE END   nccl_resume_signal  (0.000s)
+[2026-08-07T03:30:05.302+00:00] [switch-to-trainer] PHASE START nccl_resume_confirm
+resume confirmed on all pids=[1285000, 1293819]
+[2026-08-07T03:30:05.502+00:00] [switch-to-trainer] PHASE END   nccl_resume_confirm  (0.200s)
+
+=== switch-to-trainer timing breakdown (total 37.339s) ===
+  lb_remove_servers                          0.001s
+  restore_base_concurrency                   0.002s
+  abort_all_requests                         1.087s
+  wait_for_requests_to_drain                 0.002s
+  lb_inflight_settle                         1.002s
+  discover_gpu_pids                          0.002s
+  cuda_snapshot_r2                          29.029s
+  cuda_restore_trainer                       6.008s
+  nccl_resume_signal                         0.000s
+  nccl_resume_confirm                        0.201s
+appended timing record -> /workspace/results/switch_timings.jsonl
+[2026-08-07T03:34:48.151+00:00] [policy] stop flag seen; exiting cleanly
+[33m(raylet)[0m [cr-shim] PID 1294605: ready (suspend=sig35, resume=sig36)[32m [repeated 5x across cluster][0m

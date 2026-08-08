@@ -1,0 +1,469 @@
+# M3 RUN A (elastic-rl-poc): COLOCATED SLEEP/WAKE ARM — the honest competing
+# baseline (PLAN.md C3b). Same model/data/recipe as M0/M2, but STOCK verl
+# colocated hybrid mode on the SAME 2 GPUs of node *-trb7:
+#   - verl.trainer.main_ppo (synchronous single-controller), hybrid_engine=True
+#   - rollout mode=async (stock default at 983cb0f2: server-based colocated
+#     replicas with vLLM sleep/wake between phases via free_cache_engine=True;
+#     sleep_replicas() after gen, wake inside update_weights — ray_trainer.py
+#     1489/1691)
+#   - 2 GPUs: trainer FSDP over both; rollout TP=1 -> 2 colocated vLLM replicas
+#   - NO elastic machinery, NO C/R shim, stock verlai/verl:vllm020.dev2 image
+#
+# Batch-size parity with the async recipe (64 trajectories per step):
+#   fully-async: required_samples = actor.ppo_mini_batch_size(=64, TRAJECTORY
+#     units) x require_batches(=1) -> 64 samples/step (fully_async_trainer.py:159)
+#   sync: ppo_mini_batch_size is PROMPT units, multiplied by rollout.n
+#     (ray_trainer.py:1327-1328) -> train_batch_size=8 prompts x n=8 = 64
+#     trajectories/step, ppo_mini_batch_size=8 -> one 64-trajectory minibatch
+#     per step. Same optimizer-step granularity as M0/M2.
+# Documented deviations from the async recipe (forced by colocation):
+#   - gpu_memory_utilization 0.8 -> 0.6: FSDP params+grads+Adam (~12.4GB/GPU
+#     for 1.5B over 2 GPUs) stay resident during generation; 0.8 would leave
+#     <4GB headroom. 0.6 still gives ~44GB KV per GPU (>> the ~17GB worst case
+#     of 32 seqs x 18.4K tok x 28KB/tok).
+#   - checkpoint_engine.backend left at stock default (naive) — this arm is
+#     "stock verl" by design; the async recipe's nccl backend is a disagg knob.
+#   - no gen_batch_size / async_training.* / rollout.nnodes (async-only knobs).
+# RUN_SECONDS=9000 (~2.5h of training).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: code-rlvr-m3a
+  namespace: default
+data:
+  gpu_monitor.sh: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+    OUTPUT="${1:?Usage: $0 <output.csv> [interval_ms]}"
+    INTERVAL_MS="${2:-100}"
+    echo "timestamp_ms,gpu_index,gpu_util_pct,mem_util_pct,power_w" > "$OUTPUT"
+    trap 'exit 0' SIGINT SIGTERM
+    SLEEP_S=$(python3 -c "print($INTERVAL_MS/1000)")
+    while true; do
+        ts=$(date +%s%3N)
+        nvidia-smi --query-gpu=index,utilization.gpu,utilization.memory,power.draw \
+                   --format=csv,noheader,nounits 2>/dev/null | \
+        while IFS=', ' read -r idx gpu mem pwr; do
+            echo "${ts},${idx},${gpu},${mem},${pwr}"
+        done >> "$OUTPUT"
+        sleep "$SLEEP_S"
+    done
+
+  data_prep.py: |
+    #!/usr/bin/env python3
+    """Prepare the Eurus-2-RL-Data CODE subset (verbatim from the M0 baseline;
+    see k8s-job-m0-baseline.yaml for the full transformation rationale)."""
+
+    import argparse
+    import json
+    import os
+
+    import pandas as pd
+    from huggingface_hub import hf_hub_download
+
+    CODE_SOURCES = {"codecontests", "apps", "codeforces", "taco"}
+
+
+    def truncate_ground_truth(gt_str, max_tests, max_bytes):
+        """Return truncated JSON ground truth, or None if the row is unusable."""
+        try:
+            gt = json.loads(gt_str)
+        except Exception:
+            return None
+        if not isinstance(gt, dict):
+            return None
+        ins, outs = gt.get("inputs"), gt.get("outputs")
+        if not isinstance(ins, list) or not isinstance(outs, list):
+            return None
+        n = min(len(ins), len(outs), max_tests)
+        if n < 1:
+            return None
+        new_gt = {"inputs": ins[:n], "outputs": outs[:n]}
+        if gt.get("fn_name"):
+            new_gt["fn_name"] = gt["fn_name"]
+        try:
+            s = json.dumps(new_gt)
+        except Exception:
+            return None
+        if len(s) > max_bytes:
+            return None
+        return s
+
+
+    def main():
+        ap = argparse.ArgumentParser()
+        ap.add_argument("--repo_id", default="PRIME-RL/Eurus-2-RL-Data")
+        ap.add_argument("--filename", default="train.parquet")
+        ap.add_argument("--tokenizer", required=True)
+        ap.add_argument("--out_dir", default="/workspace/data/eurus_code")
+        ap.add_argument("--train_size", type=int, default=512)
+        ap.add_argument("--val_size", type=int, default=64)
+        ap.add_argument("--max_tests", type=int, default=8)
+        ap.add_argument("--max_gt_bytes", type=int, default=200000)
+        ap.add_argument("--max_prompt_tokens", type=int, default=1900)
+        ap.add_argument("--candidates", type=int, default=3000)
+        ap.add_argument("--seed", type=int, default=17)
+        args = ap.parse_args()
+
+        local = hf_hub_download(repo_id=args.repo_id, filename=args.filename, repo_type="dataset")
+        df = pd.read_parquet(local)
+        print(f"loaded {len(df)} rows, columns: {list(df.columns)}")
+
+        df = df[df["ability"] == "code"].reset_index(drop=True)
+        print(f"{len(df)} code rows; data_source counts:\n{df['data_source'].value_counts()}")
+        df = df[df["data_source"].isin(CODE_SOURCES)].reset_index(drop=True)
+        print(f"{len(df)} rows with prime_code-routable data_source")
+
+        rows = []
+        n_bad_gt, n_bad_prompt = 0, 0
+        for _, r in df.iterrows():
+            msgs = [dict(m) for m in r["prompt"]]
+            user = [m for m in msgs if m.get("role") == "user"]
+            if len(user) != 1 or "```python" not in user[0].get("content", ""):
+                n_bad_prompt += 1
+                continue
+            gt = truncate_ground_truth(dict(r["reward_model"])["ground_truth"], args.max_tests, args.max_gt_bytes)
+            if gt is None:
+                n_bad_gt += 1
+                continue
+            rows.append(
+                {
+                    "data_source": r["data_source"],
+                    "prompt": [{"role": "user", "content": user[0]["content"]}],
+                    "ability": "code",
+                    "reward_model": {"style": "rule", "ground_truth": gt},
+                    "extra_info": dict(r["extra_info"]) if r["extra_info"] is not None else {},
+                    "_ptext": user[0]["content"],
+                }
+            )
+        print(f"kept {len(rows)} rows (dropped {n_bad_prompt} bad-prompt, {n_bad_gt} bad-ground-truth)")
+
+        out = pd.DataFrame(rows).drop_duplicates("_ptext").reset_index(drop=True)
+        print(f"{len(out)} unique problems after dedup")
+
+        out = out[out["_ptext"].str.len() <= 7000].reset_index(drop=True)
+        print(f"{len(out)} rows after 7000-char prefilter")
+        cand = out.sample(n=min(args.candidates, len(out)), random_state=args.seed).reset_index(drop=True)
+
+        from transformers import AutoTokenizer
+
+        tok = AutoTokenizer.from_pretrained(args.tokenizer)
+        keep_idx, tok_lens = [], []
+        for i, r in cand.iterrows():
+            ntok = len(tok.apply_chat_template(list(r["prompt"]), add_generation_prompt=True))
+            if ntok <= args.max_prompt_tokens:
+                keep_idx.append(i)
+                tok_lens.append(ntok)
+        cand = cand.loc[keep_idx].reset_index(drop=True)
+        print(
+            f"{len(cand)} candidates <= {args.max_prompt_tokens} prompt tokens "
+            f"(mean {sum(tok_lens) / max(len(tok_lens), 1):.0f})"
+        )
+
+        n = args.train_size + args.val_size
+        assert len(cand) >= n, f"only {len(cand)} candidates for {n} needed"
+        sub = cand.sample(n=n, random_state=args.seed + 1).reset_index(drop=True)
+        train = sub.iloc[: args.train_size].drop(columns="_ptext")
+        val = sub.iloc[args.train_size : n].drop(columns="_ptext")
+
+        row = train.iloc[0]
+        assert row["data_source"] in CODE_SOURCES
+        p0 = dict(row["prompt"][0])
+        assert p0["role"] == "user" and "```python" in p0["content"]
+        gt = json.loads(dict(row["reward_model"])["ground_truth"])
+        assert len(gt["inputs"]) >= 1 and len(gt["inputs"]) == len(gt["outputs"])
+
+        os.makedirs(args.out_dir, exist_ok=True)
+        train.to_parquet(os.path.join(args.out_dir, "train.parquet"), index=False)
+        val.to_parquet(os.path.join(args.out_dir, "val.parquet"), index=False)
+        print(f"wrote {len(train)} train / {len(val)} val -> {args.out_dir}")
+
+
+    if __name__ == "__main__":
+        main()
+
+  run_colocated.sh: |
+    #!/usr/bin/env bash
+    set -xeuo pipefail
+
+    trap 'kill $(jobs -p) 2>/dev/null || true' EXIT
+
+    RESULTS_DIR="/workspace/results"
+    MODEL_PATH="/workspace/models/DeepSeek-R1-Distill-Qwen-1.5B"
+    TRAIN_FILE="/workspace/data/eurus_code/train.parquet"
+    VAL_FILE="/workspace/data/eurus_code/val.parquet"
+    RUN_SECONDS="${RUN_SECONDS:-9000}"
+
+    mkdir -p "$RESULTS_DIR"
+
+    echo "=== Phase 1: install verl (pinned, same as M0) ==="
+    pip install datasets TransferQueue 2>&1 | tail -5
+    VERL_COMMIT=983cb0f24443f87b3d161fad318445130a620b07
+    mkdir -p /workspace/verl-src && cd /workspace/verl-src
+    git init -q && git remote add origin https://github.com/verl-project/verl.git
+    git fetch -q --depth 1 origin "$VERL_COMMIT"
+    git checkout -q FETCH_HEAD
+    git rev-parse HEAD | tee "$RESULTS_DIR/verl_commit"
+    pip install -e ".[gpu]" 2>&1 | tail -10
+    cd /workspace
+    pip install cupy-cuda12x 2>&1 | tail -3
+    python3 -c "import verl; print('verl version:', verl.__version__)"
+
+    echo "=== Phase 1b: pyext shim (prime_code dependency; same as M0) ==="
+    pip install pyext 2>&1 | tail -2 || true
+    python3 << 'PYEXTFIX'
+    try:
+        from pyext import RuntimeModule  # noqa: F401
+        print("pyext OK (pip)")
+    except Exception:
+        import os
+        import sysconfig
+
+        SHIM = '''"""Minimal pyext shim (see M0 baseline)."""
+    import types
+
+
+    class RuntimeModule:
+        @staticmethod
+        def from_string(name, docstring, code):
+            mod = types.ModuleType(name, docstring)
+            exec(compile(code, name, "exec"), mod.__dict__)
+            return mod
+    '''
+        sp = sysconfig.get_paths()["purelib"]
+        with open(os.path.join(sp, "pyext.py"), "w") as f:
+            f.write(SHIM)
+        from pyext import RuntimeModule  # noqa: F401
+
+        print(f"pyext shim installed at {sp}/pyext.py")
+    PYEXTFIX
+
+    echo "=== Phase 1c: reward smoke test (prime_code, pre-GPU fail-fast) ==="
+    python3 << 'REWARDCHECK'
+    import json
+
+    from verl.utils.reward_score import default_compute_score
+
+    gt = json.dumps({"inputs": ["1 2\n"], "outputs": ["3\n"]})
+    good = "<think>ok</think>\n```python\na, b = map(int, input().split())\nprint(a + b)\n```"
+    s = default_compute_score("taco", good, gt)
+    assert s == 1.0, s
+    print("Reward smoke test OK")
+    REWARDCHECK
+
+    echo "=== Phase 2: download model (bounded + resume-retry; first launch stalled 45min on a dead HF CDN connection) ==="
+    export HF_HUB_DOWNLOAD_TIMEOUT=30
+    MODEL_OK=0
+    for i in $(seq 1 20); do
+        if timeout 300 python3 -c "
+    from huggingface_hub import snapshot_download
+    snapshot_download('deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B', local_dir='$MODEL_PATH')
+    print('Model download complete')
+    "; then MODEL_OK=1; break; fi
+        echo "model download attempt $i timed out/failed; retrying (resume) in 5s"
+        sleep 5
+    done
+    [ "$MODEL_OK" = "1" ] || { echo "FATAL: model download failed after 20 attempts"; exit 1; }
+
+    echo "=== Phase 3: prepare dataset (512 Eurus-2 code prompts, same seed) ==="
+    python3 /workspace/scripts/data_prep.py --out_dir /workspace/data/eurus_code \
+        --tokenizer "$MODEL_PATH" --train_size 512 --val_size 64
+
+    echo "=== Phase 4: start GPU monitor (100ms) ==="
+    bash /workspace/scripts/gpu_monitor.sh "$RESULTS_DIR/gpu_util.csv" 100 &
+    MONITOR_PID=$!
+    date +%s%3N > "$RESULTS_DIR/start_ts"
+
+    echo "=== Phase 5: COLOCATED HYBRID code-RLVR (stock verl, 2 GPUs, sleep/wake) ==="
+    nvidia-smi
+
+    export PYTHONUNBUFFERED=1
+    export HYDRA_FULL_ERROR=1
+
+    set +e
+    timeout --signal=INT --kill-after=120 "$RUN_SECONDS" \
+    python3 -m verl.trainer.main_ppo \
+        data.train_files="$TRAIN_FILE" \
+        data.val_files="$VAL_FILE" \
+        data.prompt_key=prompt \
+        data.truncation=left \
+        data.max_prompt_length=2048 \
+        data.max_response_length=16384 \
+        data.train_batch_size=8 \
+        data.return_raw_chat=True \
+        actor_rollout_ref.model.path="$MODEL_PATH" \
+        actor_rollout_ref.model.use_remove_padding=True \
+        actor_rollout_ref.model.enable_gradient_checkpointing=True \
+        actor_rollout_ref.hybrid_engine=True \
+        actor_rollout_ref.actor.strategy=fsdp \
+        actor_rollout_ref.actor.ppo_mini_batch_size=8 \
+        actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=1 \
+        actor_rollout_ref.actor.use_kl_loss=False \
+        actor_rollout_ref.actor.kl_loss_coef=0.0 \
+        actor_rollout_ref.actor.entropy_coeff=0 \
+        actor_rollout_ref.actor.grad_clip=1.0 \
+        actor_rollout_ref.actor.loss_agg_mode=token-mean \
+        actor_rollout_ref.actor.use_dynamic_bsz=True \
+        actor_rollout_ref.actor.ppo_max_token_len_per_gpu=32768 \
+        actor_rollout_ref.actor.optim.lr=1e-6 \
+        actor_rollout_ref.actor.optim.lr_warmup_steps=-1 \
+        actor_rollout_ref.actor.fsdp_config.param_offload=False \
+        actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
+        actor_rollout_ref.ref.log_prob_use_dynamic_bsz=True \
+        actor_rollout_ref.ref.log_prob_max_token_len_per_gpu=32768 \
+        actor_rollout_ref.rollout.name=vllm \
+        actor_rollout_ref.rollout.mode=async \
+        actor_rollout_ref.rollout.n=8 \
+        actor_rollout_ref.rollout.calculate_log_probs=True \
+        actor_rollout_ref.rollout.gpu_memory_utilization=0.6 \
+        actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
+        actor_rollout_ref.rollout.enable_chunked_prefill=True \
+        actor_rollout_ref.rollout.temperature=1.0 \
+        actor_rollout_ref.rollout.top_p=1.0 \
+        actor_rollout_ref.rollout.top_k=-1 \
+        algorithm.adv_estimator=grpo \
+        algorithm.use_kl_in_reward=False \
+        algorithm.kl_ctrl.kl_coef=0.0 \
+        trainer.logger="['console']" \
+        trainer.val_before_train=False \
+        trainer.save_freq=-1 \
+        trainer.resume_mode=disable \
+        trainer.nnodes=1 \
+        trainer.n_gpus_per_node=2 \
+        trainer.total_epochs=10 \
+        trainer.test_freq=-1 \
+        trainer.project_name=colocated-m3a \
+        trainer.experiment_name=r1distill1.5b-euruscode-colocated \
+        trainer.default_local_dir="$RESULTS_DIR/ckpts" \
+        2>&1 | tee "$RESULTS_DIR/train.log"
+    TRAIN_RC=${PIPESTATUS[0]}
+    set -e
+    if [ "$TRAIN_RC" = "124" ]; then
+        echo "Training stopped by planned ${RUN_SECONDS}s timeout (expected end state)"
+    elif [ "$TRAIN_RC" != "0" ]; then
+        echo "WARNING: training exited rc=$TRAIN_RC before planned timeout"
+    fi
+
+    date +%s%3N > "$RESULTS_DIR/end_ts"
+    kill "$MONITOR_PID" 2>/dev/null || true
+    wait "$MONITOR_PID" 2>/dev/null || true
+    wc -l "$RESULTS_DIR/gpu_util.csv" || true
+
+    echo "=== Per-GPU summary ==="
+    python3 -c "
+    import csv
+    from collections import defaultdict
+    traces = defaultdict(list)
+    with open('$RESULTS_DIR/gpu_util.csv') as f:
+        for row in csv.DictReader(f):
+            traces[int(row['gpu_index'])].append(float(row['gpu_util_pct']))
+    for gi in sorted(traces.keys()):
+        u = traces[gi]
+        n = len(u)
+        mean_u = sum(u)/n
+        idle = sum(1 for v in u if v <= 15)/n
+        busy = sum(1 for v in u if v >= 50)/n
+        print(f'GPU {gi}: mean={mean_u:.1f}% idle={idle:.1%} busy={busy:.1%} samples={n}')
+    " || true
+
+    # Insurance dumps (stdout is the artifact of record if the emptyDir dies).
+    # Small artifacts first (log rotation cuts the tail).
+    echo "=== train.log step lines dump (prefix STEPLINES:) ==="
+    grep -E "step:[0-9]+ - |timing_s/" "$RESULTS_DIR/train.log" > "$RESULTS_DIR/step_lines.log" || true
+    echo "STEPLINES-BEGIN md5=$(md5sum "$RESULTS_DIR/step_lines.log" 2>/dev/null | cut -d' ' -f1)"
+    gzip -c "$RESULTS_DIR/step_lines.log" 2>/dev/null | base64 -w 3000 | sed 's/^/STEPLINES:/' || true
+    echo "STEPLINES-END"
+
+    echo "=== GPU trace dump (gzip+base64, prefix GPUCSV:) ==="
+    echo "GPUCSV-BEGIN md5=$(md5sum "$RESULTS_DIR/gpu_util.csv" | cut -d' ' -f1)"
+    gzip -c "$RESULTS_DIR/gpu_util.csv" | base64 -w 3000 | sed 's/^/GPUCSV:/' || true
+    echo "GPUCSV-END"
+
+    echo "=== Keeping pod alive for result collection ==="
+    sleep 14400
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: colocated-m3a
+  namespace: default
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 604800
+  template:
+    metadata:
+      labels:
+        app: colocated-m3a
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-h100-80gb
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cloud.google.com/gke-nodepool
+                operator: In
+                values:
+                - h100-2gpu-pool
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - gke-verl-research-clus-h100-2gpu-pool-02b8c734-trb7
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      - key: timeslice.io/shared
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      containers:
+      - name: benchmark
+        image: verlai/verl:vllm020.dev2
+        env:
+        - name: VLLM_USE_V1
+          value: "1"
+        - name: RUN_SECONDS
+          value: "9000"
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          set -euo pipefail
+          echo "=== M3 RUN A: colocated sleep/wake arm (stock verl, 2 GPUs) ==="
+          echo "Node: $(hostname)"
+          echo "Date: $(date)"
+          nvidia-smi
+          bash /workspace/scripts/run_colocated.sh 2>&1 | tee /workspace/results/experiment.log
+        # h100-2gpu-pool is a GKE time-sharing pool (max 1 nvidia.com/gpu per
+        # container). Request 1 shared unit for driver mounts; privileged so
+        # BOTH physical H100s are visible (node exclusively claimed via the
+        # node registry).
+        securityContext:
+          privileged: true
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+          requests:
+            nvidia.com/gpu: 1
+            cpu: "40"
+            memory: "160Gi"
+        volumeMounts:
+        - name: scripts
+          mountPath: /workspace/scripts
+        - name: results
+          mountPath: /workspace/results
+        - name: dshm
+          mountPath: /dev/shm
+      volumes:
+      - name: scripts
+        configMap:
+          name: code-rlvr-m3a
+          defaultMode: 0755
+      - name: results
+        emptyDir: {}
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Gi

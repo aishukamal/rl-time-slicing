@@ -1,0 +1,2 @@
+{"ts": "2026-08-08T05:16:07.655+00:00", "event": "regime_flip_done", "flip_at_step": 12, "triggered_step": 12, "new_response_length": 8192, "results": {"r1_server_0": [16384, 8192], "r2_server": [16384, 8192]}}
+{"ts": "2026-08-08T05:16:37.661+00:00", "event": "flip_readback", "values": {"r1_server_0": 8192, "r2_server": 8192}}

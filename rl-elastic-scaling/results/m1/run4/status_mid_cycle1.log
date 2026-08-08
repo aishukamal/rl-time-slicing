@@ -1,0 +1,31 @@
+2026-08-06 04:02:50,782	INFO worker.py:1814 -- Connecting to existing Ray cluster at address: 10.96.1.12:38963...
+2026-08-06 04:02:50,813	INFO worker.py:2003 -- Connected to Ray cluster. View the dashboard at [1m[32mhttp://127.0.0.1:8265 [39m[22m
+/usr/local/lib/python3.12/dist-packages/ray/_private/worker.py:2051: FutureWarning: Tip: In future versions of Ray, Ray will no longer override accelerator visible devices env var if num_gpus=0 or num_gpus=None (default). To enable this behavior and turn off this error message, set RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO=0
+  warnings.warn(
+--- elastic status @ 2026-08-06T04:02:50.870+00:00 ---
+  r2_state: active
+  trainer_state: suspended
+  r2_address: 10.96.1.12:45943
+  r2_gpu: 1
+  r2_server_pid: 2167075
+  trainer_worker_pids: [2171457]
+  ce_worker_pids: [2162544]
+  max_concurrent_base: 16
+  r2_parked: True
+  lb.get_status: {'servers': {'10.96.1.12:36035': 104, '10.96.1.12:45943': 105}, 'total_inflight': 209, 'active_servers': 2, 'registered_handles': ['10.96.1.12:36035', '10.96.1.12:45943']}
+  rollouter.get_statistics:
+    monitor/active_tasks_size: 32
+    monitor/queue/pending_queue_size: 128
+    monitor/queue/mq_queue_size: 0
+    count/total_generated_samples: 225
+    count/staleness_samples: 65
+    count/dropped_stale_samples: 0
+    static/max_required_samples: 576
+    static/required_samples: 64
+    static/staleness_threshold: 8
+    static/max_queue_size: 576
+    static/max_concurrent_samples: 32
+[mq] status depth=0 produced=225 consumed=225 dropped=0 fill_rate=n/a
+  trainer.current_param_version: 3
+  agent job elastic-r2: JOB_STATE_RUNNING
+  agent job elastic-trainer: JOB_STATE_SAVED

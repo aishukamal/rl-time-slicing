@@ -1,0 +1,196 @@
+2026-08-06 04:02:25,774	INFO worker.py:1814 -- Connecting to existing Ray cluster at address: 10.96.1.12:38963...
+2026-08-06 04:02:25,805	INFO worker.py:2003 -- Connected to Ray cluster. View the dashboard at [1m[32mhttp://127.0.0.1:8265 [39m[22m
+/usr/local/lib/python3.12/dist-packages/ray/_private/worker.py:2051: FutureWarning: Tip: In future versions of Ray, Ray will no longer override accelerator visible devices env var if num_gpus=0 or num_gpus=None (default). To enable this behavior and turn off this error message, set RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO=0
+  warnings.warn(
+[mq] depth=0 produced=221 consumed=221 dropped=0 fill_rate=n/a
+[rollouter] active_tasks=32 total_generated=222 staleness=62 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=222 consumed=222 dropped=0 fill_rate=0.096 samples/s
+[rollouter] active_tasks=32 total_generated=222 staleness=62 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=222 consumed=222 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=222 staleness=62 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=222 consumed=222 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=222 staleness=62 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=222 consumed=222 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=222 staleness=62 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=222 consumed=222 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=222 staleness=62 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=222 consumed=222 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=222 staleness=62 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=223 consumed=223 dropped=0 fill_rate=0.499 samples/s
+[rollouter] active_tasks=32 total_generated=223 staleness=63 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=223 consumed=223 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=223 staleness=63 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=223 consumed=223 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=223 staleness=63 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=223 consumed=223 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=223 staleness=63 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=225 consumed=225 dropped=0 fill_rate=0.998 samples/s
+[rollouter] active_tasks=32 total_generated=225 staleness=65 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=225 consumed=225 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=225 staleness=65 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=225 consumed=225 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=225 staleness=65 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=225 consumed=225 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=225 staleness=65 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=225 consumed=225 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=225 staleness=65 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=225 consumed=225 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=225 staleness=65 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=225 consumed=225 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=225 staleness=65 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=225 consumed=225 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=225 staleness=65 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=225 consumed=225 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=225 staleness=65 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=225 consumed=225 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=225 staleness=65 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=225 consumed=225 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=225 staleness=65 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=225 consumed=225 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=225 staleness=65 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=227 consumed=227 dropped=0 fill_rate=0.998 samples/s
+[rollouter] active_tasks=32 total_generated=227 staleness=67 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=227 consumed=227 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=227 staleness=67 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=227 consumed=227 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=227 staleness=67 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=227 consumed=227 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=227 staleness=67 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=227 consumed=227 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=227 staleness=67 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=227 consumed=227 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=227 staleness=67 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=227 consumed=227 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=227 staleness=67 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=227 consumed=227 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=227 staleness=67 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=227 consumed=227 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=227 staleness=67 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=227 consumed=227 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=227 staleness=67 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=227 consumed=227 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=227 staleness=67 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=229 consumed=229 dropped=0 fill_rate=0.998 samples/s
+[rollouter] active_tasks=32 total_generated=229 staleness=69 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=229 consumed=229 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=229 staleness=69 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=229 consumed=229 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=229 staleness=69 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=229 consumed=229 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=229 staleness=69 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=230 consumed=230 dropped=0 fill_rate=0.499 samples/s
+[rollouter] active_tasks=32 total_generated=230 staleness=70 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=230 consumed=230 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=230 staleness=70 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=230 consumed=230 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=230 staleness=70 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=230 consumed=230 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=230 staleness=70 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=230 consumed=230 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=230 staleness=70 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=233 consumed=233 dropped=0 fill_rate=1.497 samples/s
+[rollouter] active_tasks=32 total_generated=233 staleness=73 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=233 consumed=233 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=233 staleness=73 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=233 consumed=233 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=233 staleness=73 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=233 consumed=233 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=233 staleness=73 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=233 consumed=233 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=233 staleness=73 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=234 consumed=234 dropped=0 fill_rate=0.499 samples/s
+[rollouter] active_tasks=32 total_generated=234 staleness=74 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=234 consumed=234 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=234 staleness=74 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=234 consumed=234 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=234 staleness=74 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=234 consumed=234 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=234 staleness=74 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=234 consumed=234 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=234 staleness=74 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=234 consumed=234 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=234 staleness=74 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=234 consumed=234 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=234 staleness=74 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=234 consumed=234 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=234 staleness=74 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=234 consumed=234 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=234 staleness=74 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=234 consumed=234 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=234 staleness=74 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=234 consumed=234 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=234 staleness=74 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=234 consumed=234 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=234 staleness=74 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=235 consumed=235 dropped=0 fill_rate=0.499 samples/s
+[rollouter] active_tasks=32 total_generated=235 staleness=75 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=235 consumed=235 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=235 staleness=75 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=235 consumed=235 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=235 staleness=75 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=236 consumed=236 dropped=0 fill_rate=0.499 samples/s
+[rollouter] active_tasks=32 total_generated=236 staleness=76 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=237 consumed=237 dropped=0 fill_rate=0.499 samples/s
+[rollouter] active_tasks=32 total_generated=237 staleness=77 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=238 consumed=238 dropped=0 fill_rate=0.499 samples/s
+[rollouter] active_tasks=32 total_generated=238 staleness=78 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=238 consumed=238 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=238 staleness=78 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=239 consumed=239 dropped=0 fill_rate=0.499 samples/s
+[rollouter] active_tasks=32 total_generated=239 staleness=79 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=239 consumed=239 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=239 staleness=79 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=239 consumed=239 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=239 staleness=79 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=240 consumed=240 dropped=0 fill_rate=0.499 samples/s
+[rollouter] active_tasks=32 total_generated=240 staleness=80 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=240 consumed=240 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=240 staleness=80 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=240 consumed=240 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=240 staleness=80 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=241 consumed=241 dropped=0 fill_rate=0.499 samples/s
+[rollouter] active_tasks=32 total_generated=241 staleness=81 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=241 consumed=241 dropped=0 fill_rate=0.000 samples/s
+[rollouter] active_tasks=32 total_generated=241 staleness=81 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=242 consumed=242 dropped=0 fill_rate=0.499 samples/s
+[rollouter] active_tasks=32 total_generated=242 staleness=82 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=243 consumed=243 dropped=0 fill_rate=0.499 samples/s
+[rollouter] active_tasks=32 total_generated=243 staleness=83 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=244 consumed=244 dropped=0 fill_rate=0.499 samples/s
+[rollouter] active_tasks=32 total_generated=244 staleness=84 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=247 consumed=247 dropped=0 fill_rate=1.497 samples/s
+[rollouter] active_tasks=32 total_generated=247 staleness=87 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=248 consumed=248 dropped=0 fill_rate=0.499 samples/s
+[rollouter] active_tasks=32 total_generated=248 staleness=88 dropped_stale=0 max_concurrent=32
+[mq] depth=0 produced=249 consumed=249 dropped=0 fill_rate=0.499 samples/s
+*** SIGTERM received at time=1785989115 on cpu 37 ***
+PC: @     0x7d1ec2796adf  (unknown)  clock_nanosleep
+    @     0x7d1ec26ef330  (unknown)  (unknown)
+    @           0x64ddaa         64  (unknown)
+    @           0x5d7dfb        384  _PyEval_EvalFrameDefault
+    @           0x5d58bb        128  PyEval_EvalCode
+    @           0x608b52         48  (unknown)
+    @           0x6b5263         80  (unknown)
+    @           0x6b4fca        128  _PyRun_SimpleFileObject
+    @           0x6b4dff         64  _PyRun_AnyFileObject
+    @           0x6bce65        288  Py_RunMain
+    @           0x6bc94d         48  Py_BytesMain
+    @     0x7d1ec26d41ca        160  (unknown)
+    @     0x7d1ec26d428b         96  __libc_start_main
+    @           0x657b05  (unknown)  _start
+[2026-08-06 04:05:15,556 E 2794826 2794826] logging.cc:474: *** SIGTERM received at time=1785989115 on cpu 37 ***
+[2026-08-06 04:05:15,556 E 2794826 2794826] logging.cc:474: PC: @     0x7d1ec2796adf  (unknown)  clock_nanosleep
+[2026-08-06 04:05:15,556 E 2794826 2794826] logging.cc:474:     @     0x7d1ec26ef330  (unknown)  (unknown)
+[2026-08-06 04:05:15,556 E 2794826 2794826] logging.cc:474:     @           0x64ddaa         64  (unknown)
+[2026-08-06 04:05:15,556 E 2794826 2794826] logging.cc:474:     @           0x5d7dfb        384  _PyEval_EvalFrameDefault
+[2026-08-06 04:05:15,557 E 2794826 2794826] logging.cc:474:     @           0x5d58bb        128  PyEval_EvalCode
+[2026-08-06 04:05:15,557 E 2794826 2794826] logging.cc:474:     @           0x608b52         48  (unknown)
+[2026-08-06 04:05:15,557 E 2794826 2794826] logging.cc:474:     @           0x6b5263         80  (unknown)
+[2026-08-06 04:05:15,557 E 2794826 2794826] logging.cc:474:     @           0x6b4fca        128  _PyRun_SimpleFileObject
+[2026-08-06 04:05:15,557 E 2794826 2794826] logging.cc:474:     @           0x6b4dff         64  _PyRun_AnyFileObject
+[2026-08-06 04:05:15,557 E 2794826 2794826] logging.cc:474:     @           0x6bce65        288  Py_RunMain
+[2026-08-06 04:05:15,557 E 2794826 2794826] logging.cc:474:     @           0x6bc94d         48  Py_BytesMain
+[2026-08-06 04:05:15,557 E 2794826 2794826] logging.cc:474:     @     0x7d1ec26d41ca        160  (unknown)
+[2026-08-06 04:05:15,557 E 2794826 2794826] logging.cc:474:     @     0x7d1ec26d428b         96  __libc_start_main
+[2026-08-06 04:05:15,557 E 2794826 2794826] logging.cc:474:     @           0x657b05  (unknown)  _start
+[rollouter] active_tasks=32 total_generated=249 staleness=89 dropped_stale=0 max_concurrent=32

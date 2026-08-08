@@ -1,0 +1,1331 @@
+2026-08-06T06:21:23.405588079Z {"time":"2026-08-06T06:21:23.405468238Z","level":"INFO","msg":"Starting Snapshot Agent","port":9001,"deploymentMode":"k8s"}
+2026-08-06T06:21:23.408695713Z {"time":"2026-08-06T06:21:23.408629582Z","level":"INFO","msg":"Starting pod watcher","nodeName":"gke-verl-research-clus-h100-2gpu-pool-02b8c734-trb7"}
+2026-08-06T06:21:23.509304963Z {"time":"2026-08-06T06:21:23.508872511Z","level":"INFO","msg":"Starting gRPC server","port":9001}
+2026-08-06T06:41:35.055318019Z {"time":"2026-08-06T06:41:35.055220373Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m2-b4d2r","jobID":"elastic-r2","group":""}
+2026-08-06T06:41:35.132011593Z {"time":"2026-08-06T06:41:35.131921373Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m2-b4d2r","jobID":"elastic-r2","group":""}
+2026-08-06T06:41:35.518677692Z {"time":"2026-08-06T06:41:35.518611924Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:35.530679884Z {"time":"2026-08-06T06:41:35.530616027Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:36.277281651Z {"time":"2026-08-06T06:41:36.277098024Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m2-b4d2r","jobID":"elastic-r2","group":""}
+2026-08-06T06:41:36.521182625Z {"time":"2026-08-06T06:41:36.520773977Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:36.524681514Z {"time":"2026-08-06T06:41:36.524577988Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:37.520992381Z {"time":"2026-08-06T06:41:37.520847214Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:37.524804497Z {"time":"2026-08-06T06:41:37.524738924Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:38.519123182Z {"time":"2026-08-06T06:41:38.518859219Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:38.522867791Z {"time":"2026-08-06T06:41:38.52280168Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:39.544058215Z {"time":"2026-08-06T06:41:39.543939498Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:39.548180081Z {"time":"2026-08-06T06:41:39.548120572Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:40.519123619Z {"time":"2026-08-06T06:41:40.518838757Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:40.522793491Z {"time":"2026-08-06T06:41:40.522731555Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:41.518006789Z {"time":"2026-08-06T06:41:41.517761436Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:41.521652397Z {"time":"2026-08-06T06:41:41.521590701Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:42.520201294Z {"time":"2026-08-06T06:41:42.51981598Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:42.523726327Z {"time":"2026-08-06T06:41:42.523666201Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:43.529242378Z {"time":"2026-08-06T06:41:43.529139278Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:43.533026637Z {"time":"2026-08-06T06:41:43.532972167Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:44.521048876Z {"time":"2026-08-06T06:41:44.520903913Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:44.524794624Z {"time":"2026-08-06T06:41:44.524724813Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:45.520611279Z {"time":"2026-08-06T06:41:45.520186902Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:45.524131581Z {"time":"2026-08-06T06:41:45.524059418Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:46.519890754Z {"time":"2026-08-06T06:41:46.519573009Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:46.523429765Z {"time":"2026-08-06T06:41:46.523362201Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:47.521720029Z {"time":"2026-08-06T06:41:47.521454655Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:47.525379671Z {"time":"2026-08-06T06:41:47.525302818Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:48.519093002Z {"time":"2026-08-06T06:41:48.518842831Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:48.522640908Z {"time":"2026-08-06T06:41:48.52257517Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:49.520413824Z {"time":"2026-08-06T06:41:49.519956131Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:49.523854808Z {"time":"2026-08-06T06:41:49.523782218Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:50.518900004Z {"time":"2026-08-06T06:41:50.518420075Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:50.522306011Z {"time":"2026-08-06T06:41:50.522241745Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:51.520891530Z {"time":"2026-08-06T06:41:51.520449389Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:51.524480485Z {"time":"2026-08-06T06:41:51.52440853Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:52.526108184Z {"time":"2026-08-06T06:41:52.52596968Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:52.530229011Z {"time":"2026-08-06T06:41:52.530151853Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:53.526140517Z {"time":"2026-08-06T06:41:53.525854689Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:53.529748855Z {"time":"2026-08-06T06:41:53.529682855Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:54.525570931Z {"time":"2026-08-06T06:41:54.52541161Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:54.529436807Z {"time":"2026-08-06T06:41:54.529373853Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:55.521018863Z {"time":"2026-08-06T06:41:55.520852992Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:55.524843353Z {"time":"2026-08-06T06:41:55.524738053Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:56.523155882Z {"time":"2026-08-06T06:41:56.522977161Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:56.527534210Z {"time":"2026-08-06T06:41:56.527445216Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:57.520194462Z {"time":"2026-08-06T06:41:57.520078645Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:57.524009910Z {"time":"2026-08-06T06:41:57.523927139Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:58.521956083Z {"time":"2026-08-06T06:41:58.521602576Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:58.525482183Z {"time":"2026-08-06T06:41:58.525415321Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:41:59.519608325Z {"time":"2026-08-06T06:41:59.51928504Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:41:59.523149962Z {"time":"2026-08-06T06:41:59.523081058Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:00.520362681Z {"time":"2026-08-06T06:42:00.520058456Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:00.523927954Z {"time":"2026-08-06T06:42:00.523865835Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:01.519803549Z {"time":"2026-08-06T06:42:01.519397699Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:01.523248992Z {"time":"2026-08-06T06:42:01.523196441Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:02.522718027Z {"time":"2026-08-06T06:42:02.522586064Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:02.526412241Z {"time":"2026-08-06T06:42:02.526358679Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:03.520806101Z {"time":"2026-08-06T06:42:03.520475247Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:03.524368242Z {"time":"2026-08-06T06:42:03.524241954Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:04.519701323Z {"time":"2026-08-06T06:42:04.519382659Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:04.523253586Z {"time":"2026-08-06T06:42:04.523198682Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:05.521511171Z {"time":"2026-08-06T06:42:05.521200137Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:05.525356206Z {"time":"2026-08-06T06:42:05.525297546Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:06.520429554Z {"time":"2026-08-06T06:42:06.520145813Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:06.524240342Z {"time":"2026-08-06T06:42:06.524175309Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:07.522522580Z {"time":"2026-08-06T06:42:07.52238188Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:07.526340282Z {"time":"2026-08-06T06:42:07.5262483Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:08.519612502Z {"time":"2026-08-06T06:42:08.51946555Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:08.523490274Z {"time":"2026-08-06T06:42:08.523354493Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:09.544618466Z {"time":"2026-08-06T06:42:09.544467182Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:09.548424336Z {"time":"2026-08-06T06:42:09.548344267Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:10.522332826Z {"time":"2026-08-06T06:42:10.522186997Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:10.526277911Z {"time":"2026-08-06T06:42:10.526191731Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:11.531037226Z {"time":"2026-08-06T06:42:11.53089585Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:11.534857168Z {"time":"2026-08-06T06:42:11.534783828Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:12.522981524Z {"time":"2026-08-06T06:42:12.52282407Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:12.526742477Z {"time":"2026-08-06T06:42:12.526681537Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:13.527111084Z {"time":"2026-08-06T06:42:13.526934133Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:13.530887397Z {"time":"2026-08-06T06:42:13.53078749Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:14.526766698Z {"time":"2026-08-06T06:42:14.526648398Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:14.530572351Z {"time":"2026-08-06T06:42:14.530493578Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:15.530419142Z {"time":"2026-08-06T06:42:15.530115442Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:15.534237443Z {"time":"2026-08-06T06:42:15.534140757Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:16.522423282Z {"time":"2026-08-06T06:42:16.522285888Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:16.526164035Z {"time":"2026-08-06T06:42:16.526104411Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:17.520775541Z {"time":"2026-08-06T06:42:17.520355435Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:17.524217118Z {"time":"2026-08-06T06:42:17.524156868Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:18.521233607Z {"time":"2026-08-06T06:42:18.520809094Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:18.524849792Z {"time":"2026-08-06T06:42:18.5247822Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:19.518997827Z {"time":"2026-08-06T06:42:19.518837327Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:19.522864711Z {"time":"2026-08-06T06:42:19.522738553Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:20.517918169Z {"time":"2026-08-06T06:42:20.517789817Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:20.521782008Z {"time":"2026-08-06T06:42:20.521723071Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:21.518930057Z {"time":"2026-08-06T06:42:21.518661412Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:21.522551591Z {"time":"2026-08-06T06:42:21.522457093Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:22.520597526Z {"time":"2026-08-06T06:42:22.520184935Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:22.524237358Z {"time":"2026-08-06T06:42:22.524165102Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:23.520694398Z {"time":"2026-08-06T06:42:23.520436266Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:23.524389852Z {"time":"2026-08-06T06:42:23.524313882Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:24.520790645Z {"time":"2026-08-06T06:42:24.520440268Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:24.524433562Z {"time":"2026-08-06T06:42:24.524361306Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:25.519124012Z {"time":"2026-08-06T06:42:25.518979975Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:25.523185915Z {"time":"2026-08-06T06:42:25.523122041Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:26.519388893Z {"time":"2026-08-06T06:42:26.519280593Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:26.523225735Z {"time":"2026-08-06T06:42:26.523160895Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:27.519894591Z {"time":"2026-08-06T06:42:27.519550701Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:27.523516974Z {"time":"2026-08-06T06:42:27.523454452Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:28.521121799Z {"time":"2026-08-06T06:42:28.520862334Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:28.524816682Z {"time":"2026-08-06T06:42:28.524748236Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:29.521240649Z {"time":"2026-08-06T06:42:29.521022564Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:29.525364195Z {"time":"2026-08-06T06:42:29.525267612Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:30.520919931Z {"time":"2026-08-06T06:42:30.520417273Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:30.524377277Z {"time":"2026-08-06T06:42:30.524281787Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:31.521047021Z {"time":"2026-08-06T06:42:31.520924714Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:31.524912965Z {"time":"2026-08-06T06:42:31.524808063Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:32.520774063Z {"time":"2026-08-06T06:42:32.520617986Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:32.524523026Z {"time":"2026-08-06T06:42:32.524450928Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:33.519079236Z {"time":"2026-08-06T06:42:33.518937658Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:33.522934207Z {"time":"2026-08-06T06:42:33.522855557Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:34.520045663Z {"time":"2026-08-06T06:42:34.519864296Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:34.523852271Z {"time":"2026-08-06T06:42:34.523746973Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:35.518784144Z {"time":"2026-08-06T06:42:35.518361587Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:35.522282184Z {"time":"2026-08-06T06:42:35.522218594Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:36.518830834Z {"time":"2026-08-06T06:42:36.518689562Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:36.522626880Z {"time":"2026-08-06T06:42:36.522527043Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:37.520919700Z {"time":"2026-08-06T06:42:37.520765056Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:37.524664042Z {"time":"2026-08-06T06:42:37.524608371Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:38.533897570Z {"time":"2026-08-06T06:42:38.533614328Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:38.537506330Z {"time":"2026-08-06T06:42:38.537449535Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:39.541214297Z {"time":"2026-08-06T06:42:39.540896596Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:39.544865888Z {"time":"2026-08-06T06:42:39.544801139Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:40.519873195Z {"time":"2026-08-06T06:42:40.519604578Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:40.523477915Z {"time":"2026-08-06T06:42:40.523416155Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:41.519928821Z {"time":"2026-08-06T06:42:41.519808969Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:41.523637780Z {"time":"2026-08-06T06:42:41.523582691Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:42.525323528Z {"time":"2026-08-06T06:42:42.525065929Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:42.529184422Z {"time":"2026-08-06T06:42:42.529121308Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:43.520355954Z {"time":"2026-08-06T06:42:43.520242808Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:43.524154113Z {"time":"2026-08-06T06:42:43.524090514Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:44.519431121Z {"time":"2026-08-06T06:42:44.519307442Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:44.523279099Z {"time":"2026-08-06T06:42:44.523213817Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:45.518395878Z {"time":"2026-08-06T06:42:45.51806665Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:45.522033441Z {"time":"2026-08-06T06:42:45.521964977Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:46.519570276Z {"time":"2026-08-06T06:42:46.51925837Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:46.523201804Z {"time":"2026-08-06T06:42:46.523133352Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:47.521416853Z {"time":"2026-08-06T06:42:47.521311177Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:47.525305083Z {"time":"2026-08-06T06:42:47.52522255Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:48.518222343Z {"time":"2026-08-06T06:42:48.517972158Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:48.521823731Z {"time":"2026-08-06T06:42:48.521759268Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:49.519526696Z {"time":"2026-08-06T06:42:49.5193058Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:49.523323967Z {"time":"2026-08-06T06:42:49.523265612Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:50.521656018Z {"time":"2026-08-06T06:42:50.521498912Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:50.527402721Z {"time":"2026-08-06T06:42:50.527340367Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:51.519118281Z {"time":"2026-08-06T06:42:51.518876347Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:51.522273834Z {"time":"2026-08-06T06:42:51.52219393Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:52.519452050Z {"time":"2026-08-06T06:42:52.519315991Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:52.524525188Z {"time":"2026-08-06T06:42:52.524439814Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:53.520959087Z {"time":"2026-08-06T06:42:53.520586762Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:53.524119210Z {"time":"2026-08-06T06:42:53.524051794Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:54.566223553Z {"time":"2026-08-06T06:42:54.56608539Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:54.569730760Z {"time":"2026-08-06T06:42:54.569676807Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:55.518745326Z {"time":"2026-08-06T06:42:55.518494762Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:55.525407390Z {"time":"2026-08-06T06:42:55.52532739Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:56.520132944Z {"time":"2026-08-06T06:42:56.519689221Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:56.523319029Z {"time":"2026-08-06T06:42:56.523246482Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:57.520210117Z {"time":"2026-08-06T06:42:57.520080276Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:57.523935164Z {"time":"2026-08-06T06:42:57.523868063Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:58.528562617Z {"time":"2026-08-06T06:42:58.528432049Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:58.532235497Z {"time":"2026-08-06T06:42:58.532153795Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:42:59.519289639Z {"time":"2026-08-06T06:42:59.519041675Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:42:59.522678520Z {"time":"2026-08-06T06:42:59.522608507Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:00.520118154Z {"time":"2026-08-06T06:43:00.519991434Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:00.524788903Z {"time":"2026-08-06T06:43:00.524729519Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:01.520335212Z {"time":"2026-08-06T06:43:01.520176602Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:01.523833544Z {"time":"2026-08-06T06:43:01.523764493Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:02.521753617Z {"time":"2026-08-06T06:43:02.521429888Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:02.525134555Z {"time":"2026-08-06T06:43:02.525064542Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:03.520895550Z {"time":"2026-08-06T06:43:03.520490228Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:03.526333720Z {"time":"2026-08-06T06:43:03.526109092Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:04.520405790Z {"time":"2026-08-06T06:43:04.520278919Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:04.523839226Z {"time":"2026-08-06T06:43:04.523743016Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:05.519683090Z {"time":"2026-08-06T06:43:05.519488913Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:05.525055590Z {"time":"2026-08-06T06:43:05.523898481Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:06.529731023Z {"time":"2026-08-06T06:43:06.529613036Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:06.537395188Z {"time":"2026-08-06T06:43:06.537313994Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:07.531618085Z {"time":"2026-08-06T06:43:07.531495838Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:07.535492720Z {"time":"2026-08-06T06:43:07.535412701Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:08.525732330Z {"time":"2026-08-06T06:43:08.525622243Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:08.529549516Z {"time":"2026-08-06T06:43:08.529473236Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:09.527901490Z {"time":"2026-08-06T06:43:09.52779476Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:09.531654870Z {"time":"2026-08-06T06:43:09.53157795Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:10.522468597Z {"time":"2026-08-06T06:43:10.522351594Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:10.526322358Z {"time":"2026-08-06T06:43:10.526251576Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:11.520266824Z {"time":"2026-08-06T06:43:11.520171422Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:11.549222933Z {"time":"2026-08-06T06:43:11.54914219Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:12.533282965Z {"time":"2026-08-06T06:43:12.533037619Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:12.536816015Z {"time":"2026-08-06T06:43:12.536733485Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:13.535221860Z {"time":"2026-08-06T06:43:13.535111251Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:13.538876451Z {"time":"2026-08-06T06:43:13.538801099Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:14.528905853Z {"time":"2026-08-06T06:43:14.528793899Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:14.533453142Z {"time":"2026-08-06T06:43:14.533362883Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:15.521811460Z {"time":"2026-08-06T06:43:15.521683316Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:15.525571340Z {"time":"2026-08-06T06:43:15.525484494Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:16.519918296Z {"time":"2026-08-06T06:43:16.519811827Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:16.523542587Z {"time":"2026-08-06T06:43:16.523477973Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:17.541731807Z {"time":"2026-08-06T06:43:17.541612978Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:17.545249748Z {"time":"2026-08-06T06:43:17.545179503Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:18.521619964Z {"time":"2026-08-06T06:43:18.521504731Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:18.525139541Z {"time":"2026-08-06T06:43:18.525074233Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:19.518845892Z {"time":"2026-08-06T06:43:19.518729551Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:19.522725964Z {"time":"2026-08-06T06:43:19.522652286Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:20.528683238Z {"time":"2026-08-06T06:43:20.528570362Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:20.532156003Z {"time":"2026-08-06T06:43:20.532085928Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:21.518510674Z {"time":"2026-08-06T06:43:21.518411662Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:21.522131719Z {"time":"2026-08-06T06:43:21.522046843Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:22.520472866Z {"time":"2026-08-06T06:43:22.520365636Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:22.524933586Z {"time":"2026-08-06T06:43:22.524863548Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:23.520959588Z {"time":"2026-08-06T06:43:23.520854909Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:23.524387586Z {"time":"2026-08-06T06:43:23.524326639Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:24.522776410Z {"time":"2026-08-06T06:43:24.522636993Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:24.526535208Z {"time":"2026-08-06T06:43:24.526467967Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:25.521848439Z {"time":"2026-08-06T06:43:25.521748382Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:25.525436549Z {"time":"2026-08-06T06:43:25.525357854Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:26.519890111Z {"time":"2026-08-06T06:43:26.519779969Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:26.523357595Z {"time":"2026-08-06T06:43:26.52328827Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:27.528304205Z {"time":"2026-08-06T06:43:27.528190417Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:27.532835713Z {"time":"2026-08-06T06:43:27.532760785Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:28.519980161Z {"time":"2026-08-06T06:43:28.519869022Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:28.523579027Z {"time":"2026-08-06T06:43:28.523495457Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:29.520045124Z {"time":"2026-08-06T06:43:29.519934599Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:29.523794446Z {"time":"2026-08-06T06:43:29.5237344Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:30.519658116Z {"time":"2026-08-06T06:43:30.519549796Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:30.523409742Z {"time":"2026-08-06T06:43:30.52319586Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:31.520401253Z {"time":"2026-08-06T06:43:31.520274365Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:31.524363133Z {"time":"2026-08-06T06:43:31.524276561Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:32.519541095Z {"time":"2026-08-06T06:43:32.519378468Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:32.523635138Z {"time":"2026-08-06T06:43:32.5235638Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:33.520539897Z {"time":"2026-08-06T06:43:33.520422941Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:33.524177836Z {"time":"2026-08-06T06:43:33.524084169Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:34.528923303Z {"time":"2026-08-06T06:43:34.528837822Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:34.532641145Z {"time":"2026-08-06T06:43:34.53258316Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:35.519428300Z {"time":"2026-08-06T06:43:35.519274155Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:35.523366529Z {"time":"2026-08-06T06:43:35.523264409Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:36.520204243Z {"time":"2026-08-06T06:43:36.52008374Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:36.523666950Z {"time":"2026-08-06T06:43:36.523599383Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:37.517762957Z {"time":"2026-08-06T06:43:37.517648297Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:37.521333397Z {"time":"2026-08-06T06:43:37.521271813Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:38.519197942Z {"time":"2026-08-06T06:43:38.519087894Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:38.522949866Z {"time":"2026-08-06T06:43:38.522881756Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:39.548916503Z {"time":"2026-08-06T06:43:39.548825468Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:39.552763548Z {"time":"2026-08-06T06:43:39.552701209Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:40.522072046Z {"time":"2026-08-06T06:43:40.521951857Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:40.525770468Z {"time":"2026-08-06T06:43:40.525686737Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:41.519445905Z {"time":"2026-08-06T06:43:41.519336678Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:41.523767556Z {"time":"2026-08-06T06:43:41.523700788Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:42.520538847Z {"time":"2026-08-06T06:43:42.520415467Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:42.524162419Z {"time":"2026-08-06T06:43:42.524096493Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:43.522442898Z {"time":"2026-08-06T06:43:43.522306781Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:43.526232960Z {"time":"2026-08-06T06:43:43.526150719Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:44.519090083Z {"time":"2026-08-06T06:43:44.518968248Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:44.522610112Z {"time":"2026-08-06T06:43:44.522543621Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:45.519255101Z {"time":"2026-08-06T06:43:45.519134435Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:45.522916304Z {"time":"2026-08-06T06:43:45.52284406Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:46.525014169Z {"time":"2026-08-06T06:43:46.524885619Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:46.531033534Z {"time":"2026-08-06T06:43:46.530956906Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:47.518877947Z {"time":"2026-08-06T06:43:47.51875779Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:47.522448545Z {"time":"2026-08-06T06:43:47.522373971Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:48.520825480Z {"time":"2026-08-06T06:43:48.520700753Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:48.524500825Z {"time":"2026-08-06T06:43:48.524430839Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:49.521120112Z {"time":"2026-08-06T06:43:49.521003444Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:49.524765337Z {"time":"2026-08-06T06:43:49.524696899Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:50.522875061Z {"time":"2026-08-06T06:43:50.522741473Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:50.526464631Z {"time":"2026-08-06T06:43:50.526400632Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:51.519067987Z {"time":"2026-08-06T06:43:51.518930547Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:51.522873424Z {"time":"2026-08-06T06:43:51.522788646Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:52.518641860Z {"time":"2026-08-06T06:43:52.518503378Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:52.522058360Z {"time":"2026-08-06T06:43:52.521982599Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:53.524577340Z {"time":"2026-08-06T06:43:53.52444425Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:53.528248837Z {"time":"2026-08-06T06:43:53.528190221Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:54.555497994Z {"time":"2026-08-06T06:43:54.55538394Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:54.559093304Z {"time":"2026-08-06T06:43:54.559018387Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:55.523779069Z {"time":"2026-08-06T06:43:55.523654678Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:55.527507308Z {"time":"2026-08-06T06:43:55.527421001Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:56.520346807Z {"time":"2026-08-06T06:43:56.520229831Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:56.524267835Z {"time":"2026-08-06T06:43:56.524209016Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:57.522239876Z {"time":"2026-08-06T06:43:57.522122058Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:57.525900447Z {"time":"2026-08-06T06:43:57.525841055Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:58.519252100Z {"time":"2026-08-06T06:43:58.519123627Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:58.522886377Z {"time":"2026-08-06T06:43:58.522798497Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:43:59.518478606Z {"time":"2026-08-06T06:43:59.51821935Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:43:59.522201185Z {"time":"2026-08-06T06:43:59.522128722Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:44:00.520097721Z {"time":"2026-08-06T06:44:00.519973744Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:44:00.523582361Z {"time":"2026-08-06T06:44:00.523500356Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:44:01.518232166Z {"time":"2026-08-06T06:44:01.518110151Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:44:01.521892018Z {"time":"2026-08-06T06:44:01.521824835Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:44:02.520961300Z {"time":"2026-08-06T06:44:02.520842214Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:44:02.524474944Z {"time":"2026-08-06T06:44:02.524417665Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:44:03.521090363Z {"time":"2026-08-06T06:44:03.520972617Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:44:03.524692002Z {"time":"2026-08-06T06:44:03.5246057Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:44:04.519061059Z {"time":"2026-08-06T06:44:04.518929053Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:44:04.522709208Z {"time":"2026-08-06T06:44:04.522629506Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:44:05.519757276Z {"time":"2026-08-06T06:44:05.51961399Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:44:05.523222057Z {"time":"2026-08-06T06:44:05.523146312Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:44:06.518316527Z {"time":"2026-08-06T06:44:06.518195118Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:44:06.521884663Z {"time":"2026-08-06T06:44:06.521781528Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:44:07.519910873Z {"time":"2026-08-06T06:44:07.519758653Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:44:07.523750043Z {"time":"2026-08-06T06:44:07.523672846Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:44:08.522755789Z {"time":"2026-08-06T06:44:08.522629763Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:44:08.526263122Z {"time":"2026-08-06T06:44:08.526198454Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:44:09.538928242Z {"time":"2026-08-06T06:44:09.538807578Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:44:09.542753316Z {"time":"2026-08-06T06:44:09.542659562Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:44:10.521040152Z {"time":"2026-08-06T06:44:10.520917212Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:44:10.524646093Z {"time":"2026-08-06T06:44:10.524565429Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:44:11.521522321Z {"time":"2026-08-06T06:44:11.521412989Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:44:11.525076827Z {"time":"2026-08-06T06:44:11.525005551Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:44:12.521469458Z {"time":"2026-08-06T06:44:12.521330097Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:44:12.524750756Z {"time":"2026-08-06T06:44:12.524655521Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:44:12.541439369Z {"time":"2026-08-06T06:44:12.541333437Z","level":"INFO","msg":"Detected GPU activity for job, transitioning to RUNNING","jobID":"elastic-r2","pids":[941596]}
+2026-08-06T06:45:40.238504309Z {"time":"2026-08-06T06:45:40.238377362Z","level":"INFO","msg":"Snapshot called","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+2026-08-06T06:45:40.238547195Z {"time":"2026-08-06T06:45:40.238458587Z","level":"INFO","msg":"Background: Starting snapshot","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+2026-08-06T06:45:40.238551100Z {"time":"2026-08-06T06:45:40.238479592Z","level":"INFO","msg":"Snapshotting PIDs","pids":["944370","944910","945122"],"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+2026-08-06T06:45:40.239144731Z {"time":"2026-08-06T06:45:40.239036174Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:41.240076624Z {"time":"2026-08-06T06:45:41.239928969Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:42.240827284Z {"time":"2026-08-06T06:45:42.240691504Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:43.241798605Z {"time":"2026-08-06T06:45:43.241652504Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:44.242651629Z {"time":"2026-08-06T06:45:44.242515591Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:45.243533567Z {"time":"2026-08-06T06:45:45.243369177Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:46.244333375Z {"time":"2026-08-06T06:45:46.244182924Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:47.245111700Z {"time":"2026-08-06T06:45:47.24495232Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:48.245931910Z {"time":"2026-08-06T06:45:48.245809151Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:49.246758433Z {"time":"2026-08-06T06:45:49.246633366Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:50.247653065Z {"time":"2026-08-06T06:45:50.247502006Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:51.248384005Z {"time":"2026-08-06T06:45:51.248263459Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:52.249103270Z {"time":"2026-08-06T06:45:52.24898082Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:53.249886461Z {"time":"2026-08-06T06:45:53.249763635Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:54.250722209Z {"time":"2026-08-06T06:45:54.250587573Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:55.251545327Z {"time":"2026-08-06T06:45:55.251418334Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:56.252324382Z {"time":"2026-08-06T06:45:56.252181249Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:57.253128608Z {"time":"2026-08-06T06:45:57.252999073Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:58.253930991Z {"time":"2026-08-06T06:45:58.253790765Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:45:59.254669156Z {"time":"2026-08-06T06:45:59.254550934Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:46:00.255415532Z {"time":"2026-08-06T06:46:00.255299561Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:46:01.256180608Z {"time":"2026-08-06T06:46:01.256053161Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:46:02.256971497Z {"time":"2026-08-06T06:46:02.256848433Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:46:03.257741576Z {"time":"2026-08-06T06:46:03.257629387Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:46:04.258533872Z {"time":"2026-08-06T06:46:04.258405136Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:46:05.259343516Z {"time":"2026-08-06T06:46:05.25921519Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:46:06.260103796Z {"time":"2026-08-06T06:46:06.25998427Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:46:07.261023915Z {"time":"2026-08-06T06:46:07.260909503Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:46:08.022741750Z {"time":"2026-08-06T06:46:08.022614778Z","level":"INFO","msg":"cuda-checkpoint action took","duration":27784115463,"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+2026-08-06T06:46:08.261908105Z {"time":"2026-08-06T06:46:08.261793544Z","level":"INFO","msg":"GetOperation called","operationID":"40043503-59e1-4e5a-8fe7-cfd9af25605e","ServerMethod":"GetOperation"}
+2026-08-06T06:46:44.702673448Z {"time":"2026-08-06T06:46:44.702530457Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m2-b4d2r","jobID":"elastic-trainer","group":""}
+2026-08-06T06:46:45.520354643Z {"time":"2026-08-06T06:46:45.520223116Z","level":"INFO","msg":"Initializing NVML"}
+2026-08-06T06:46:45.524021087Z {"time":"2026-08-06T06:46:45.523943597Z","level":"INFO","msg":"NVML initialized successfully"}
+2026-08-06T06:46:45.541503873Z {"time":"2026-08-06T06:46:45.541359305Z","level":"INFO","msg":"Detected GPU activity for job, transitioning to RUNNING","jobID":"elastic-trainer","pids":[939949,941596,948716]}
+2026-08-06T07:12:01.857511384Z {"time":"2026-08-06T07:12:01.857376257Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:12:16.859823532Z {"time":"2026-08-06T07:12:16.859681783Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:12:31.862218130Z {"time":"2026-08-06T07:12:31.862073096Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:12:46.864860694Z {"time":"2026-08-06T07:12:46.864715908Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:13:01.867299553Z {"time":"2026-08-06T07:13:01.867153207Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:13:16.869653225Z {"time":"2026-08-06T07:13:16.869489022Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:13:31.871971192Z {"time":"2026-08-06T07:13:31.871836252Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:13:46.874307473Z {"time":"2026-08-06T07:13:46.874154059Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:14:01.876677817Z {"time":"2026-08-06T07:14:01.876517738Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:14:16.879072669Z {"time":"2026-08-06T07:14:16.878933856Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:14:31.881336176Z {"time":"2026-08-06T07:14:31.881221427Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:14:46.883648563Z {"time":"2026-08-06T07:14:46.883496505Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:15:01.885980854Z {"time":"2026-08-06T07:15:01.885847531Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:15:16.888383385Z {"time":"2026-08-06T07:15:16.888228394Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:15:31.890676965Z {"time":"2026-08-06T07:15:31.890533688Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:15:46.893069883Z {"time":"2026-08-06T07:15:46.892933121Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:16:01.895445240Z {"time":"2026-08-06T07:16:01.895339876Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:16:16.898065131Z {"time":"2026-08-06T07:16:16.897930143Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:16:31.900402486Z {"time":"2026-08-06T07:16:31.900292674Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:16:46.902952733Z {"time":"2026-08-06T07:16:46.902806482Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:17:01.905388806Z {"time":"2026-08-06T07:17:01.905249254Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:17:16.907656268Z {"time":"2026-08-06T07:17:16.907502719Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:17:31.909899535Z {"time":"2026-08-06T07:17:31.909783791Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:17:46.912428710Z {"time":"2026-08-06T07:17:46.912172327Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:18:01.914624514Z {"time":"2026-08-06T07:18:01.914468324Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:18:16.916933977Z {"time":"2026-08-06T07:18:16.916798405Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:18:31.919263202Z {"time":"2026-08-06T07:18:31.919145792Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:18:46.921700149Z {"time":"2026-08-06T07:18:46.921536638Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:19:01.924093756Z {"time":"2026-08-06T07:19:01.923968686Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:19:16.926575361Z {"time":"2026-08-06T07:19:16.926403377Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:19:31.928964033Z {"time":"2026-08-06T07:19:31.928833896Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:19:46.931471555Z {"time":"2026-08-06T07:19:46.931320409Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:20:01.933844579Z {"time":"2026-08-06T07:20:01.933686671Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:20:16.936157857Z {"time":"2026-08-06T07:20:16.93601308Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:20:31.938545550Z {"time":"2026-08-06T07:20:31.938423958Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:20:46.940921708Z {"time":"2026-08-06T07:20:46.940764124Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:21:01.943250090Z {"time":"2026-08-06T07:21:01.943122914Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:21:16.945665252Z {"time":"2026-08-06T07:21:16.945495613Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:21:31.948034698Z {"time":"2026-08-06T07:21:31.947882277Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:21:46.950394369Z {"time":"2026-08-06T07:21:46.950247851Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:22:01.952839008Z {"time":"2026-08-06T07:22:01.952705311Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:22:16.955500783Z {"time":"2026-08-06T07:22:16.955368218Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:22:31.958003792Z {"time":"2026-08-06T07:22:31.957876131Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:22:46.960389215Z {"time":"2026-08-06T07:22:46.960265751Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:23:01.962762373Z {"time":"2026-08-06T07:23:01.962632105Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:23:16.965113841Z {"time":"2026-08-06T07:23:16.964965273Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:23:31.967465043Z {"time":"2026-08-06T07:23:31.967333131Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:23:46.969772683Z {"time":"2026-08-06T07:23:46.969651452Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:24:01.972258544Z {"time":"2026-08-06T07:24:01.972141839Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:24:16.974782525Z {"time":"2026-08-06T07:24:16.974653873Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:24:31.977321430Z {"time":"2026-08-06T07:24:31.97720848Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:24:46.979749649Z {"time":"2026-08-06T07:24:46.979606394Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:25:01.982015148Z {"time":"2026-08-06T07:25:01.981863227Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:25:16.984529852Z {"time":"2026-08-06T07:25:16.98440039Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:25:31.986837055Z {"time":"2026-08-06T07:25:31.986714873Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:25:46.989202559Z {"time":"2026-08-06T07:25:46.98905618Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:26:01.991552403Z {"time":"2026-08-06T07:26:01.991410584Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:26:16.994029784Z {"time":"2026-08-06T07:26:16.993878666Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:26:31.996340217Z {"time":"2026-08-06T07:26:31.996201708Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:26:46.998661220Z {"time":"2026-08-06T07:26:46.998503625Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:27:02.000905093Z {"time":"2026-08-06T07:27:02.000779822Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:27:17.003208299Z {"time":"2026-08-06T07:27:17.003051911Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:27:32.005490995Z {"time":"2026-08-06T07:27:32.005352138Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:27:47.007861244Z {"time":"2026-08-06T07:27:47.007710494Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:28:02.010300696Z {"time":"2026-08-06T07:28:02.010170169Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:28:17.013006333Z {"time":"2026-08-06T07:28:17.012869746Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:28:32.015948131Z {"time":"2026-08-06T07:28:32.015798654Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:28:47.018451538Z {"time":"2026-08-06T07:28:47.018319427Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:29:02.020815113Z {"time":"2026-08-06T07:29:02.020688846Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:29:17.023162960Z {"time":"2026-08-06T07:29:17.023013596Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:29:32.025715159Z {"time":"2026-08-06T07:29:32.025577668Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:29:47.028228200Z {"time":"2026-08-06T07:29:47.028106184Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:30:02.030533842Z {"time":"2026-08-06T07:30:02.03040945Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:30:17.033116520Z {"time":"2026-08-06T07:30:17.032981898Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:30:32.036267039Z {"time":"2026-08-06T07:30:32.03612422Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:30:47.038972044Z {"time":"2026-08-06T07:30:47.038804541Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:31:02.041419980Z {"time":"2026-08-06T07:31:02.041304892Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:31:17.043813270Z {"time":"2026-08-06T07:31:17.043703074Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:31:32.046204299Z {"time":"2026-08-06T07:31:32.04606083Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:31:47.048585679Z {"time":"2026-08-06T07:31:47.048478254Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:32:02.051263057Z {"time":"2026-08-06T07:32:02.05113047Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:32:17.053782139Z {"time":"2026-08-06T07:32:17.053622626Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:32:32.056834984Z {"time":"2026-08-06T07:32:32.056677405Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:32:47.059290213Z {"time":"2026-08-06T07:32:47.059148571Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:33:02.061828309Z {"time":"2026-08-06T07:33:02.061691159Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:33:17.064193351Z {"time":"2026-08-06T07:33:17.064037989Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:33:32.066626316Z {"time":"2026-08-06T07:33:32.066455505Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:33:47.069038169Z {"time":"2026-08-06T07:33:47.068886645Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:34:02.071401284Z {"time":"2026-08-06T07:34:02.071264Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:34:17.073974881Z {"time":"2026-08-06T07:34:17.073860779Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:34:32.076530220Z {"time":"2026-08-06T07:34:32.07636969Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:34:47.079271831Z {"time":"2026-08-06T07:34:47.079146717Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:35:02.081593633Z {"time":"2026-08-06T07:35:02.081454949Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:35:17.083906015Z {"time":"2026-08-06T07:35:17.083762808Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:35:32.086143610Z {"time":"2026-08-06T07:35:32.086018584Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:35:47.088837104Z {"time":"2026-08-06T07:35:47.088716017Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:36:02.091385004Z {"time":"2026-08-06T07:36:02.091237439Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:36:17.093773381Z {"time":"2026-08-06T07:36:17.09364973Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:36:32.096571521Z {"time":"2026-08-06T07:36:32.096410103Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:36:47.099150678Z {"time":"2026-08-06T07:36:47.099017561Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:37:02.101499723Z {"time":"2026-08-06T07:37:02.101375791Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:37:17.104060295Z {"time":"2026-08-06T07:37:17.103945397Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:37:32.106525804Z {"time":"2026-08-06T07:37:32.10640271Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:37:47.108898766Z {"time":"2026-08-06T07:37:47.108768445Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:38:02.111208914Z {"time":"2026-08-06T07:38:02.111098447Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:38:17.113649463Z {"time":"2026-08-06T07:38:17.11352041Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:38:32.116378824Z {"time":"2026-08-06T07:38:32.116254446Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:38:47.118770723Z {"time":"2026-08-06T07:38:47.118634904Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:39:02.121314399Z {"time":"2026-08-06T07:39:02.121199423Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:39:17.123764249Z {"time":"2026-08-06T07:39:17.123638489Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:39:32.126383275Z {"time":"2026-08-06T07:39:32.126234603Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:39:47.128660338Z {"time":"2026-08-06T07:39:47.128515834Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:40:02.131020207Z {"time":"2026-08-06T07:40:02.130898104Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:40:17.133347933Z {"time":"2026-08-06T07:40:17.133222888Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:40:32.136264548Z {"time":"2026-08-06T07:40:32.136134575Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:40:47.139082169Z {"time":"2026-08-06T07:40:47.138959813Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:41:02.141731648Z {"time":"2026-08-06T07:41:02.141602224Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:41:17.144125628Z {"time":"2026-08-06T07:41:17.143990794Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:41:32.146548497Z {"time":"2026-08-06T07:41:32.14643126Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:41:47.148936094Z {"time":"2026-08-06T07:41:47.148793603Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:42:02.151358763Z {"time":"2026-08-06T07:42:02.151205838Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:42:17.153867049Z {"time":"2026-08-06T07:42:17.153735432Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:42:32.156661958Z {"time":"2026-08-06T07:42:32.156499463Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:42:47.159118074Z {"time":"2026-08-06T07:42:47.158979332Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:43:02.161358846Z {"time":"2026-08-06T07:43:02.161254965Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:43:17.163712943Z {"time":"2026-08-06T07:43:17.163574559Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:43:32.166028232Z {"time":"2026-08-06T07:43:32.165902671Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:43:47.168355485Z {"time":"2026-08-06T07:43:47.168228843Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:44:02.170793370Z {"time":"2026-08-06T07:44:02.170670172Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:44:17.173113301Z {"time":"2026-08-06T07:44:17.172980297Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:44:32.175845000Z {"time":"2026-08-06T07:44:32.175731147Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:44:47.178534107Z {"time":"2026-08-06T07:44:47.178415392Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:45:02.180760932Z {"time":"2026-08-06T07:45:02.180636634Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:45:17.182987662Z {"time":"2026-08-06T07:45:17.182860989Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:45:32.185373785Z {"time":"2026-08-06T07:45:32.185240766Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:45:47.187843688Z {"time":"2026-08-06T07:45:47.187712788Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:46:02.190161631Z {"time":"2026-08-06T07:46:02.190027284Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:46:17.192451066Z {"time":"2026-08-06T07:46:17.19232122Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:46:32.195192371Z {"time":"2026-08-06T07:46:32.195040194Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:46:47.198043765Z {"time":"2026-08-06T07:46:47.197892853Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:47:02.200816896Z {"time":"2026-08-06T07:47:02.200659724Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:47:17.203310738Z {"time":"2026-08-06T07:47:17.203162917Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:47:32.205641103Z {"time":"2026-08-06T07:47:32.20548013Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:47:47.207948402Z {"time":"2026-08-06T07:47:47.207826889Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:48:02.210678101Z {"time":"2026-08-06T07:48:02.210538664Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:48:17.213130732Z {"time":"2026-08-06T07:48:17.212984761Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:48:32.215825179Z {"time":"2026-08-06T07:48:32.215680399Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:48:47.218357452Z {"time":"2026-08-06T07:48:47.21822705Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:49:02.220653421Z {"time":"2026-08-06T07:49:02.220496834Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:49:17.222880781Z {"time":"2026-08-06T07:49:17.222762851Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:49:32.225238046Z {"time":"2026-08-06T07:49:32.225108317Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:49:47.227442621Z {"time":"2026-08-06T07:49:47.227317793Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:50:02.230098872Z {"time":"2026-08-06T07:50:02.229944372Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:50:17.232467723Z {"time":"2026-08-06T07:50:17.232335291Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:50:32.235394505Z {"time":"2026-08-06T07:50:32.235228311Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:50:47.237899828Z {"time":"2026-08-06T07:50:47.237770049Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:51:02.240545640Z {"time":"2026-08-06T07:51:02.240419768Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:51:17.243226716Z {"time":"2026-08-06T07:51:17.243122737Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:51:32.245938799Z {"time":"2026-08-06T07:51:32.245800595Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:51:47.248570431Z {"time":"2026-08-06T07:51:47.248427841Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:52:02.251121419Z {"time":"2026-08-06T07:52:02.250991247Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:52:17.253425139Z {"time":"2026-08-06T07:52:17.253296112Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:52:32.256251278Z {"time":"2026-08-06T07:52:32.256055068Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:52:47.258657352Z {"time":"2026-08-06T07:52:47.258505848Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:53:02.260919296Z {"time":"2026-08-06T07:53:02.260788316Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:53:17.263285610Z {"time":"2026-08-06T07:53:17.263150873Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:53:32.265662470Z {"time":"2026-08-06T07:53:32.265503002Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:53:47.268008204Z {"time":"2026-08-06T07:53:47.267860231Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:54:02.270384831Z {"time":"2026-08-06T07:54:02.270256483Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:54:17.272891493Z {"time":"2026-08-06T07:54:17.272741776Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:54:32.275542385Z {"time":"2026-08-06T07:54:32.275376706Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:54:47.277855761Z {"time":"2026-08-06T07:54:47.27768711Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:55:02.280198161Z {"time":"2026-08-06T07:55:02.280034575Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:55:17.282907031Z {"time":"2026-08-06T07:55:17.282747792Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:55:32.285301929Z {"time":"2026-08-06T07:55:32.28516457Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:55:47.287466999Z {"time":"2026-08-06T07:55:47.287346068Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:56:02.289973124Z {"time":"2026-08-06T07:56:02.289849988Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:56:17.292169567Z {"time":"2026-08-06T07:56:17.292034572Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:56:32.294813670Z {"time":"2026-08-06T07:56:32.294671643Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:56:47.297309705Z {"time":"2026-08-06T07:56:47.297151435Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:57:02.299762484Z {"time":"2026-08-06T07:57:02.299610391Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:57:17.302426978Z {"time":"2026-08-06T07:57:17.302270385Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:57:32.304927605Z {"time":"2026-08-06T07:57:32.304793775Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:57:47.307300081Z {"time":"2026-08-06T07:57:47.307177657Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:58:02.309589586Z {"time":"2026-08-06T07:58:02.309461133Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:58:17.312292620Z {"time":"2026-08-06T07:58:17.312158078Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:58:32.315737646Z {"time":"2026-08-06T07:58:32.315610933Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:58:47.318129523Z {"time":"2026-08-06T07:58:47.31800211Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:59:02.320406807Z {"time":"2026-08-06T07:59:02.320279165Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:59:17.322692467Z {"time":"2026-08-06T07:59:17.32254639Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:59:32.325046873Z {"time":"2026-08-06T07:59:32.324876794Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T07:59:47.327315001Z {"time":"2026-08-06T07:59:47.327202353Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:00:02.329606527Z {"time":"2026-08-06T08:00:02.329438781Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:00:17.331944559Z {"time":"2026-08-06T08:00:17.331782502Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:00:32.334920371Z {"time":"2026-08-06T08:00:32.334533576Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:00:47.337322870Z {"time":"2026-08-06T08:00:47.337170237Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:01:02.339927287Z {"time":"2026-08-06T08:01:02.339792116Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:01:17.342362223Z {"time":"2026-08-06T08:01:17.342212047Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:01:32.344655597Z {"time":"2026-08-06T08:01:32.344503397Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:01:47.347043344Z {"time":"2026-08-06T08:01:47.346920746Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:02:02.349302724Z {"time":"2026-08-06T08:02:02.349171063Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:02:17.351614770Z {"time":"2026-08-06T08:02:17.351463839Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:02:32.354237747Z {"time":"2026-08-06T08:02:32.354084217Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:02:47.356877095Z {"time":"2026-08-06T08:02:47.356721837Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:03:02.359181671Z {"time":"2026-08-06T08:03:02.359023116Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:03:17.361710461Z {"time":"2026-08-06T08:03:17.361573332Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:03:32.364078983Z {"time":"2026-08-06T08:03:32.363944343Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:03:47.366698734Z {"time":"2026-08-06T08:03:47.366545535Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:04:02.369054142Z {"time":"2026-08-06T08:04:02.368931148Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:04:17.371506258Z {"time":"2026-08-06T08:04:17.371379847Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:04:32.374696540Z {"time":"2026-08-06T08:04:32.374544306Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:04:47.377620110Z {"time":"2026-08-06T08:04:47.377468653Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:05:02.379921025Z {"time":"2026-08-06T08:05:02.379787356Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:05:17.382473511Z {"time":"2026-08-06T08:05:17.382333125Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:05:32.384921473Z {"time":"2026-08-06T08:05:32.384769204Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:05:47.387477987Z {"time":"2026-08-06T08:05:47.387340583Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:06:02.389750848Z {"time":"2026-08-06T08:06:02.389623727Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:06:17.392261863Z {"time":"2026-08-06T08:06:17.39210231Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:06:32.395207083Z {"time":"2026-08-06T08:06:32.395059389Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:06:47.397827231Z {"time":"2026-08-06T08:06:47.397688803Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:07:02.400217031Z {"time":"2026-08-06T08:07:02.400050467Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:07:17.402473335Z {"time":"2026-08-06T08:07:17.402297411Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:07:32.404757942Z {"time":"2026-08-06T08:07:32.404621605Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:07:47.407226424Z {"time":"2026-08-06T08:07:47.407083651Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:08:02.409464815Z {"time":"2026-08-06T08:08:02.409323543Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:08:17.411776825Z {"time":"2026-08-06T08:08:17.411648189Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:08:32.414825812Z {"time":"2026-08-06T08:08:32.414678042Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:08:47.417420243Z {"time":"2026-08-06T08:08:47.417273441Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:09:02.419972835Z {"time":"2026-08-06T08:09:02.419841704Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:09:17.422248042Z {"time":"2026-08-06T08:09:17.42210941Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:09:32.424985167Z {"time":"2026-08-06T08:09:32.424851839Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:09:47.427549261Z {"time":"2026-08-06T08:09:47.42740491Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:10:02.429864686Z {"time":"2026-08-06T08:10:02.429718307Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:10:17.432383540Z {"time":"2026-08-06T08:10:17.432235195Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:10:32.435739943Z {"time":"2026-08-06T08:10:32.435579059Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:10:47.438137047Z {"time":"2026-08-06T08:10:47.438011022Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:11:02.440465533Z {"time":"2026-08-06T08:11:02.440351585Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:11:17.442755998Z {"time":"2026-08-06T08:11:17.442630976Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:11:32.445160287Z {"time":"2026-08-06T08:11:32.44500152Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:11:47.447571034Z {"time":"2026-08-06T08:11:47.447423061Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:12:02.449943305Z {"time":"2026-08-06T08:12:02.449823943Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:12:17.452572872Z {"time":"2026-08-06T08:12:17.452410474Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:12:32.455311338Z {"time":"2026-08-06T08:12:32.45514479Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:12:47.457653376Z {"time":"2026-08-06T08:12:47.457516718Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:13:02.459904505Z {"time":"2026-08-06T08:13:02.459774254Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:13:17.462126951Z {"time":"2026-08-06T08:13:17.46199542Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:13:32.464473845Z {"time":"2026-08-06T08:13:32.464334778Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:13:47.466948093Z {"time":"2026-08-06T08:13:47.466788501Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:14:02.469281469Z {"time":"2026-08-06T08:14:02.469120892Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:14:17.471730657Z {"time":"2026-08-06T08:14:17.47159129Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:14:32.474612206Z {"time":"2026-08-06T08:14:32.474444809Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:14:47.477223773Z {"time":"2026-08-06T08:14:47.477075886Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:15:02.479591813Z {"time":"2026-08-06T08:15:02.479422575Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:15:17.481972749Z {"time":"2026-08-06T08:15:17.481831602Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:15:32.484393009Z {"time":"2026-08-06T08:15:32.484258739Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:15:47.486777314Z {"time":"2026-08-06T08:15:47.486606997Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:16:02.489196262Z {"time":"2026-08-06T08:16:02.48904331Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:16:17.491765870Z {"time":"2026-08-06T08:16:17.491625874Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:16:32.494896460Z {"time":"2026-08-06T08:16:32.494740698Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:16:47.497174428Z {"time":"2026-08-06T08:16:47.497039434Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:17:02.499509516Z {"time":"2026-08-06T08:17:02.499377446Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:17:17.502105251Z {"time":"2026-08-06T08:17:17.501950889Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:17:32.504382937Z {"time":"2026-08-06T08:17:32.504260001Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:17:47.506838096Z {"time":"2026-08-06T08:17:47.506703981Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:18:02.509308917Z {"time":"2026-08-06T08:18:02.509182789Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:18:17.511517308Z {"time":"2026-08-06T08:18:17.511386246Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:18:32.513906696Z {"time":"2026-08-06T08:18:32.513747972Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:18:47.516262740Z {"time":"2026-08-06T08:18:47.516122355Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:19:02.518478652Z {"time":"2026-08-06T08:19:02.518310869Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:19:17.520659770Z {"time":"2026-08-06T08:19:17.520531444Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:19:32.523027513Z {"time":"2026-08-06T08:19:32.522890536Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:19:47.525687276Z {"time":"2026-08-06T08:19:47.525498091Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:20:02.527932190Z {"time":"2026-08-06T08:20:02.527803898Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:20:17.530121385Z {"time":"2026-08-06T08:20:17.529981316Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:20:32.532737015Z {"time":"2026-08-06T08:20:32.532550689Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:20:47.535231803Z {"time":"2026-08-06T08:20:47.535094192Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:21:02.537598378Z {"time":"2026-08-06T08:21:02.537431015Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:21:17.539828040Z {"time":"2026-08-06T08:21:17.539666733Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:21:32.542056861Z {"time":"2026-08-06T08:21:32.541919028Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:21:47.544415661Z {"time":"2026-08-06T08:21:47.544268239Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:22:02.546967957Z {"time":"2026-08-06T08:22:02.546825905Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:22:17.549496127Z {"time":"2026-08-06T08:22:17.54936286Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:22:32.552529914Z {"time":"2026-08-06T08:22:32.552173648Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:22:47.554969977Z {"time":"2026-08-06T08:22:47.554836587Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:23:02.557289613Z {"time":"2026-08-06T08:23:02.557148267Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:23:17.559571922Z {"time":"2026-08-06T08:23:17.559441418Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:23:32.561810590Z {"time":"2026-08-06T08:23:32.561680769Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:23:47.564090109Z {"time":"2026-08-06T08:23:47.563945456Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:24:02.566389014Z {"time":"2026-08-06T08:24:02.566229232Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:24:17.568576767Z {"time":"2026-08-06T08:24:17.568456004Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:24:32.571418319Z {"time":"2026-08-06T08:24:32.571269806Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:24:47.573966588Z {"time":"2026-08-06T08:24:47.573830716Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:25:02.576310005Z {"time":"2026-08-06T08:25:02.576173295Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:25:17.578632093Z {"time":"2026-08-06T08:25:17.578476822Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:25:32.581420754Z {"time":"2026-08-06T08:25:32.581275678Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:25:47.583991849Z {"time":"2026-08-06T08:25:47.583842136Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:26:02.586362125Z {"time":"2026-08-06T08:26:02.586207215Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:26:17.588770481Z {"time":"2026-08-06T08:26:17.588614384Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:26:32.591492860Z {"time":"2026-08-06T08:26:32.591339107Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:26:47.593826206Z {"time":"2026-08-06T08:26:47.593688275Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:27:02.596263883Z {"time":"2026-08-06T08:27:02.596123208Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:27:17.598640479Z {"time":"2026-08-06T08:27:17.598494427Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:27:32.601040745Z {"time":"2026-08-06T08:27:32.600946522Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:27:47.603502474Z {"time":"2026-08-06T08:27:47.603366451Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:28:02.605863073Z {"time":"2026-08-06T08:28:02.605725221Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:28:17.608326352Z {"time":"2026-08-06T08:28:17.608183891Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:28:32.611856386Z {"time":"2026-08-06T08:28:32.611463522Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:28:47.614610882Z {"time":"2026-08-06T08:28:47.614466846Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:29:02.617299642Z {"time":"2026-08-06T08:29:02.617168462Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:29:17.619652546Z {"time":"2026-08-06T08:29:17.619517143Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:29:32.621906152Z {"time":"2026-08-06T08:29:32.621780859Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:29:47.624284501Z {"time":"2026-08-06T08:29:47.624132635Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:30:02.626615246Z {"time":"2026-08-06T08:30:02.626467853Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:30:17.629026583Z {"time":"2026-08-06T08:30:17.628888288Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:30:32.631701055Z {"time":"2026-08-06T08:30:32.631565385Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:30:47.634306199Z {"time":"2026-08-06T08:30:47.634162291Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:31:02.636777496Z {"time":"2026-08-06T08:31:02.636653358Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:31:17.638984345Z {"time":"2026-08-06T08:31:17.638873902Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:31:32.641400202Z {"time":"2026-08-06T08:31:32.641247382Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:31:47.643870161Z {"time":"2026-08-06T08:31:47.643723973Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:32:02.646199502Z {"time":"2026-08-06T08:32:02.646047343Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:32:17.648487630Z {"time":"2026-08-06T08:32:17.648347444Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:32:32.651279629Z {"time":"2026-08-06T08:32:32.651107787Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:32:47.653810097Z {"time":"2026-08-06T08:32:47.65366098Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:33:02.656143707Z {"time":"2026-08-06T08:33:02.656002271Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:33:17.658619576Z {"time":"2026-08-06T08:33:17.658447702Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:33:32.660942358Z {"time":"2026-08-06T08:33:32.660804432Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:33:47.663272478Z {"time":"2026-08-06T08:33:47.663127609Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:34:02.665592384Z {"time":"2026-08-06T08:34:02.665441236Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:34:17.667947759Z {"time":"2026-08-06T08:34:17.667802507Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:34:32.670742264Z {"time":"2026-08-06T08:34:32.670603517Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:34:47.673253675Z {"time":"2026-08-06T08:34:47.673103882Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:35:02.675466103Z {"time":"2026-08-06T08:35:02.675331076Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:35:17.677934923Z {"time":"2026-08-06T08:35:17.677800521Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:35:32.680282011Z {"time":"2026-08-06T08:35:32.680125776Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:35:47.682541701Z {"time":"2026-08-06T08:35:47.682407916Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:36:02.684892977Z {"time":"2026-08-06T08:36:02.684750308Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:36:17.687311840Z {"time":"2026-08-06T08:36:17.687172051Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:36:32.689909122Z {"time":"2026-08-06T08:36:32.689748642Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:36:47.692363595Z {"time":"2026-08-06T08:36:47.692232219Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:37:02.694702047Z {"time":"2026-08-06T08:37:02.694546609Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:37:17.696995281Z {"time":"2026-08-06T08:37:17.696862281Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:37:32.699387222Z {"time":"2026-08-06T08:37:32.699224719Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:37:47.701727298Z {"time":"2026-08-06T08:37:47.701610772Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:38:02.704075514Z {"time":"2026-08-06T08:38:02.70394723Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:38:17.706588371Z {"time":"2026-08-06T08:38:17.706410492Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:38:32.709461355Z {"time":"2026-08-06T08:38:32.709290249Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:38:47.712282762Z {"time":"2026-08-06T08:38:47.712088278Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:39:02.714549693Z {"time":"2026-08-06T08:39:02.714405057Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:39:17.717038208Z {"time":"2026-08-06T08:39:17.716907507Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:39:32.719480335Z {"time":"2026-08-06T08:39:32.719330725Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:39:47.721934229Z {"time":"2026-08-06T08:39:47.721772672Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:40:02.724284861Z {"time":"2026-08-06T08:40:02.724145653Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:40:17.726651942Z {"time":"2026-08-06T08:40:17.726494947Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:40:32.729225996Z {"time":"2026-08-06T08:40:32.729068266Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:40:47.731849201Z {"time":"2026-08-06T08:40:47.731691453Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:41:02.734316935Z {"time":"2026-08-06T08:41:02.734180678Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:41:17.736764916Z {"time":"2026-08-06T08:41:17.736633686Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:41:32.739092859Z {"time":"2026-08-06T08:41:32.73895961Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:41:47.741539548Z {"time":"2026-08-06T08:41:47.741385715Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:42:02.743905229Z {"time":"2026-08-06T08:42:02.743777055Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:42:17.746332186Z {"time":"2026-08-06T08:42:17.746187157Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:42:32.749182344Z {"time":"2026-08-06T08:42:32.749011474Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:42:47.751874748Z {"time":"2026-08-06T08:42:47.751726185Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:43:02.754332786Z {"time":"2026-08-06T08:43:02.754189952Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:43:17.756757800Z {"time":"2026-08-06T08:43:17.756628936Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:43:32.759044781Z {"time":"2026-08-06T08:43:32.758920265Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:43:47.761325189Z {"time":"2026-08-06T08:43:47.761143812Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:44:02.763940174Z {"time":"2026-08-06T08:44:02.763739107Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:44:17.766292283Z {"time":"2026-08-06T08:44:17.766150081Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:44:32.769037613Z {"time":"2026-08-06T08:44:32.768902829Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:44:47.771617437Z {"time":"2026-08-06T08:44:47.771482843Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:45:02.774092982Z {"time":"2026-08-06T08:45:02.773957541Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:45:17.776621246Z {"time":"2026-08-06T08:45:17.776468962Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:45:32.779040086Z {"time":"2026-08-06T08:45:32.778889968Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:45:47.781409094Z {"time":"2026-08-06T08:45:47.78125434Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:46:02.783664318Z {"time":"2026-08-06T08:46:02.783526088Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:46:17.786045285Z {"time":"2026-08-06T08:46:17.78590581Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:46:32.788961571Z {"time":"2026-08-06T08:46:32.788809823Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:46:47.791626959Z {"time":"2026-08-06T08:46:47.791459338Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:47:02.794001180Z {"time":"2026-08-06T08:47:02.793856696Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:47:17.796276131Z {"time":"2026-08-06T08:47:17.796144161Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:47:32.798615852Z {"time":"2026-08-06T08:47:32.798468367Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:47:47.801004923Z {"time":"2026-08-06T08:47:47.800864438Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:48:02.803455739Z {"time":"2026-08-06T08:48:02.803319196Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:48:17.805916419Z {"time":"2026-08-06T08:48:17.805771873Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:48:32.808600235Z {"time":"2026-08-06T08:48:32.808410931Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:48:47.811122184Z {"time":"2026-08-06T08:48:47.810988243Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:49:02.813507939Z {"time":"2026-08-06T08:49:02.813366047Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:49:17.815937170Z {"time":"2026-08-06T08:49:17.815807426Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:49:32.818257173Z {"time":"2026-08-06T08:49:32.818128638Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:49:47.820536452Z {"time":"2026-08-06T08:49:47.82042809Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:50:02.822907357Z {"time":"2026-08-06T08:50:02.8227601Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:50:17.825250830Z {"time":"2026-08-06T08:50:17.825118577Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:50:32.828445097Z {"time":"2026-08-06T08:50:32.828061595Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:50:47.830926720Z {"time":"2026-08-06T08:50:47.830791433Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:51:02.833363267Z {"time":"2026-08-06T08:51:02.833226381Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:51:17.835872226Z {"time":"2026-08-06T08:51:17.835722184Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:51:32.838594620Z {"time":"2026-08-06T08:51:32.838481226Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:51:47.841200601Z {"time":"2026-08-06T08:51:47.841042286Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:52:02.843591985Z {"time":"2026-08-06T08:52:02.843415393Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:52:17.846271105Z {"time":"2026-08-06T08:52:17.846117505Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:52:32.849200278Z {"time":"2026-08-06T08:52:32.849061842Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:52:47.851468005Z {"time":"2026-08-06T08:52:47.851331679Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:53:02.853780208Z {"time":"2026-08-06T08:53:02.853634728Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:53:17.856113952Z {"time":"2026-08-06T08:53:17.855979166Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:53:32.858359796Z {"time":"2026-08-06T08:53:32.858221007Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:53:47.860668360Z {"time":"2026-08-06T08:53:47.860530654Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:54:02.862967654Z {"time":"2026-08-06T08:54:02.862809055Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:54:17.865253296Z {"time":"2026-08-06T08:54:17.86512621Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:54:32.868126952Z {"time":"2026-08-06T08:54:32.867921241Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:54:47.870772463Z {"time":"2026-08-06T08:54:47.870636319Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:55:02.873095694Z {"time":"2026-08-06T08:55:02.87294748Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:55:17.875711989Z {"time":"2026-08-06T08:55:17.875588473Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:55:32.878140372Z {"time":"2026-08-06T08:55:32.87797838Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:55:47.880600092Z {"time":"2026-08-06T08:55:47.880490083Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:56:02.882923801Z {"time":"2026-08-06T08:56:02.88279673Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:56:17.885369612Z {"time":"2026-08-06T08:56:17.885288895Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:56:32.888031030Z {"time":"2026-08-06T08:56:32.887871223Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:56:47.890895053Z {"time":"2026-08-06T08:56:47.890747621Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:57:02.893324146Z {"time":"2026-08-06T08:57:02.893165012Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:57:17.895565781Z {"time":"2026-08-06T08:57:17.895454907Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:57:32.897891201Z {"time":"2026-08-06T08:57:32.897759899Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:57:47.900241170Z {"time":"2026-08-06T08:57:47.900124589Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:58:02.902563362Z {"time":"2026-08-06T08:58:02.902443216Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:58:17.904918072Z {"time":"2026-08-06T08:58:17.904813808Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:58:32.907659361Z {"time":"2026-08-06T08:58:32.907525779Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:58:47.910274728Z {"time":"2026-08-06T08:58:47.91015904Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:59:02.912938521Z {"time":"2026-08-06T08:59:02.912834757Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:59:17.915351781Z {"time":"2026-08-06T08:59:17.915221833Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:59:32.917891318Z {"time":"2026-08-06T08:59:32.917749131Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T08:59:47.920297755Z {"time":"2026-08-06T08:59:47.920172292Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:00:02.922549622Z {"time":"2026-08-06T09:00:02.922411528Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:00:17.924975582Z {"time":"2026-08-06T09:00:17.924854191Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:00:32.927581468Z {"time":"2026-08-06T09:00:32.927426305Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:00:47.930004192Z {"time":"2026-08-06T09:00:47.929868586Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:01:02.932293255Z {"time":"2026-08-06T09:01:02.932152152Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:01:17.934567969Z {"time":"2026-08-06T09:01:17.934439898Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:01:32.936846306Z {"time":"2026-08-06T09:01:32.936696455Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:01:47.939156441Z {"time":"2026-08-06T09:01:47.939022246Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:02:02.941436368Z {"time":"2026-08-06T09:02:02.941306278Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:02:17.943765112Z {"time":"2026-08-06T09:02:17.943637842Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:02:32.946886924Z {"time":"2026-08-06T09:02:32.946524315Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:02:47.949846973Z {"time":"2026-08-06T09:02:47.949697499Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:03:02.952297457Z {"time":"2026-08-06T09:03:02.952166053Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:03:17.954584267Z {"time":"2026-08-06T09:03:17.954441388Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:03:32.956881360Z {"time":"2026-08-06T09:03:32.956751372Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:03:47.959240553Z {"time":"2026-08-06T09:03:47.959117151Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:04:02.961608155Z {"time":"2026-08-06T09:04:02.9614756Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:04:17.964001313Z {"time":"2026-08-06T09:04:17.963880934Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:04:32.966705558Z {"time":"2026-08-06T09:04:32.966571701Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:04:47.969215347Z {"time":"2026-08-06T09:04:47.969080691Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:05:02.971755028Z {"time":"2026-08-06T09:05:02.971639803Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:05:17.974234982Z {"time":"2026-08-06T09:05:17.974094408Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:05:32.976579278Z {"time":"2026-08-06T09:05:32.976429565Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:05:47.979213561Z {"time":"2026-08-06T09:05:47.979081614Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:06:02.981619714Z {"time":"2026-08-06T09:06:02.981456871Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:06:17.983889794Z {"time":"2026-08-06T09:06:17.983768534Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:06:32.986913747Z {"time":"2026-08-06T09:06:32.986744785Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:06:47.989229064Z {"time":"2026-08-06T09:06:47.989100256Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:07:02.991518554Z {"time":"2026-08-06T09:07:02.991360953Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:07:17.993760662Z {"time":"2026-08-06T09:07:17.993629329Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:07:32.996085593Z {"time":"2026-08-06T09:07:32.995955037Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:07:47.998736302Z {"time":"2026-08-06T09:07:47.998607326Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:08:03.001134782Z {"time":"2026-08-06T09:08:03.000996816Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:08:18.003566474Z {"time":"2026-08-06T09:08:18.003422992Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:08:33.006627834Z {"time":"2026-08-06T09:08:33.006480437Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:08:48.009403902Z {"time":"2026-08-06T09:08:48.009268997Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:09:03.011956554Z {"time":"2026-08-06T09:09:03.01179699Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:09:18.014481233Z {"time":"2026-08-06T09:09:18.014327209Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:09:33.017020190Z {"time":"2026-08-06T09:09:33.01688321Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:09:48.019346871Z {"time":"2026-08-06T09:09:48.019202651Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:10:03.021930027Z {"time":"2026-08-06T09:10:03.021752066Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:10:18.024629611Z {"time":"2026-08-06T09:10:18.024291835Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:10:33.027060623Z {"time":"2026-08-06T09:10:33.026913246Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:10:48.029691096Z {"time":"2026-08-06T09:10:48.029542586Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:11:03.032256183Z {"time":"2026-08-06T09:11:03.032121779Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:11:18.034681919Z {"time":"2026-08-06T09:11:18.034516344Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:11:33.037171351Z {"time":"2026-08-06T09:11:33.037052318Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:11:48.039530963Z {"time":"2026-08-06T09:11:48.03938691Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:12:03.042135437Z {"time":"2026-08-06T09:12:03.041996038Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:12:18.044470560Z {"time":"2026-08-06T09:12:18.044343999Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:12:33.047348248Z {"time":"2026-08-06T09:12:33.047199194Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:12:48.049753537Z {"time":"2026-08-06T09:12:48.049620444Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:13:03.052134282Z {"time":"2026-08-06T09:13:03.051999886Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:13:18.054518517Z {"time":"2026-08-06T09:13:18.054376977Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:13:33.056973667Z {"time":"2026-08-06T09:13:33.056829254Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:13:48.059621385Z {"time":"2026-08-06T09:13:48.059458162Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:14:03.061986899Z {"time":"2026-08-06T09:14:03.061852583Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:14:18.064389618Z {"time":"2026-08-06T09:14:18.064272921Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:14:33.067365910Z {"time":"2026-08-06T09:14:33.067005758Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:14:48.069753246Z {"time":"2026-08-06T09:14:48.069617061Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:15:03.072048572Z {"time":"2026-08-06T09:15:03.071905342Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:15:18.074428555Z {"time":"2026-08-06T09:15:18.07430599Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:15:33.077195161Z {"time":"2026-08-06T09:15:33.077090625Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:15:48.079897834Z {"time":"2026-08-06T09:15:48.079770879Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:16:03.082251928Z {"time":"2026-08-06T09:16:03.082117524Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:16:18.084472876Z {"time":"2026-08-06T09:16:18.084352315Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:16:33.087204133Z {"time":"2026-08-06T09:16:33.087059935Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:16:48.089610008Z {"time":"2026-08-06T09:16:48.08944303Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:17:03.091861968Z {"time":"2026-08-06T09:17:03.091732639Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:17:18.094239155Z {"time":"2026-08-06T09:17:18.094116314Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:17:33.096512571Z {"time":"2026-08-06T09:17:33.096370647Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:17:48.098757240Z {"time":"2026-08-06T09:17:48.098630898Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:18:03.101275651Z {"time":"2026-08-06T09:18:03.101123371Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:18:18.103666158Z {"time":"2026-08-06T09:18:18.103524404Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:18:33.106734640Z {"time":"2026-08-06T09:18:33.106552119Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:18:48.109583279Z {"time":"2026-08-06T09:18:48.109427099Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:19:03.112187560Z {"time":"2026-08-06T09:19:03.112050788Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:19:18.114585213Z {"time":"2026-08-06T09:19:18.11441927Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:19:33.116834713Z {"time":"2026-08-06T09:19:33.11670984Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:19:48.119115039Z {"time":"2026-08-06T09:19:48.118993948Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:20:03.121407632Z {"time":"2026-08-06T09:20:03.121277237Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:20:18.123795849Z {"time":"2026-08-06T09:20:18.123670778Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:20:33.126842849Z {"time":"2026-08-06T09:20:33.12668473Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:20:48.129288186Z {"time":"2026-08-06T09:20:48.129155336Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:21:03.131717487Z {"time":"2026-08-06T09:21:03.131543129Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:21:18.134033894Z {"time":"2026-08-06T09:21:18.133887592Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:21:33.136321564Z {"time":"2026-08-06T09:21:33.136222308Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:21:48.138658040Z {"time":"2026-08-06T09:21:48.138532104Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:22:03.140918568Z {"time":"2026-08-06T09:22:03.140805831Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:22:18.143246419Z {"time":"2026-08-06T09:22:18.143105192Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:22:33.145830984Z {"time":"2026-08-06T09:22:33.145663746Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:22:48.148405202Z {"time":"2026-08-06T09:22:48.148283673Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:23:03.150964182Z {"time":"2026-08-06T09:23:03.150822891Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:23:18.153380369Z {"time":"2026-08-06T09:23:18.153267413Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:23:33.155800542Z {"time":"2026-08-06T09:23:33.15569103Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:23:48.158154760Z {"time":"2026-08-06T09:23:48.158033556Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:24:03.160502816Z {"time":"2026-08-06T09:24:03.160399063Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:24:18.162896328Z {"time":"2026-08-06T09:24:18.162756025Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:24:33.166327066Z {"time":"2026-08-06T09:24:33.166193476Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:24:48.168883865Z {"time":"2026-08-06T09:24:48.168747272Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:25:03.171327711Z {"time":"2026-08-06T09:25:03.171192409Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:25:18.173786381Z {"time":"2026-08-06T09:25:18.173637805Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:25:33.176118038Z {"time":"2026-08-06T09:25:33.175978416Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:25:48.178695644Z {"time":"2026-08-06T09:25:48.178586441Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:26:03.181157674Z {"time":"2026-08-06T09:26:03.181025242Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:26:18.183467759Z {"time":"2026-08-06T09:26:18.18334945Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:26:33.186168743Z {"time":"2026-08-06T09:26:33.18599583Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:26:48.188821729Z {"time":"2026-08-06T09:26:48.188685551Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:27:03.191229715Z {"time":"2026-08-06T09:27:03.191086694Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:27:18.193868398Z {"time":"2026-08-06T09:27:18.193732669Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:27:33.196478103Z {"time":"2026-08-06T09:27:33.196334082Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:27:48.198845451Z {"time":"2026-08-06T09:27:48.198703904Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:28:03.201199808Z {"time":"2026-08-06T09:28:03.201085991Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:28:18.203869617Z {"time":"2026-08-06T09:28:18.203746911Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:28:33.206711357Z {"time":"2026-08-06T09:28:33.206541074Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:28:48.209064752Z {"time":"2026-08-06T09:28:48.208907547Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:29:03.211402075Z {"time":"2026-08-06T09:29:03.211236745Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:29:18.213858546Z {"time":"2026-08-06T09:29:18.213697659Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:29:33.216209958Z {"time":"2026-08-06T09:29:33.216095167Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:29:48.218593011Z {"time":"2026-08-06T09:29:48.218446735Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:30:03.220970017Z {"time":"2026-08-06T09:30:03.2208109Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:30:18.223425661Z {"time":"2026-08-06T09:30:18.223299484Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:30:33.226615060Z {"time":"2026-08-06T09:30:33.226196996Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:30:48.228971998Z {"time":"2026-08-06T09:30:48.228837204Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:31:03.231381310Z {"time":"2026-08-06T09:31:03.23126165Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:31:18.234047487Z {"time":"2026-08-06T09:31:18.233925652Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:31:33.236334795Z {"time":"2026-08-06T09:31:33.236218634Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:31:48.238767388Z {"time":"2026-08-06T09:31:48.238626559Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:32:03.240992637Z {"time":"2026-08-06T09:32:03.240863755Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:32:18.243230041Z {"time":"2026-08-06T09:32:18.243096394Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:32:33.245927008Z {"time":"2026-08-06T09:32:33.245762888Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:32:48.248448706Z {"time":"2026-08-06T09:32:48.248310861Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:33:03.250830416Z {"time":"2026-08-06T09:33:03.250689714Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:33:18.253218773Z {"time":"2026-08-06T09:33:18.253071214Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:33:33.255869606Z {"time":"2026-08-06T09:33:33.255743742Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:33:48.258333563Z {"time":"2026-08-06T09:33:48.258151569Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:34:03.260927474Z {"time":"2026-08-06T09:34:03.260808076Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:34:18.263713387Z {"time":"2026-08-06T09:34:18.263546848Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:34:33.266966820Z {"time":"2026-08-06T09:34:33.266777418Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:34:48.269674005Z {"time":"2026-08-06T09:34:48.269502959Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:35:03.272281733Z {"time":"2026-08-06T09:35:03.272130936Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:35:18.274670351Z {"time":"2026-08-06T09:35:18.274509134Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:35:33.277072151Z {"time":"2026-08-06T09:35:33.2769426Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:35:48.279639662Z {"time":"2026-08-06T09:35:48.279475589Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:36:03.282337122Z {"time":"2026-08-06T09:36:03.282208399Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:36:18.284850690Z {"time":"2026-08-06T09:36:18.284728323Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:36:33.287734757Z {"time":"2026-08-06T09:36:33.287610893Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:36:48.290484475Z {"time":"2026-08-06T09:36:48.290345349Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:37:03.292843768Z {"time":"2026-08-06T09:37:03.292697916Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:37:18.295193720Z {"time":"2026-08-06T09:37:18.295057441Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:37:33.297411076Z {"time":"2026-08-06T09:37:33.29725517Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:37:48.299600932Z {"time":"2026-08-06T09:37:48.299462726Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:38:03.301825604Z {"time":"2026-08-06T09:38:03.301690076Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:38:18.304135242Z {"time":"2026-08-06T09:38:18.304006777Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:38:33.307059899Z {"time":"2026-08-06T09:38:33.30687785Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:38:48.310002417Z {"time":"2026-08-06T09:38:48.309823397Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:39:03.312351957Z {"time":"2026-08-06T09:39:03.312215071Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:39:18.314707960Z {"time":"2026-08-06T09:39:18.314542577Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:39:33.317036877Z {"time":"2026-08-06T09:39:33.316902891Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:39:48.319456755Z {"time":"2026-08-06T09:39:48.319313709Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:40:03.321722533Z {"time":"2026-08-06T09:40:03.321614802Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:40:18.324077073Z {"time":"2026-08-06T09:40:18.323908007Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:40:33.327006768Z {"time":"2026-08-06T09:40:33.326840776Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:40:48.329545587Z {"time":"2026-08-06T09:40:48.329398356Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:41:03.331832965Z {"time":"2026-08-06T09:41:03.331696186Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:41:18.334210904Z {"time":"2026-08-06T09:41:18.334069591Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:41:33.336485274Z {"time":"2026-08-06T09:41:33.336356056Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:41:48.338901015Z {"time":"2026-08-06T09:41:48.338763511Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:42:03.341167415Z {"time":"2026-08-06T09:42:03.341026536Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:42:18.343396664Z {"time":"2026-08-06T09:42:18.343255335Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:42:33.346171746Z {"time":"2026-08-06T09:42:33.345899064Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:42:48.348865945Z {"time":"2026-08-06T09:42:48.348743371Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:43:03.351372250Z {"time":"2026-08-06T09:43:03.351237406Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:43:18.354226267Z {"time":"2026-08-06T09:43:18.354098159Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:43:33.356525186Z {"time":"2026-08-06T09:43:33.356387413Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:43:48.358822383Z {"time":"2026-08-06T09:43:48.358702738Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:44:03.361353651Z {"time":"2026-08-06T09:44:03.361202192Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:44:18.363771177Z {"time":"2026-08-06T09:44:18.363588536Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:44:33.366600632Z {"time":"2026-08-06T09:44:33.366446634Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:44:48.369184322Z {"time":"2026-08-06T09:44:48.369054399Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:45:03.371545927Z {"time":"2026-08-06T09:45:03.37143513Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:45:18.374076765Z {"time":"2026-08-06T09:45:18.373941675Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:45:33.376596813Z {"time":"2026-08-06T09:45:33.376453042Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:45:48.379055321Z {"time":"2026-08-06T09:45:48.378925304Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:46:03.381602428Z {"time":"2026-08-06T09:46:03.381429245Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:46:18.384146500Z {"time":"2026-08-06T09:46:18.383981998Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:46:33.386789145Z {"time":"2026-08-06T09:46:33.386634118Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:46:48.389484401Z {"time":"2026-08-06T09:46:48.389343657Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:47:03.391965100Z {"time":"2026-08-06T09:47:03.391827164Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:47:18.394347585Z {"time":"2026-08-06T09:47:18.394196371Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:47:33.396747111Z {"time":"2026-08-06T09:47:33.396579024Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:47:48.399028286Z {"time":"2026-08-06T09:47:48.39889154Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:48:03.401330676Z {"time":"2026-08-06T09:48:03.401218878Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:48:18.403720201Z {"time":"2026-08-06T09:48:18.403569765Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:48:33.406800178Z {"time":"2026-08-06T09:48:33.406418104Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:48:48.409391559Z {"time":"2026-08-06T09:48:48.409228483Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:49:03.412021992Z {"time":"2026-08-06T09:49:03.411885064Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:49:18.414358530Z {"time":"2026-08-06T09:49:18.414219538Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:49:33.416664148Z {"time":"2026-08-06T09:49:33.416500849Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:49:48.419086890Z {"time":"2026-08-06T09:49:48.418942765Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:50:03.421397197Z {"time":"2026-08-06T09:50:03.421251463Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:50:18.423756523Z {"time":"2026-08-06T09:50:18.423616355Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:50:33.426898459Z {"time":"2026-08-06T09:50:33.426506581Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:50:48.429380407Z {"time":"2026-08-06T09:50:48.429259849Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:51:03.431794846Z {"time":"2026-08-06T09:51:03.431664741Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:51:18.434541631Z {"time":"2026-08-06T09:51:18.434395356Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:51:33.436856113Z {"time":"2026-08-06T09:51:33.436732254Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:51:48.439353412Z {"time":"2026-08-06T09:51:48.439241902Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:52:03.441726209Z {"time":"2026-08-06T09:52:03.441587168Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:52:18.444052346Z {"time":"2026-08-06T09:52:18.443953637Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:52:33.446726709Z {"time":"2026-08-06T09:52:33.446568516Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:52:48.449198630Z {"time":"2026-08-06T09:52:48.449031421Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:53:03.451585017Z {"time":"2026-08-06T09:53:03.451426989Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:53:18.453986267Z {"time":"2026-08-06T09:53:18.453851299Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:53:33.456439887Z {"time":"2026-08-06T09:53:33.456280649Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:53:48.459218449Z {"time":"2026-08-06T09:53:48.4590698Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:54:03.461691757Z {"time":"2026-08-06T09:54:03.461538496Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:54:18.464324413Z {"time":"2026-08-06T09:54:18.46416763Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:54:33.467860142Z {"time":"2026-08-06T09:54:33.467406614Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:54:48.470661742Z {"time":"2026-08-06T09:54:48.470509636Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:55:03.473169377Z {"time":"2026-08-06T09:55:03.47302891Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:55:18.475524424Z {"time":"2026-08-06T09:55:18.475376398Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:55:33.477789689Z {"time":"2026-08-06T09:55:33.477644719Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:55:48.480066105Z {"time":"2026-08-06T09:55:48.479934907Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:56:03.482432745Z {"time":"2026-08-06T09:56:03.482296171Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:56:18.484837465Z {"time":"2026-08-06T09:56:18.484697628Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:56:33.487451837Z {"time":"2026-08-06T09:56:33.487281093Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:56:48.489873235Z {"time":"2026-08-06T09:56:48.489736843Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:57:03.492216945Z {"time":"2026-08-06T09:57:03.492080531Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:57:18.494599962Z {"time":"2026-08-06T09:57:18.49444604Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:57:33.496971128Z {"time":"2026-08-06T09:57:33.49684222Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:57:48.499394006Z {"time":"2026-08-06T09:57:48.499262515Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:58:03.501830521Z {"time":"2026-08-06T09:58:03.501689308Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:58:18.504078064Z {"time":"2026-08-06T09:58:18.50392374Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:58:33.506992927Z {"time":"2026-08-06T09:58:33.506839871Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:58:48.509573774Z {"time":"2026-08-06T09:58:48.509414772Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:59:03.511975971Z {"time":"2026-08-06T09:59:03.511845625Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:59:18.514299950Z {"time":"2026-08-06T09:59:18.514144115Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:59:33.517045053Z {"time":"2026-08-06T09:59:33.516894133Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T09:59:48.519366302Z {"time":"2026-08-06T09:59:48.519231472Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:00:03.521693053Z {"time":"2026-08-06T10:00:03.52153753Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:00:18.523986478Z {"time":"2026-08-06T10:00:18.523874126Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:00:33.526611411Z {"time":"2026-08-06T10:00:33.526459296Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:00:48.529044296Z {"time":"2026-08-06T10:00:48.528894575Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:01:03.531421454Z {"time":"2026-08-06T10:01:03.531263471Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:01:18.533790375Z {"time":"2026-08-06T10:01:18.533646264Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:01:33.536084155Z {"time":"2026-08-06T10:01:33.535939102Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:01:48.539002333Z {"time":"2026-08-06T10:01:48.538857637Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:02:03.541282291Z {"time":"2026-08-06T10:02:03.541142156Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:02:18.543624650Z {"time":"2026-08-06T10:02:18.543491825Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:02:33.546007164Z {"time":"2026-08-06T10:02:33.545872661Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:02:48.548366105Z {"time":"2026-08-06T10:02:48.548203418Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:03:03.550663280Z {"time":"2026-08-06T10:03:03.550531119Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:03:18.553029700Z {"time":"2026-08-06T10:03:18.552890078Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:03:33.555473642Z {"time":"2026-08-06T10:03:33.555351123Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:03:48.557770891Z {"time":"2026-08-06T10:03:48.557636589Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:04:03.560280186Z {"time":"2026-08-06T10:04:03.560136533Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:04:18.562643231Z {"time":"2026-08-06T10:04:18.562475836Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:04:33.565611155Z {"time":"2026-08-06T10:04:33.565432289Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:04:48.568190059Z {"time":"2026-08-06T10:04:48.568043619Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:05:03.570548412Z {"time":"2026-08-06T10:05:03.570440176Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:05:18.572892120Z {"time":"2026-08-06T10:05:18.572749532Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:05:33.575229645Z {"time":"2026-08-06T10:05:33.575098017Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:05:48.577607911Z {"time":"2026-08-06T10:05:48.577419521Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:06:03.579805710Z {"time":"2026-08-06T10:06:03.579663024Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:06:18.582101894Z {"time":"2026-08-06T10:06:18.581967143Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:06:33.584673958Z {"time":"2026-08-06T10:06:33.584507859Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:06:48.587381012Z {"time":"2026-08-06T10:06:48.587231648Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:07:03.589716163Z {"time":"2026-08-06T10:07:03.589568361Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:07:18.591989571Z {"time":"2026-08-06T10:07:18.591843129Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:07:33.594507681Z {"time":"2026-08-06T10:07:33.594379409Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:07:48.596904499Z {"time":"2026-08-06T10:07:48.596745383Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:08:03.599362127Z {"time":"2026-08-06T10:08:03.599216857Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:08:18.601593381Z {"time":"2026-08-06T10:08:18.601450606Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:08:33.604668927Z {"time":"2026-08-06T10:08:33.60422066Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:08:48.607100647Z {"time":"2026-08-06T10:08:48.60693558Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:09:03.609526441Z {"time":"2026-08-06T10:09:03.60937079Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:09:18.611947727Z {"time":"2026-08-06T10:09:18.611826447Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:09:33.614320899Z {"time":"2026-08-06T10:09:33.614184921Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:09:48.616728881Z {"time":"2026-08-06T10:09:48.616538183Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:10:03.618983369Z {"time":"2026-08-06T10:10:03.618835297Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:10:18.621169583Z {"time":"2026-08-06T10:10:18.621044888Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:10:33.624004459Z {"time":"2026-08-06T10:10:33.623836662Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:10:48.626610131Z {"time":"2026-08-06T10:10:48.626470859Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:11:03.628956446Z {"time":"2026-08-06T10:11:03.628831509Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:11:18.631379052Z {"time":"2026-08-06T10:11:18.631245818Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:11:33.633952046Z {"time":"2026-08-06T10:11:33.633837766Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:11:48.636923297Z {"time":"2026-08-06T10:11:48.636781743Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:12:03.639385845Z {"time":"2026-08-06T10:12:03.639255826Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:12:18.641913681Z {"time":"2026-08-06T10:12:18.641779236Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:12:33.644749591Z {"time":"2026-08-06T10:12:33.644599208Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:12:48.647472946Z {"time":"2026-08-06T10:12:48.647323354Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:13:03.649878463Z {"time":"2026-08-06T10:13:03.649749236Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:13:18.652593606Z {"time":"2026-08-06T10:13:18.652422136Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:13:33.655315266Z {"time":"2026-08-06T10:13:33.655183863Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:13:48.657799360Z {"time":"2026-08-06T10:13:48.657647353Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:14:03.660183330Z {"time":"2026-08-06T10:14:03.660014864Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:14:18.662528773Z {"time":"2026-08-06T10:14:18.662383074Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:14:33.665195567Z {"time":"2026-08-06T10:14:33.665054993Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:14:48.667667338Z {"time":"2026-08-06T10:14:48.667503318Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:15:03.669973741Z {"time":"2026-08-06T10:15:03.669841759Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:15:18.672301685Z {"time":"2026-08-06T10:15:18.672161962Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:15:33.674918145Z {"time":"2026-08-06T10:15:33.674760795Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:15:48.677199053Z {"time":"2026-08-06T10:15:48.677073632Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:16:03.679474868Z {"time":"2026-08-06T10:16:03.679339152Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:16:18.681779231Z {"time":"2026-08-06T10:16:18.681649955Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:16:33.684303686Z {"time":"2026-08-06T10:16:33.684169159Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:16:48.686817812Z {"time":"2026-08-06T10:16:48.686667979Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:17:03.689215451Z {"time":"2026-08-06T10:17:03.689073338Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:17:18.691930848Z {"time":"2026-08-06T10:17:18.691785604Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:17:33.694269466Z {"time":"2026-08-06T10:17:33.69414739Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:17:48.696492161Z {"time":"2026-08-06T10:17:48.696348963Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:18:03.698942358Z {"time":"2026-08-06T10:18:03.698815953Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:18:18.701339470Z {"time":"2026-08-06T10:18:18.70123322Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:18:33.704019600Z {"time":"2026-08-06T10:18:33.703843776Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:18:48.706465186Z {"time":"2026-08-06T10:18:48.706322042Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:19:03.708817836Z {"time":"2026-08-06T10:19:03.708680563Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:19:18.711277551Z {"time":"2026-08-06T10:19:18.711134678Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:19:33.713525710Z {"time":"2026-08-06T10:19:33.713424445Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:19:48.715985188Z {"time":"2026-08-06T10:19:48.715841855Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:20:03.718349201Z {"time":"2026-08-06T10:20:03.718243405Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:20:18.720730936Z {"time":"2026-08-06T10:20:18.720584128Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:20:33.723593039Z {"time":"2026-08-06T10:20:33.723418784Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:20:48.725983003Z {"time":"2026-08-06T10:20:48.725846411Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:21:03.728431276Z {"time":"2026-08-06T10:21:03.72828462Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:21:18.730965200Z {"time":"2026-08-06T10:21:18.730812585Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:21:33.733469249Z {"time":"2026-08-06T10:21:33.733308708Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:21:48.735729346Z {"time":"2026-08-06T10:21:48.735600664Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:22:03.738179061Z {"time":"2026-08-06T10:22:03.738052486Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:22:18.740595351Z {"time":"2026-08-06T10:22:18.740449371Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:22:33.743439115Z {"time":"2026-08-06T10:22:33.743290121Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:22:48.745906178Z {"time":"2026-08-06T10:22:48.745760199Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:23:03.748341559Z {"time":"2026-08-06T10:23:03.748175947Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:23:18.750617563Z {"time":"2026-08-06T10:23:18.750475687Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:23:33.752939092Z {"time":"2026-08-06T10:23:33.752829889Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:23:48.755393969Z {"time":"2026-08-06T10:23:48.755233698Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:24:03.757791372Z {"time":"2026-08-06T10:24:03.757708996Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:24:18.760131047Z {"time":"2026-08-06T10:24:18.7599984Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:24:33.762725841Z {"time":"2026-08-06T10:24:33.762652756Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:24:48.765478073Z {"time":"2026-08-06T10:24:48.765353324Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:25:03.768247664Z {"time":"2026-08-06T10:25:03.768160451Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:25:18.770846214Z {"time":"2026-08-06T10:25:18.770696174Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:25:33.773177731Z {"time":"2026-08-06T10:25:33.77307194Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:25:48.775624408Z {"time":"2026-08-06T10:25:48.77544953Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:26:03.777925972Z {"time":"2026-08-06T10:26:03.777822608Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:26:18.780205002Z {"time":"2026-08-06T10:26:18.780073825Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:26:33.782975845Z {"time":"2026-08-06T10:26:33.782851943Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:26:48.785514306Z {"time":"2026-08-06T10:26:48.78536862Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:27:03.787797996Z {"time":"2026-08-06T10:27:03.787663203Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:27:18.790216027Z {"time":"2026-08-06T10:27:18.790054331Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:27:33.792480135Z {"time":"2026-08-06T10:27:33.792372894Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:27:48.794850906Z {"time":"2026-08-06T10:27:48.79469798Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:28:03.797163761Z {"time":"2026-08-06T10:28:03.797065556Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:28:18.799569933Z {"time":"2026-08-06T10:28:18.799389343Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:28:33.802838428Z {"time":"2026-08-06T10:28:33.802695212Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:28:48.805485228Z {"time":"2026-08-06T10:28:48.805304993Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:29:03.807855120Z {"time":"2026-08-06T10:29:03.807741825Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:29:18.810343434Z {"time":"2026-08-06T10:29:18.810203483Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:29:33.812716194Z {"time":"2026-08-06T10:29:33.812605802Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:29:48.814971684Z {"time":"2026-08-06T10:29:48.814830068Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:30:03.817211459Z {"time":"2026-08-06T10:30:03.81709144Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:30:18.819652391Z {"time":"2026-08-06T10:30:18.819491545Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:30:33.822238820Z {"time":"2026-08-06T10:30:33.822051884Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:30:48.824690754Z {"time":"2026-08-06T10:30:48.824532751Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:31:03.826987518Z {"time":"2026-08-06T10:31:03.826872254Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:31:18.829513091Z {"time":"2026-08-06T10:31:18.829375405Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:31:33.831835802Z {"time":"2026-08-06T10:31:33.831721102Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:31:48.834237274Z {"time":"2026-08-06T10:31:48.834124424Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:32:03.837047157Z {"time":"2026-08-06T10:32:03.836927319Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:32:18.839517378Z {"time":"2026-08-06T10:32:18.839381359Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:32:33.842343758Z {"time":"2026-08-06T10:32:33.842153712Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:32:48.844932895Z {"time":"2026-08-06T10:32:48.844785515Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:33:03.847326147Z {"time":"2026-08-06T10:33:03.847196466Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:33:18.849659737Z {"time":"2026-08-06T10:33:18.849482476Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:33:33.852036690Z {"time":"2026-08-06T10:33:33.851917283Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:33:48.854323501Z {"time":"2026-08-06T10:33:48.854176732Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:34:03.856718707Z {"time":"2026-08-06T10:34:03.856587916Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:34:18.859119176Z {"time":"2026-08-06T10:34:18.858978399Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:34:33.861855709Z {"time":"2026-08-06T10:34:33.861663051Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:34:48.864345918Z {"time":"2026-08-06T10:34:48.864203017Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:35:03.866857105Z {"time":"2026-08-06T10:35:03.86673236Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:35:18.869279641Z {"time":"2026-08-06T10:35:18.869108116Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:35:33.871652461Z {"time":"2026-08-06T10:35:33.87149952Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:35:48.874268245Z {"time":"2026-08-06T10:35:48.874134038Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:36:03.876781761Z {"time":"2026-08-06T10:36:03.876638178Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:36:18.879306398Z {"time":"2026-08-06T10:36:18.879168121Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:36:33.881773856Z {"time":"2026-08-06T10:36:33.881613958Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:36:48.884413351Z {"time":"2026-08-06T10:36:48.884265664Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:37:03.886771975Z {"time":"2026-08-06T10:37:03.886644049Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:37:18.889209673Z {"time":"2026-08-06T10:37:18.889052283Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:37:33.891487384Z {"time":"2026-08-06T10:37:33.891375307Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:37:48.893914893Z {"time":"2026-08-06T10:37:48.893782738Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:38:03.896324392Z {"time":"2026-08-06T10:38:03.896229108Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:38:18.898647684Z {"time":"2026-08-06T10:38:18.898515944Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:38:33.901369668Z {"time":"2026-08-06T10:38:33.90123951Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:38:48.903773234Z {"time":"2026-08-06T10:38:48.903641479Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:39:03.906132830Z {"time":"2026-08-06T10:39:03.90600753Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:39:18.908553310Z {"time":"2026-08-06T10:39:18.908408649Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:39:33.910911705Z {"time":"2026-08-06T10:39:33.910782892Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:39:48.913645071Z {"time":"2026-08-06T10:39:48.913475265Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:40:03.916059648Z {"time":"2026-08-06T10:40:03.915940041Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:40:18.918302955Z {"time":"2026-08-06T10:40:18.918178794Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:40:33.920949715Z {"time":"2026-08-06T10:40:33.920833246Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:40:48.923470760Z {"time":"2026-08-06T10:40:48.923329963Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:41:03.925767186Z {"time":"2026-08-06T10:41:03.925641234Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:41:18.928169326Z {"time":"2026-08-06T10:41:18.928019357Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:41:33.930333710Z {"time":"2026-08-06T10:41:33.930225768Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:41:48.932989569Z {"time":"2026-08-06T10:41:48.932852859Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:42:03.935502935Z {"time":"2026-08-06T10:42:03.935391353Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:42:18.937899666Z {"time":"2026-08-06T10:42:18.93774756Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:42:33.940770637Z {"time":"2026-08-06T10:42:33.940609105Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:42:48.943506224Z {"time":"2026-08-06T10:42:48.943361044Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:43:03.945804948Z {"time":"2026-08-06T10:43:03.945688594Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:43:18.948307588Z {"time":"2026-08-06T10:43:18.948154041Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:43:33.950674466Z {"time":"2026-08-06T10:43:33.950531565Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:43:48.953266765Z {"time":"2026-08-06T10:43:48.953110142Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:44:03.955635982Z {"time":"2026-08-06T10:44:03.955497872Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:44:18.958342329Z {"time":"2026-08-06T10:44:18.958160111Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:44:33.961182254Z {"time":"2026-08-06T10:44:33.96097289Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:44:48.963824556Z {"time":"2026-08-06T10:44:48.963692672Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:45:03.966230790Z {"time":"2026-08-06T10:45:03.966103949Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:45:18.968475980Z {"time":"2026-08-06T10:45:18.968333429Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:45:33.970820316Z {"time":"2026-08-06T10:45:33.970668056Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:45:48.973436107Z {"time":"2026-08-06T10:45:48.973302692Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:46:03.975801656Z {"time":"2026-08-06T10:46:03.975675023Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:46:18.978090301Z {"time":"2026-08-06T10:46:18.977962982Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:46:33.980693967Z {"time":"2026-08-06T10:46:33.980542912Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:46:48.983285110Z {"time":"2026-08-06T10:46:48.983143477Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:47:03.985454396Z {"time":"2026-08-06T10:47:03.985351621Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:47:18.987916639Z {"time":"2026-08-06T10:47:18.987782476Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:47:33.990445565Z {"time":"2026-08-06T10:47:33.990317752Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:47:48.992901307Z {"time":"2026-08-06T10:47:48.992741198Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:48:03.995251940Z {"time":"2026-08-06T10:48:03.995133843Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:48:18.997409116Z {"time":"2026-08-06T10:48:18.997293993Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:48:34.000171996Z {"time":"2026-08-06T10:48:33.999995666Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:48:49.002782098Z {"time":"2026-08-06T10:48:49.002665021Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:49:04.006029993Z {"time":"2026-08-06T10:49:04.005906132Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:49:19.009210377Z {"time":"2026-08-06T10:49:19.009072658Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:49:34.011873695Z {"time":"2026-08-06T10:49:34.011728663Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:49:49.014540047Z {"time":"2026-08-06T10:49:49.014351907Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:50:04.016904423Z {"time":"2026-08-06T10:50:04.016771245Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:50:19.019398023Z {"time":"2026-08-06T10:50:19.019256277Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:50:34.021975993Z {"time":"2026-08-06T10:50:34.021850633Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:50:49.024359196Z {"time":"2026-08-06T10:50:49.024216157Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:51:04.026642320Z {"time":"2026-08-06T10:51:04.026522471Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:51:19.029256018Z {"time":"2026-08-06T10:51:19.029107502Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:51:34.031660091Z {"time":"2026-08-06T10:51:34.03149269Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:51:49.033959164Z {"time":"2026-08-06T10:51:49.033834075Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:52:04.036691533Z {"time":"2026-08-06T10:52:04.036534189Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:52:19.039198903Z {"time":"2026-08-06T10:52:19.039048184Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:52:34.042107046Z {"time":"2026-08-06T10:52:34.041942889Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:52:49.044829245Z {"time":"2026-08-06T10:52:49.044667178Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:53:04.047151780Z {"time":"2026-08-06T10:53:04.047009405Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:53:19.049466398Z {"time":"2026-08-06T10:53:19.049327464Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:53:34.051848927Z {"time":"2026-08-06T10:53:34.051702445Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:53:49.054235534Z {"time":"2026-08-06T10:53:49.054101001Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:54:04.056551699Z {"time":"2026-08-06T10:54:04.056422825Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:54:19.059202909Z {"time":"2026-08-06T10:54:19.059047301Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:54:34.061790620Z {"time":"2026-08-06T10:54:34.061656118Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:54:49.064244344Z {"time":"2026-08-06T10:54:49.064108616Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:55:04.066707181Z {"time":"2026-08-06T10:55:04.066545674Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:55:19.069031347Z {"time":"2026-08-06T10:55:19.068876634Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:55:34.071362375Z {"time":"2026-08-06T10:55:34.071199549Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:55:49.073682495Z {"time":"2026-08-06T10:55:49.07352372Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:56:04.075996975Z {"time":"2026-08-06T10:56:04.075884465Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:56:19.078523719Z {"time":"2026-08-06T10:56:19.078409494Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:56:34.081409237Z {"time":"2026-08-06T10:56:34.081289719Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:56:49.083924489Z {"time":"2026-08-06T10:56:49.08381138Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:57:04.086232904Z {"time":"2026-08-06T10:57:04.086111002Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:57:19.088462137Z {"time":"2026-08-06T10:57:19.088344914Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:57:34.090837085Z {"time":"2026-08-06T10:57:34.090718941Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:57:49.093173739Z {"time":"2026-08-06T10:57:49.093051877Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:58:04.095440956Z {"time":"2026-08-06T10:58:04.095318002Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:58:19.097890416Z {"time":"2026-08-06T10:58:19.097755121Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:58:34.100788814Z {"time":"2026-08-06T10:58:34.100429965Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:58:49.103605785Z {"time":"2026-08-06T10:58:49.103430369Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:59:04.106116779Z {"time":"2026-08-06T10:59:04.105983989Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:59:19.108536630Z {"time":"2026-08-06T10:59:19.108410618Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:59:34.110800118Z {"time":"2026-08-06T10:59:34.110669415Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T10:59:49.113071749Z {"time":"2026-08-06T10:59:49.112962704Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:00:04.115510024Z {"time":"2026-08-06T11:00:04.115379396Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:00:19.117781224Z {"time":"2026-08-06T11:00:19.11765836Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:00:34.120749933Z {"time":"2026-08-06T11:00:34.12062125Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:00:49.123098510Z {"time":"2026-08-06T11:00:49.122967627Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:01:04.125488438Z {"time":"2026-08-06T11:01:04.125335605Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:01:19.127823311Z {"time":"2026-08-06T11:01:19.127691156Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:01:34.130381344Z {"time":"2026-08-06T11:01:34.130263239Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:01:49.132804996Z {"time":"2026-08-06T11:01:49.132677399Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:02:04.135103870Z {"time":"2026-08-06T11:02:04.135001647Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:02:19.137821672Z {"time":"2026-08-06T11:02:19.13770003Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:02:34.140672996Z {"time":"2026-08-06T11:02:34.14052188Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:02:49.143382310Z {"time":"2026-08-06T11:02:49.143255192Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:03:04.146257525Z {"time":"2026-08-06T11:03:04.146120795Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:03:19.148900489Z {"time":"2026-08-06T11:03:19.148764692Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:03:34.151499269Z {"time":"2026-08-06T11:03:34.151374452Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:03:49.154041437Z {"time":"2026-08-06T11:03:49.153910982Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:04:04.156449098Z {"time":"2026-08-06T11:04:04.156332795Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:04:19.159139270Z {"time":"2026-08-06T11:04:19.159006511Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:04:34.161618073Z {"time":"2026-08-06T11:04:34.161453421Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:04:49.164364281Z {"time":"2026-08-06T11:04:49.164229455Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:05:04.166877934Z {"time":"2026-08-06T11:05:04.166750731Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:05:19.169438551Z {"time":"2026-08-06T11:05:19.169299334Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:05:34.172204806Z {"time":"2026-08-06T11:05:34.171939816Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:05:49.174698419Z {"time":"2026-08-06T11:05:49.174547714Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:06:04.177082346Z {"time":"2026-08-06T11:06:04.176959953Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:06:19.179615952Z {"time":"2026-08-06T11:06:19.179481618Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:06:34.182229622Z {"time":"2026-08-06T11:06:34.182070559Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:06:49.184597964Z {"time":"2026-08-06T11:06:49.184458542Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:07:04.187336581Z {"time":"2026-08-06T11:07:04.187199998Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:07:19.189932499Z {"time":"2026-08-06T11:07:19.189785092Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:07:34.192311228Z {"time":"2026-08-06T11:07:34.192188591Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:07:49.194844662Z {"time":"2026-08-06T11:07:49.194696305Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:08:04.197194829Z {"time":"2026-08-06T11:08:04.197064195Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:08:19.199489844Z {"time":"2026-08-06T11:08:19.199368875Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:08:34.202110587Z {"time":"2026-08-06T11:08:34.201952557Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:08:49.204476425Z {"time":"2026-08-06T11:08:49.204345885Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:09:04.207076485Z {"time":"2026-08-06T11:09:04.206920297Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:09:19.209542500Z {"time":"2026-08-06T11:09:19.209414617Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:09:34.211844561Z {"time":"2026-08-06T11:09:34.211699227Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:09:49.214194347Z {"time":"2026-08-06T11:09:49.214056027Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:10:04.216460701Z {"time":"2026-08-06T11:10:04.216333801Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:10:19.218890944Z {"time":"2026-08-06T11:10:19.21873624Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:10:34.221748407Z {"time":"2026-08-06T11:10:34.221581124Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:10:49.224375169Z {"time":"2026-08-06T11:10:49.224239619Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:11:04.226721254Z {"time":"2026-08-06T11:11:04.226603382Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:11:19.229054522Z {"time":"2026-08-06T11:11:19.228915679Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:11:34.231700223Z {"time":"2026-08-06T11:11:34.231574583Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:11:49.234333712Z {"time":"2026-08-06T11:11:49.234189846Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:12:04.236702808Z {"time":"2026-08-06T11:12:04.236581202Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:12:19.239086893Z {"time":"2026-08-06T11:12:19.238958557Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:12:34.241958578Z {"time":"2026-08-06T11:12:34.2415903Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:12:49.244337094Z {"time":"2026-08-06T11:12:49.244181363Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:13:04.246675882Z {"time":"2026-08-06T11:13:04.246505698Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:13:19.249186621Z {"time":"2026-08-06T11:13:19.249050327Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:13:34.251507311Z {"time":"2026-08-06T11:13:34.251390596Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T11:13:49.254194741Z {"time":"2026-08-06T11:13:49.254021206Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+2026-08-06T15:12:57.011178863Z {"time":"2026-08-06T15:12:57.011084154Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m2-b4d2r","jobID":"elastic-trainer","group":""}
+2026-08-06T15:12:58.103986563Z {"time":"2026-08-06T15:12:58.103840075Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m2-b4d2r","jobID":"elastic-trainer","group":""}
+2026-08-06T15:12:59.155862383Z {"time":"2026-08-06T15:12:59.155774407Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m2-b4d2r","jobID":"elastic-trainer","group":""}

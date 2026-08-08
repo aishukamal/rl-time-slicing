@@ -1,0 +1,915 @@
+Defaulted container "snapshot-agent" out of: snapshot-agent, install-cuda-checkpoint (init)
+{"time":"2026-08-05T17:32:12.870790607Z","level":"INFO","msg":"Starting Snapshot Agent","port":9001,"deploymentMode":"k8s"}
+{"time":"2026-08-05T17:32:12.873920304Z","level":"INFO","msg":"Starting pod watcher","nodeName":"gke-verl-research-clus-h100-2gpu-pool-02b8c734-trb7"}
+{"time":"2026-08-05T17:32:12.974038951Z","level":"INFO","msg":"Starting gRPC server","port":9001}
+{"time":"2026-08-05T17:32:43.370855962Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-q9rrm","jobID":"elastic-m1","group":""}
+{"time":"2026-08-05T17:32:43.421892355Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-q9rrm","jobID":"elastic-m1","group":""}
+{"time":"2026-08-05T17:32:43.923066344Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-q9rrm","jobID":"elastic-m1","group":""}
+{"time":"2026-08-05T17:32:43.984888687Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:44.018740431Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:44.987322691Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:44.991167502Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:45.984355968Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:45.988207373Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:46.982945241Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:46.986830631Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:47.984479573Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:47.988352854Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:48.98704429Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:48.990925184Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:49.982584517Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:49.986480923Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:50.985222264Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:50.989229343Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:51.985821064Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:51.989675855Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:52.986343617Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:52.990135141Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:53.985373222Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:53.989130275Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:54.984054407Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:54.987892868Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:55.984328198Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:55.98818187Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:56.985226895Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:56.988979383Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:57.986905626Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:57.990783684Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:58.985515708Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:58.989370017Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:32:59.986098879Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:32:59.989992183Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:00.986585572Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:00.990437Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:01.98389023Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:01.987761437Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:02.984741157Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:02.988577991Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:03.984458662Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:03.988316582Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:04.988841883Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:05.010796362Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:05.988732403Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:05.992721837Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:06.985728694Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:06.989637058Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:07.992928234Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:07.996908812Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:08.985152301Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:08.98906854Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:09.984627709Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:09.988474502Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:10.98595153Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:10.98976015Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:11.989833518Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:11.993728076Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:12.985366665Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:12.98971301Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:13.986709952Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:13.990622747Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:14.985360583Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:14.989246373Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:15.98290254Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:15.986639319Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:16.984201748Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:16.988053138Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:17.984088874Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:17.987934949Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:18.983018183Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:18.987349095Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:19.989954671Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:19.993995251Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:20.985950525Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:20.989955173Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:21.98436489Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:21.988272294Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:22.984264953Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:22.988134519Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:23.990424509Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:23.994487555Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:24.984169603Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:24.988088691Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:25.984935188Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:25.988801725Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:26.98534364Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:26.989142402Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:27.984174955Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:27.988031454Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:28.985209049Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:28.989075621Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:29.989249986Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:29.993285792Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:30.983580641Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:30.987807333Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:31.982641036Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:31.986546555Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:32.983671638Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:32.987883249Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:33.983942491Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:33.987807411Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:34.984881155Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:34.989047182Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:35.98602556Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:35.990066915Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:36.985132039Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:36.989032786Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:37.986074834Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:37.990459024Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:38.98368459Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:38.987625522Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:39.983175308Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:39.987030502Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:40.982490361Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:40.986818042Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:41.986678621Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:41.990553243Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:42.985783325Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:42.989640587Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:43.985735618Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:43.989595962Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:44.983084539Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:44.98691958Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:45.984934369Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:45.988845905Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:46.981672163Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:46.985635051Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:47.985518199Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:47.989340026Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:48.984488414Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:48.98835288Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:49.983854302Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:49.987787934Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:50.983967024Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:50.987759032Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:51.988156947Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:51.992058495Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:52.985639272Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:52.989436419Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:53.985986639Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:53.989847338Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:54.984965412Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:54.988871191Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:55.981884837Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:55.985718681Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:56.982858374Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:56.986801534Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:57.983601323Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:57.987369817Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:58.993377341Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:59.033796896Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:33:59.987302941Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:33:59.99114613Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:00.990358913Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:00.993872501Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:01.984064619Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:01.987572432Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:02.983795519Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:02.987363675Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:03.98474637Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:03.990907789Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:04.985445399Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:05.050683278Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:05.985019245Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:05.988595925Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:06.983757838Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:06.987467878Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:07.985639625Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:07.992590382Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:08.991238488Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:08.994818091Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:09.98478559Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:09.988475164Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:10.992427114Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:10.995886903Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:11.98796438Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:11.991894444Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:12.984083033Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:12.990253715Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:13.989575749Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:13.993117602Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:14.99394327Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:15.021411275Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:15.985659182Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:15.989326828Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:16.985247372Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:16.988959101Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:17.984574679Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:17.988149905Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:18.983754943Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:18.987420116Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:19.983000227Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:19.986594541Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:20.985653814Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:20.994502359Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:21.984378033Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:21.987964708Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:22.987423028Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:22.991027613Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:23.987104955Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:23.990777357Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:24.982767022Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:24.986766706Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:25.986958654Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:25.990716314Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:26.986675827Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:26.9903376Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:27.994614336Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:27.998519867Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:28.98692194Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:28.990593093Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:29.986040869Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:29.989832849Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:30.985188107Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:30.988781456Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:31.983303746Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:31.987115684Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:32.983804876Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:32.987305265Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:33.984907453Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:33.988563204Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:34.985843222Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:34.989494076Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:35.984842617Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:35.988678491Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:36.983571839Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:36.987653181Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:37.98575408Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:37.989515011Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:38.984979506Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:38.990943974Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:39.985386281Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:39.989607994Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:40.993675053Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:40.997519063Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:41.983173101Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:41.988073644Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:42.985726723Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:42.990045666Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:43.984319426Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:43.988199547Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:44.982907751Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:44.986670313Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:45.984161059Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:45.987696414Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:46.983154302Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:46.988787652Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:47.985769848Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:47.989792263Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:48.985541917Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:48.989323454Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:49.983847119Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:49.987395118Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:50.992992476Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:50.996675656Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:51.987037272Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:51.991000896Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:52.987813274Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:52.991367076Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:53.988420736Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:53.992084471Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:54.984156069Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:54.989859057Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:55.984573035Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:55.98811252Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:56.98485573Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:56.988698369Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:57.988105823Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:57.991653574Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:58.985215242Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:58.988967668Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:34:59.983968269Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:34:59.98942852Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:00.987350203Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:00.99105112Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:01.984616001Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:01.988372302Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:02.984002406Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:02.987685567Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:03.985284088Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:03.989258394Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:04.984907642Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:04.988566937Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:05.986348867Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:05.991896508Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:06.986603734Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:06.990152247Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:07.985118183Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:07.988913885Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:08.994153737Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:08.997673822Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:09.989216938Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:09.992573466Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:10.984617092Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:10.988352118Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:11.984702694Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:11.988319172Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:12.986774736Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:12.990506104Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:13.992830396Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:13.99645616Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:14.98449383Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:14.988173362Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:15.984701245Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:15.988441443Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:16.984493193Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:16.990042677Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:17.983758175Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:17.987748777Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:18.983785941Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:18.987714354Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:19.985142459Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:19.988778663Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:20.982937486Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:20.986582485Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:21.985055135Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T17:35:21.98923102Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T17:35:22.009782745Z","level":"INFO","msg":"Detected GPU activity for job, transitioning to RUNNING","jobID":"elastic-m1","pids":[3198798]}
+{"time":"2026-08-05T23:03:05.851846528Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-q9rrm","jobID":"elastic-m1","group":""}
+{"time":"2026-08-05T23:03:05.903738742Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-q9rrm","jobID":"elastic-m1","group":""}
+{"time":"2026-08-05T23:03:05.945454939Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-q9rrm","jobID":"elastic-m1","group":""}
+{"time":"2026-08-05T23:03:06.114912543Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-q9rrm","jobID":"elastic-m1","group":""}
+{"time":"2026-08-05T23:03:06.467728942Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-q9rrm","jobID":"elastic-m1","group":""}
+{"time":"2026-08-05T23:03:07.923199085Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-zc8xk","jobID":"elastic-r2","group":""}
+{"time":"2026-08-05T23:03:07.98273412Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-zc8xk","jobID":"elastic-r2","group":""}
+{"time":"2026-08-05T23:03:07.989712101Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:07.993643671Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:08.983780604Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:08.987591431Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:09.168539974Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-zc8xk","jobID":"elastic-r2","group":""}
+{"time":"2026-08-05T23:03:09.984186105Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:09.988104484Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:10.984858569Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:10.988574236Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:11.98545511Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:11.989188033Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:12.984495427Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:12.98837048Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:13.984909898Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:13.988678702Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:14.985474206Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:14.989160791Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:15.987683401Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:15.991224954Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:16.983524968Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:16.987033705Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:17.983519887Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:17.98699914Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:18.98557861Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:18.98944504Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:19.987306823Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:19.991030339Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:20.983568102Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:20.987355091Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:21.988172921Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:21.991955264Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:22.985968445Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:22.989704617Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:23.985644967Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:23.989231884Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:24.98603598Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:24.989617427Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:25.983717149Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:25.987361578Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:26.984296045Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:26.987917506Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:27.984072294Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:27.987739522Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:28.984926128Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:28.988684042Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:29.984408906Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:29.988248914Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:30.983157142Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:30.986923121Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:31.985012396Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:31.989190491Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:32.983960948Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:32.987726419Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:33.983600959Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:33.98731549Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:34.983352261Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:34.986956429Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:35.983978116Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:35.987491326Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:36.98580727Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:36.989647799Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:37.984261272Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:37.988026345Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:38.98450018Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:38.98830071Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:39.983110649Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:39.987409205Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:40.983685328Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:40.98778066Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:41.985529176Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:41.989181855Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:42.982732188Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:42.986645861Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:43.982217322Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:43.986080455Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:44.987776195Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:44.991567112Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:45.985729353Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:45.989694458Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:46.983857117Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:46.98754737Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:47.98539626Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:47.989376847Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:48.982451339Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:48.986183206Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:49.986630577Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:49.990162838Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:50.985475229Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:50.989206197Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:51.983888154Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:51.987466306Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:52.984179409Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:52.987876404Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:53.984499375Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:53.988026142Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:54.983632462Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:54.987134534Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:55.984339324Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:55.987841573Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:56.98913658Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:56.992771471Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:57.982334522Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:57.986052614Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:58.98384952Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:58.98760209Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:03:59.982925428Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:03:59.986736932Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:00.984904772Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:00.988812363Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:01.989327652Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:01.993126287Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:02.995837203Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:02.99959231Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:03.98489506Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:03.988746946Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:04.982721815Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:04.986343605Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:05.984604543Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:05.988162971Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:06.9834338Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:06.986971532Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:07.985862746Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:07.989591315Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:08.983694302Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:08.98732557Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:09.981951593Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:09.985505911Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:10.984547405Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:10.988352292Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:11.985183345Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:11.988866954Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:12.984272513Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:12.988069992Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:13.985891513Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:13.989605493Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:14.984823616Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:14.988377137Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:15.983838126Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:15.9873536Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:16.985623875Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:16.989175851Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:17.98488352Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:17.988507878Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:18.98344032Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:18.987061215Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:19.984278842Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:19.98788157Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:20.985762946Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:20.989336246Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:21.982744817Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:21.986297331Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:22.984872757Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:22.988609966Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:23.983086191Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:23.986682124Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:24.994414611Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:24.998045856Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:25.986029338Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:25.989741109Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:26.986012052Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:26.989449538Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:27.983255585Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:27.986783828Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:28.982487877Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:28.986341734Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:29.984871099Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:29.988708379Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:30.98462981Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:30.988467435Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:31.983824406Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:31.987689835Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:32.985540378Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:32.989355786Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:33.984324337Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:33.988141667Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:34.983722679Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:34.987550964Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:35.982987872Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:35.986867136Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:36.986463041Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:36.990323399Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:37.985284272Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:37.989155057Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:38.983936018Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:38.98782515Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:39.982900844Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:39.986790547Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:40.98360402Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:40.987489628Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:41.990878827Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:41.994766544Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:42.983620679Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:42.987567539Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:43.984885055Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:43.988699508Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:44.985706845Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:44.989609691Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:45.984810379Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:45.988705234Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:46.984399307Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:46.98873546Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:47.983059642Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:47.986904307Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:48.983446583Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:48.987367955Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:49.984179764Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:49.988092682Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:50.983178339Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:50.987009506Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:51.982352042Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:51.98610635Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:52.986333477Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:52.990101488Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:53.984274182Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:53.988081483Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:54.98376271Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:54.987649288Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:55.983114859Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:55.986901117Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:56.983846385Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:56.987729187Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:57.982754397Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:57.987085757Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:58.985134313Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:58.988976302Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:04:59.98981972Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:04:59.994262742Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:00.985686849Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:00.989792975Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:01.988351749Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:01.992248458Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:02.985735436Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:02.989627309Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:03.985039034Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:03.988872504Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:04.985146354Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:04.988960721Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:05.990239093Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:05.994129862Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:06.989687674Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:06.993478852Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:07.9917056Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:07.995506764Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:08.984678046Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:08.988546041Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:09.985463438Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:09.989243003Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:10.984276879Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:10.988203619Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:11.985082043Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:11.988935711Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:12.999396199Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:13.003239228Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:13.983198723Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:13.987123772Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:14.985365133Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:14.989254557Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:15.990585353Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:15.994422524Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:16.990500155Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:16.994325578Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:17.983979548Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:17.987834864Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:18.984081831Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:18.987907863Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:19.983102768Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:19.986975162Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:20.985337038Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:20.989183642Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:21.983203309Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:21.986908623Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:22.984989225Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:22.988862967Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:23.985134057Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:23.988989834Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:24.982440518Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:24.986262511Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:25.983658887Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:25.987422806Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:26.989633883Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:26.993504384Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:27.984364991Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:27.98813277Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:28.985167296Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:28.989399578Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:29.982276019Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:29.986195142Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:30.98508876Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:30.989140917Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:31.983843723Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:31.987732679Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:32.989409954Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:32.992892525Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:33.988545616Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:33.992264228Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:34.98313259Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:34.986681099Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:35.985175111Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:35.988806526Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:36.984946273Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:36.988814209Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:37.984648689Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:37.988251385Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:38.984174978Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:38.987905748Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:39.98477542Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:39.98838645Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:40.983650783Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:40.987364515Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:41.985030762Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:41.988630493Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:42.98469291Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:42.988286636Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:43.985649363Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:43.989436723Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:44.983721062Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:44.987329659Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:45.990933366Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:45.994630183Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:47.018781332Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:47.054801561Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:47.986078674Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:47.989847395Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:48.984382406Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:48.988228953Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:49.984209024Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:49.988093754Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:50.983764068Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:50.987562342Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:51.984244926Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:51.987814901Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:52.983966053Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:52.987769588Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:53.985268308Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:53.988899904Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:54.983969322Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:54.987620518Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:55.984003966Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:55.987709167Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:56.98521367Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:56.98885606Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:57.984850946Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:57.988610794Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:58.985508698Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:58.989176502Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:05:59.983368997Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:05:59.987072378Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:00.991853095Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:00.996223216Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:01.983703306Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:01.987356556Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:02.984979195Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:02.988585862Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:03.98395463Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:03.987657825Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:04.982991516Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:04.987167935Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:05.992688989Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:05.996484606Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:06.98391144Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:07.006547592Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:07.986033878Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:07.989868891Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:08.984044667Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:08.987625913Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:09.98509831Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:09.988716939Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:10.984276829Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:10.988012697Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:11.983701198Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:11.987301805Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:12.983110915Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:12.986826029Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:13.983140017Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:13.986963113Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:14.984599542Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:14.988154664Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:15.9855769Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:15.989314214Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:16.986863519Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:16.990778427Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:17.983762956Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:17.9872507Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:18.983895003Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:18.987656606Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:19.983589412Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:20.039834971Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:20.984216059Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:20.98799961Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:21.985909075Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:21.989710473Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:22.985485249Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:22.989282856Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:23.983967174Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:23.987520291Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:24.985639831Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:24.989362341Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:25.98412038Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:25.98791274Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:26.984613203Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:26.988475622Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:27.985218905Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:27.989172329Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:28.984780869Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:28.988332878Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:29.983548076Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:29.987455522Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:30.984001105Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:30.98768761Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:31.982193842Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:31.99020801Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:32.984704912Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:32.988475536Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:33.983540006Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:33.98743502Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:34.988658413Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:34.992285935Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:35.983358339Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:35.986999655Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:36.984647583Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:36.988305256Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:37.982354787Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:37.986040628Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:38.982724406Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:38.98646922Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:39.984092085Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:39.987788232Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:40.983893772Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:40.987634901Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:41.98375307Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:41.989734543Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:42.982197767Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:42.985898463Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:43.98507424Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:43.988878442Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:44.983268669Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:44.986821129Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:45.985017939Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:45.988623397Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:46.98425111Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:46.988298816Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:47.983413609Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:47.987069136Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:48.984161567Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:48.987939179Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:49.991174208Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:49.994886832Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:50.985772019Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:50.989653387Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:51.985759639Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:51.98939981Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:52.985309094Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:52.989022225Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:53.983911641Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:53.987804573Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:54.983875423Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:06:54.990056698Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:06:55.007246871Z","level":"INFO","msg":"Detected GPU activity for job, transitioning to RUNNING","jobID":"elastic-r2","pids":[3709978]}
+{"time":"2026-08-05T23:08:22.334791215Z","level":"INFO","msg":"Snapshot called","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-05T23:08:22.334877419Z","level":"INFO","msg":"Background: Starting snapshot","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-05T23:08:22.334897078Z","level":"INFO","msg":"Snapshotting PIDs","pids":["3712796","3713317","3713573"],"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-05T23:08:22.335500779Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:23.336277122Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:24.337134524Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:25.337902706Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:26.338656267Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:27.339376941Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:28.340212974Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:29.341064429Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:30.341852396Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:31.342708122Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:32.343501063Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:33.344314263Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:34.345040315Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:35.345807304Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:36.346544021Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:37.347313002Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:38.348115361Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:39.348885522Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:40.349678262Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:41.350488409Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:42.351305024Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:43.352426244Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:44.35333346Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:45.35413195Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:46.35493645Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:47.35570739Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:48.356443331Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:49.357381441Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:50.358145539Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:08:50.641856815Z","level":"INFO","msg":"cuda-checkpoint action took","duration":28306945662,"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-05T23:08:51.358932035Z","level":"INFO","msg":"GetOperation called","operationID":"af92bf32-282d-4bd1-915a-f062c3fea1f1","ServerMethod":"GetOperation"}
+{"time":"2026-08-05T23:09:29.620620231Z","level":"INFO","msg":"Detected pod for job","pod":"elastic-m1-zc8xk","jobID":"elastic-trainer","group":""}
+{"time":"2026-08-05T23:09:29.986937742Z","level":"INFO","msg":"Initializing NVML"}
+{"time":"2026-08-05T23:09:29.990341358Z","level":"INFO","msg":"NVML initialized successfully"}
+{"time":"2026-08-05T23:09:30.00717083Z","level":"INFO","msg":"Detected GPU activity for job, transitioning to RUNNING","jobID":"elastic-trainer","pids":[3708401,3709978,3717206]}
+{"time":"2026-08-05T23:34:46.659503731Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+{"time":"2026-08-06T00:09:25.26988568Z","level":"INFO","msg":"Status called","ServerMethod":"Status"}
+{"time":"2026-08-06T00:16:25.688539038Z","level":"INFO","msg":"Snapshot called","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T00:16:25.688641877Z","level":"INFO","msg":"Background: Starting snapshot","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T00:16:25.688661563Z","level":"INFO","msg":"Snapshotting PIDs","pids":["3717206"],"ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T00:16:25.689182274Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:26.689959422Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:27.690808299Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:28.691564439Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:29.692320663Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:30.693087168Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:31.693854957Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:32.694649055Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:33.695364991Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:34.696139691Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:35.696910726Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:36.697685999Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:37.698402495Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:38.699166084Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:39.699952472Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:40.700791715Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:41.701518993Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:42.547424242Z","level":"INFO","msg":"cuda-checkpoint action took","duration":16858747242,"ServerMethod":"Snapshot","JobID":"elastic-trainer"}
+{"time":"2026-08-06T00:16:42.702288179Z","level":"INFO","msg":"GetOperation called","operationID":"8321e809-b477-4884-bbd4-d6e8649d58f8","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:42.738066226Z","level":"INFO","msg":"Restore called","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T00:16:42.738161134Z","level":"INFO","msg":"Background: Starting restore","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T00:16:42.738179029Z","level":"INFO","msg":"Restoring PIDs","pids":["3712796","3713317","3713573"],"backend":"cuda","ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T00:16:42.738188353Z","level":"INFO","msg":"Restoring PIDs","pids":["3712796","3713317","3713573"],"ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T00:16:42.738578394Z","level":"INFO","msg":"GetOperation called","operationID":"ede517ae-7267-405b-bc60-c0e025e49bcc","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:43.739266235Z","level":"INFO","msg":"GetOperation called","operationID":"ede517ae-7267-405b-bc60-c0e025e49bcc","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:44.739986428Z","level":"INFO","msg":"GetOperation called","operationID":"ede517ae-7267-405b-bc60-c0e025e49bcc","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:45.74073669Z","level":"INFO","msg":"GetOperation called","operationID":"ede517ae-7267-405b-bc60-c0e025e49bcc","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:46.741488189Z","level":"INFO","msg":"GetOperation called","operationID":"ede517ae-7267-405b-bc60-c0e025e49bcc","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:47.742306194Z","level":"INFO","msg":"GetOperation called","operationID":"ede517ae-7267-405b-bc60-c0e025e49bcc","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:48.743185835Z","level":"INFO","msg":"GetOperation called","operationID":"ede517ae-7267-405b-bc60-c0e025e49bcc","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:49.743957902Z","level":"INFO","msg":"GetOperation called","operationID":"ede517ae-7267-405b-bc60-c0e025e49bcc","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:50.744756588Z","level":"INFO","msg":"GetOperation called","operationID":"ede517ae-7267-405b-bc60-c0e025e49bcc","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:51.745531872Z","level":"INFO","msg":"GetOperation called","operationID":"ede517ae-7267-405b-bc60-c0e025e49bcc","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:16:52.608579308Z","level":"INFO","msg":"cuda-checkpoint toggle took","duration":9870377704,"pids":["3712796","3713317","3713573"],"ServerMethod":"Restore","JobID":"elastic-r2"}
+{"time":"2026-08-06T00:16:52.746250292Z","level":"INFO","msg":"GetOperation called","operationID":"ede517ae-7267-405b-bc60-c0e025e49bcc","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:28.734941802Z","level":"INFO","msg":"Snapshot called","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T00:18:28.735014429Z","level":"INFO","msg":"Background: Starting snapshot","backend":"cuda","ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T00:18:28.73503188Z","level":"INFO","msg":"Snapshotting PIDs","pids":["3712796","3713317","3713573"],"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T00:18:28.735460724Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:29.736280189Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:30.737096729Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:31.737890357Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:32.738637411Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:33.739409945Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:34.740272292Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:35.74101765Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:36.741832511Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:37.742643108Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:38.743394953Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:39.744187138Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:40.745017596Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:41.745866869Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:42.746671436Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:43.747481157Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:44.748219766Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:45.749002821Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:46.749797999Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:47.7505428Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:48.751346725Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:49.752229202Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:50.753116748Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:51.753959518Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:52.754749774Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:53.755581935Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:54.756365812Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:55.757118062Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:56.757936011Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:56.960232335Z","level":"INFO","msg":"cuda-checkpoint action took","duration":28225185850,"ServerMethod":"Snapshot","JobID":"elastic-r2"}
+{"time":"2026-08-06T00:18:57.758771475Z","level":"INFO","msg":"GetOperation called","operationID":"4f368b6d-8040-46c6-8e9d-ddc6f9b513b6","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:57.76533323Z","level":"INFO","msg":"Restore called","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T00:18:57.76539408Z","level":"INFO","msg":"Background: Starting restore","backend":"cuda","ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T00:18:57.76542537Z","level":"INFO","msg":"Restoring PIDs","pids":["3717206"],"backend":"cuda","ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T00:18:57.765435655Z","level":"INFO","msg":"Restoring PIDs","pids":["3717206"],"ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T00:18:57.765858799Z","level":"INFO","msg":"GetOperation called","operationID":"c46d9942-9749-4705-beaa-67830f38a1c5","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:58.766596425Z","level":"INFO","msg":"GetOperation called","operationID":"c46d9942-9749-4705-beaa-67830f38a1c5","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:18:59.767407144Z","level":"INFO","msg":"GetOperation called","operationID":"c46d9942-9749-4705-beaa-67830f38a1c5","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:19:00.768192618Z","level":"INFO","msg":"GetOperation called","operationID":"c46d9942-9749-4705-beaa-67830f38a1c5","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:19:01.768983555Z","level":"INFO","msg":"GetOperation called","operationID":"c46d9942-9749-4705-beaa-67830f38a1c5","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:19:02.769770289Z","level":"INFO","msg":"GetOperation called","operationID":"c46d9942-9749-4705-beaa-67830f38a1c5","ServerMethod":"GetOperation"}
+{"time":"2026-08-06T00:19:03.453845496Z","level":"INFO","msg":"cuda-checkpoint toggle took","duration":5688397532,"pids":["3717206"],"ServerMethod":"Restore","JobID":"elastic-trainer"}
+{"time":"2026-08-06T00:19:03.770698905Z","level":"INFO","msg":"GetOperation called","operationID":"c46d9942-9749-4705-beaa-67830f38a1c5","ServerMethod":"GetOperation"}

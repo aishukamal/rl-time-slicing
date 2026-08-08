@@ -1,0 +1,591 @@
+# M3 RUN D — STATIC 1:2 DISAGGREGATED ARM: the true static competitor to
+# elastic. Identical code-rlvr recipe (verl 983cb0f2, DeepSeek-R1-Distill-
+# Qwen-1.5B, Eurus-2 code 512 prompts, n=8, 16K cap, 64 groups/step, s=8),
+# but 1 trainer GPU + 2 ALWAYS-ON rollout engines across two nodes:
+#   - head pod (trb7): ray head advertising 2 GPUs -> trainer (1 GPU) +
+#     one rollout engine; runs the stock fully_async_main driver.
+#   - worker pod (w0x7): ray worker advertising 1 GPU -> second rollout
+#     engine. Second node's other GPU is left idle (arm counts 3 GPUs).
+#   - rollout.nnodes=2, rollout.n_gpus_per_node=1, TP=1 -> 2 standalone
+#     replicas, BOTH full members of the weight-sync group (stock in-tree
+#     multi-node rollout; no out-of-tree machinery, no shim, no controller).
+# Weight sync (checkpoint_engine nccl) crosses the pod network: plain NCCL
+# sockets (NCCL_SOCKET_IFNAME=eth0, NCCL_IB_DISABLE=1). No C/R flags — this
+# arm is stock.
+# Comparison units (report): wall-clock per optimizer step of 64 groups
+# (512 trajectories) and samples+tokens per GPU-hour COUNTING 3 GPUs.
+# RUN_SECONDS=9000.
+#
+# DEPLOY ORDER: service + worker job + head job together; the worker waits
+# for the head's ray port, the head driver waits for 3 GPUs in the cluster.
+apiVersion: v1
+kind: Service
+metadata:
+  name: m3d-head
+  namespace: default
+spec:
+  clusterIP: None
+  selector:
+    app: m3d-head
+  ports:
+  - name: gcs
+    port: 6379
+    targetPort: 6379
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: code-rlvr-m3d
+  namespace: default
+data:
+  gpu_monitor.sh: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+    OUTPUT="${1:?Usage: $0 <output.csv> [interval_ms]}"
+    INTERVAL_MS="${2:-100}"
+    echo "timestamp_ms,gpu_index,gpu_util_pct,mem_util_pct,power_w" > "$OUTPUT"
+    trap 'exit 0' SIGINT SIGTERM
+    SLEEP_S=$(python3 -c "print($INTERVAL_MS/1000)")
+    while true; do
+        ts=$(date +%s%3N)
+        nvidia-smi --query-gpu=index,utilization.gpu,utilization.memory,power.draw \
+                   --format=csv,noheader,nounits 2>/dev/null | \
+        while IFS=', ' read -r idx gpu mem pwr; do
+            echo "${ts},${idx},${gpu},${mem},${pwr}"
+        done >> "$OUTPUT"
+        sleep "$SLEEP_S"
+    done
+
+  common_setup.sh: |
+    #!/usr/bin/env bash
+    # Shared by head and worker: pinned verl install + model download.
+    set -xeuo pipefail
+    RESULTS_DIR="${RESULTS_DIR:-/workspace/results}"
+    MODEL_PATH="/workspace/models/DeepSeek-R1-Distill-Qwen-1.5B"
+    mkdir -p "$RESULTS_DIR"
+
+    echo "=== Setup 1: install verl (pinned, same as M0) ==="
+    pip install datasets TransferQueue 2>&1 | tail -5
+    VERL_COMMIT=983cb0f24443f87b3d161fad318445130a620b07
+    mkdir -p /workspace/verl-src && cd /workspace/verl-src
+    git init -q && git remote add origin https://github.com/verl-project/verl.git
+    git fetch -q --depth 1 origin "$VERL_COMMIT"
+    git checkout -q FETCH_HEAD
+    git rev-parse HEAD | tee "$RESULTS_DIR/verl_commit"
+    pip install -e ".[gpu]" 2>&1 | tail -10
+    cd /workspace
+    pip install cupy-cuda12x 2>&1 | tail -3
+    python3 -c "import verl; print('verl version:', verl.__version__)"
+
+    echo "=== Setup 1b: pyext shim ==="
+    pip install pyext 2>&1 | tail -2 || true
+    python3 << 'PYEXTFIX'
+    try:
+        from pyext import RuntimeModule  # noqa: F401
+        print("pyext OK (pip)")
+    except Exception:
+        import os
+        import sysconfig
+
+        SHIM = '''"""Minimal pyext shim (see M0 baseline)."""
+    import types
+
+
+    class RuntimeModule:
+        @staticmethod
+        def from_string(name, docstring, code):
+            mod = types.ModuleType(name, docstring)
+            exec(compile(code, name, "exec"), mod.__dict__)
+            return mod
+    '''
+        sp = sysconfig.get_paths()["purelib"]
+        with open(os.path.join(sp, "pyext.py"), "w") as f:
+            f.write(SHIM)
+        from pyext import RuntimeModule  # noqa: F401
+
+        print(f"pyext shim installed at {sp}/pyext.py")
+    PYEXTFIX
+
+    echo "=== Setup 2: download model (bounded + resume-retry) ==="
+    export HF_HUB_DOWNLOAD_TIMEOUT=30
+    MODEL_OK=0
+    for i in $(seq 1 20); do
+        if timeout 300 python3 -c "
+    from huggingface_hub import snapshot_download
+    snapshot_download('deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B', local_dir='$MODEL_PATH')
+    print('Model download complete')
+    "; then MODEL_OK=1; break; fi
+        echo "model download attempt $i timed out/failed; retrying (resume) in 5s"
+        sleep 5
+    done
+    [ "$MODEL_OK" = "1" ] || { echo "FATAL: model download failed after 20 attempts"; exit 1; }
+
+  data_prep.py: |
+    #!/usr/bin/env python3
+    """Prepare the Eurus-2-RL-Data CODE subset (verbatim from the M0 baseline)."""
+
+    import argparse
+    import json
+    import os
+
+    import pandas as pd
+    from huggingface_hub import hf_hub_download
+
+    CODE_SOURCES = {"codecontests", "apps", "codeforces", "taco"}
+
+
+    def truncate_ground_truth(gt_str, max_tests, max_bytes):
+        try:
+            gt = json.loads(gt_str)
+        except Exception:
+            return None
+        if not isinstance(gt, dict):
+            return None
+        ins, outs = gt.get("inputs"), gt.get("outputs")
+        if not isinstance(ins, list) or not isinstance(outs, list):
+            return None
+        n = min(len(ins), len(outs), max_tests)
+        if n < 1:
+            return None
+        new_gt = {"inputs": ins[:n], "outputs": outs[:n]}
+        if gt.get("fn_name"):
+            new_gt["fn_name"] = gt["fn_name"]
+        try:
+            s = json.dumps(new_gt)
+        except Exception:
+            return None
+        if len(s) > max_bytes:
+            return None
+        return s
+
+
+    def main():
+        ap = argparse.ArgumentParser()
+        ap.add_argument("--repo_id", default="PRIME-RL/Eurus-2-RL-Data")
+        ap.add_argument("--filename", default="train.parquet")
+        ap.add_argument("--tokenizer", required=True)
+        ap.add_argument("--out_dir", default="/workspace/data/eurus_code")
+        ap.add_argument("--train_size", type=int, default=512)
+        ap.add_argument("--val_size", type=int, default=64)
+        ap.add_argument("--max_tests", type=int, default=8)
+        ap.add_argument("--max_gt_bytes", type=int, default=200000)
+        ap.add_argument("--max_prompt_tokens", type=int, default=1900)
+        ap.add_argument("--candidates", type=int, default=3000)
+        ap.add_argument("--seed", type=int, default=17)
+        args = ap.parse_args()
+
+        local = hf_hub_download(repo_id=args.repo_id, filename=args.filename, repo_type="dataset")
+        df = pd.read_parquet(local)
+        print(f"loaded {len(df)} rows, columns: {list(df.columns)}")
+
+        df = df[df["ability"] == "code"].reset_index(drop=True)
+        df = df[df["data_source"].isin(CODE_SOURCES)].reset_index(drop=True)
+
+        rows = []
+        n_bad_gt, n_bad_prompt = 0, 0
+        for _, r in df.iterrows():
+            msgs = [dict(m) for m in r["prompt"]]
+            user = [m for m in msgs if m.get("role") == "user"]
+            if len(user) != 1 or "```python" not in user[0].get("content", ""):
+                n_bad_prompt += 1
+                continue
+            gt = truncate_ground_truth(dict(r["reward_model"])["ground_truth"], args.max_tests, args.max_gt_bytes)
+            if gt is None:
+                n_bad_gt += 1
+                continue
+            rows.append(
+                {
+                    "data_source": r["data_source"],
+                    "prompt": [{"role": "user", "content": user[0]["content"]}],
+                    "ability": "code",
+                    "reward_model": {"style": "rule", "ground_truth": gt},
+                    "extra_info": dict(r["extra_info"]) if r["extra_info"] is not None else {},
+                    "_ptext": user[0]["content"],
+                }
+            )
+        print(f"kept {len(rows)} rows (dropped {n_bad_prompt} bad-prompt, {n_bad_gt} bad-gt)")
+
+        out = pd.DataFrame(rows).drop_duplicates("_ptext").reset_index(drop=True)
+        out = out[out["_ptext"].str.len() <= 7000].reset_index(drop=True)
+        cand = out.sample(n=min(args.candidates, len(out)), random_state=args.seed).reset_index(drop=True)
+
+        from transformers import AutoTokenizer
+
+        tok = AutoTokenizer.from_pretrained(args.tokenizer)
+        keep_idx = []
+        for i, r in cand.iterrows():
+            ntok = len(tok.apply_chat_template(list(r["prompt"]), add_generation_prompt=True))
+            if ntok <= args.max_prompt_tokens:
+                keep_idx.append(i)
+        cand = cand.loc[keep_idx].reset_index(drop=True)
+
+        n = args.train_size + args.val_size
+        assert len(cand) >= n, f"only {len(cand)} candidates for {n} needed"
+        sub = cand.sample(n=n, random_state=args.seed + 1).reset_index(drop=True)
+        train = sub.iloc[: args.train_size].drop(columns="_ptext")
+        val = sub.iloc[args.train_size : n].drop(columns="_ptext")
+
+        os.makedirs(args.out_dir, exist_ok=True)
+        train.to_parquet(os.path.join(args.out_dir, "train.parquet"), index=False)
+        val.to_parquet(os.path.join(args.out_dir, "val.parquet"), index=False)
+        print(f"wrote {len(train)} train / {len(val)} val -> {args.out_dir}")
+
+
+    if __name__ == "__main__":
+        main()
+
+  run_head.sh: |
+    #!/usr/bin/env bash
+    set -xeuo pipefail
+    trap 'kill $(jobs -p) 2>/dev/null || true' EXIT
+
+    RESULTS_DIR="/workspace/results"
+    MODEL_PATH="/workspace/models/DeepSeek-R1-Distill-Qwen-1.5B"
+    TRAIN_FILE="/workspace/data/eurus_code/train.parquet"
+    VAL_FILE="/workspace/data/eurus_code/val.parquet"
+    RUN_SECONDS="${RUN_SECONDS:-9000}"
+
+    bash /workspace/scripts/common_setup.sh
+
+    echo "=== Head: prepare dataset ==="
+    python3 /workspace/scripts/data_prep.py --out_dir /workspace/data/eurus_code \
+        --tokenizer "$MODEL_PATH" --train_size 512 --val_size 64
+
+    echo "=== Head: start ray head (2 GPUs: trainer + rollout engine 1) ==="
+    export NCCL_SOCKET_IFNAME=eth0
+    export NCCL_IB_DISABLE=1
+    ray start --head --port=6379 --num-gpus=2 --disable-usage-stats
+    export RAY_ADDRESS="127.0.0.1:6379"
+
+    echo "=== Head: wait for worker node (need >= 3 GPUs total) ==="
+    for i in $(seq 1 240); do
+        NGPU=$(python3 -c "
+    import ray
+    ray.init(address='auto', ignore_reinit_error=True)
+    print(int(ray.cluster_resources().get('GPU', 0)))
+    " 2>/dev/null | tail -1)
+        if [ "${NGPU:-0}" -ge 3 ]; then echo "cluster has $NGPU GPUs"; break; fi
+        echo "waiting for worker: cluster GPUs=$NGPU"
+        sleep 15
+    done
+    NGPU=$(python3 -c "
+    import ray
+    ray.init(address='auto', ignore_reinit_error=True)
+    print(int(ray.cluster_resources().get('GPU', 0)))
+    " 2>/dev/null | tail -1)
+    [ "${NGPU:-0}" -ge 3 ] || { echo "FATAL: worker never joined (GPUs=$NGPU)"; exit 1; }
+
+    echo "=== Head: GPU monitor (100ms, head node GPUs) ==="
+    bash /workspace/scripts/gpu_monitor.sh "$RESULTS_DIR/gpu_util.csv" 100 &
+    MONITOR_PID=$!
+    date +%s%3N > "$RESULTS_DIR/start_ts"
+
+    echo "=== Head: fully-async code-RLVR, STATIC 1 trainer + 2 rollout engines ==="
+    nvidia-smi
+    export PYTHONUNBUFFERED=1
+    export HYDRA_FULL_ERROR=1
+    TOTAL_ROLLOUT_STEPS=65536
+
+    set +e
+    timeout --signal=INT --kill-after=120 "$RUN_SECONDS" \
+    python3 -m verl.experimental.fully_async_policy.fully_async_main \
+        data.train_files="$TRAIN_FILE" \
+        data.val_files="$VAL_FILE" \
+        data.prompt_key=prompt \
+        data.truncation=left \
+        data.max_prompt_length=2048 \
+        data.max_response_length=16384 \
+        data.train_batch_size=0 \
+        data.gen_batch_size=1 \
+        data.return_raw_chat=True \
+        actor_rollout_ref.model.path="$MODEL_PATH" \
+        actor_rollout_ref.model.use_remove_padding=True \
+        actor_rollout_ref.model.enable_gradient_checkpointing=True \
+        actor_rollout_ref.hybrid_engine=False \
+        actor_rollout_ref.actor.strategy=fsdp \
+        actor_rollout_ref.actor.ppo_mini_batch_size=64 \
+        actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=1 \
+        actor_rollout_ref.actor.use_kl_loss=False \
+        actor_rollout_ref.actor.kl_loss_coef=0.0 \
+        actor_rollout_ref.actor.entropy_coeff=0 \
+        actor_rollout_ref.actor.grad_clip=1.0 \
+        actor_rollout_ref.actor.loss_agg_mode=token-mean \
+        actor_rollout_ref.actor.use_dynamic_bsz=True \
+        actor_rollout_ref.actor.ppo_max_token_len_per_gpu=32768 \
+        actor_rollout_ref.actor.optim.lr=1e-6 \
+        actor_rollout_ref.actor.optim.lr_warmup_steps=-1 \
+        actor_rollout_ref.actor.fsdp_config.param_offload=False \
+        actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
+        actor_rollout_ref.ref.log_prob_use_dynamic_bsz=True \
+        actor_rollout_ref.ref.log_prob_max_token_len_per_gpu=32768 \
+        actor_rollout_ref.rollout.name=vllm \
+        actor_rollout_ref.rollout.mode=async \
+        actor_rollout_ref.rollout.n=8 \
+        actor_rollout_ref.rollout.calculate_log_probs=True \
+        actor_rollout_ref.rollout.checkpoint_engine.backend=nccl \
+        actor_rollout_ref.rollout.gpu_memory_utilization=0.8 \
+        actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
+        actor_rollout_ref.rollout.enable_chunked_prefill=True \
+        actor_rollout_ref.rollout.temperature=1.0 \
+        actor_rollout_ref.rollout.top_p=1.0 \
+        actor_rollout_ref.rollout.top_k=-1 \
+        algorithm.adv_estimator=grpo \
+        algorithm.use_kl_in_reward=False \
+        algorithm.kl_ctrl.kl_coef=0.0 \
+        trainer.logger="['console']" \
+        trainer.val_before_train=False \
+        trainer.save_freq=-1 \
+        trainer.resume_mode=disable \
+        trainer.nnodes=1 \
+        trainer.n_gpus_per_node=1 \
+        trainer.total_epochs=10 \
+        trainer.test_freq=-1 \
+        trainer.project_name=static12-m3d \
+        trainer.experiment_name=r1distill1.5b-euruscode-static12-s"${STALENESS_THRESHOLD:-8}" \
+        trainer.default_local_dir="$RESULTS_DIR/ckpts" \
+        rollout.nnodes=2 \
+        rollout.n_gpus_per_node=1 \
+        rollout.total_rollout_steps="$TOTAL_ROLLOUT_STEPS" \
+        async_training.staleness_threshold="${STALENESS_THRESHOLD:-8}" \
+        async_training.trigger_parameter_sync_step=1 \
+        2>&1 | tee "$RESULTS_DIR/train.log"
+    TRAIN_RC=${PIPESTATUS[0]}
+    set -e
+    if [ "$TRAIN_RC" = "124" ]; then
+        echo "Training stopped by planned ${RUN_SECONDS}s timeout (expected end state)"
+    elif [ "$TRAIN_RC" != "0" ]; then
+        echo "WARNING: training exited rc=$TRAIN_RC before planned timeout"
+    fi
+
+    date +%s%3N > "$RESULTS_DIR/end_ts"
+    kill "$MONITOR_PID" 2>/dev/null || true
+    wait "$MONITOR_PID" 2>/dev/null || true
+    wc -l "$RESULTS_DIR/gpu_util.csv" || true
+
+    echo "=== Per-GPU summary (head node) ==="
+    python3 -c "
+    import csv
+    from collections import defaultdict
+    traces = defaultdict(list)
+    with open('$RESULTS_DIR/gpu_util.csv') as f:
+        for row in csv.DictReader(f):
+            traces[int(row['gpu_index'])].append(float(row['gpu_util_pct']))
+    for gi in sorted(traces.keys()):
+        u = traces[gi]
+        n = len(u)
+        print(f'GPU {gi}: mean={sum(u)/n:.1f}% idle={sum(1 for v in u if v <= 15)/n:.1%} samples={n}')
+    " || true
+
+    echo "=== train.log step lines dump (prefix STEPLINES:) ==="
+    grep -E "step:[0-9]+ - |timing_s/|Requesting 64|sample collected" "$RESULTS_DIR/train.log" > "$RESULTS_DIR/step_lines.log" || true
+    echo "STEPLINES-BEGIN md5=$(md5sum "$RESULTS_DIR/step_lines.log" 2>/dev/null | cut -d' ' -f1)"
+    gzip -c "$RESULTS_DIR/step_lines.log" 2>/dev/null | base64 -w 3000 | sed 's/^/STEPLINES:/' || true
+    echo "STEPLINES-END"
+    echo "=== GPU trace dump (gzip+base64, prefix GPUCSV:) ==="
+    echo "GPUCSV-BEGIN md5=$(md5sum "$RESULTS_DIR/gpu_util.csv" | cut -d' ' -f1)"
+    gzip -c "$RESULTS_DIR/gpu_util.csv" | base64 -w 3000 | sed 's/^/GPUCSV:/' || true
+    echo "GPUCSV-END"
+
+    echo "=== Keeping pod alive for result collection ==="
+    sleep 14400
+
+  run_worker.sh: |
+    #!/usr/bin/env bash
+    set -xeuo pipefail
+    RESULTS_DIR="/workspace/results"
+    mkdir -p "$RESULTS_DIR"
+
+    bash /workspace/scripts/common_setup.sh
+
+    echo "=== Worker: resolve head and join ray cluster (1 GPU: rollout engine 2) ==="
+    export NCCL_SOCKET_IFNAME=eth0
+    export NCCL_IB_DISABLE=1
+    HEAD_IP=""
+    for i in $(seq 1 240); do
+        HEAD_IP=$(python3 -c "import socket; print(socket.gethostbyname('m3d-head.default.svc.cluster.local'))" 2>/dev/null || true)
+        if [ -n "$HEAD_IP" ]; then
+            if (exec 3<>/dev/tcp/$HEAD_IP/6379) 2>/dev/null; then exec 3>&-; echo "head ray port open at $HEAD_IP"; break; fi
+        fi
+        echo "waiting for head ($HEAD_IP)"; HEAD_IP=""
+        sleep 15
+    done
+    [ -n "$HEAD_IP" ] || { echo "FATAL: head never became reachable"; exit 1; }
+
+    # Advertise only 1 GPU: the second engine gets exactly one; this node's
+    # other GPU stays out of the experiment (3-GPU arm by construction).
+    ray start --address="$HEAD_IP:6379" --num-gpus=1 --disable-usage-stats
+
+    echo "=== Worker: GPU monitor (100ms, worker node GPUs) ==="
+    bash /workspace/scripts/gpu_monitor.sh "$RESULTS_DIR/gpu_util_worker.csv" 100 &
+    MONITOR_PID=$!
+
+    # stay up while the head drives the run; dump trace on the way out
+    sleep $(( ${RUN_SECONDS:-9000} + 7200 ))
+    kill "$MONITOR_PID" 2>/dev/null || true
+    echo "=== GPU trace dump (gzip+base64, prefix GPUCSVW:) ==="
+    echo "GPUCSVW-BEGIN md5=$(md5sum "$RESULTS_DIR/gpu_util_worker.csv" | cut -d' ' -f1)"
+    gzip -c "$RESULTS_DIR/gpu_util_worker.csv" | base64 -w 3000 | sed 's/^/GPUCSVW:/' || true
+    echo "GPUCSVW-END"
+    sleep 7200
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: m3d-head
+  namespace: default
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 604800
+  template:
+    metadata:
+      labels:
+        app: m3d-head
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-h100-80gb
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cloud.google.com/gke-nodepool
+                operator: In
+                values:
+                - h100-2gpu-pool
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - gke-verl-research-clus-h100-2gpu-pool-02b8c734-q36v
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      - key: timeslice.io/shared
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      containers:
+      - name: head
+        image: verlai/verl:vllm020.dev2
+        env:
+        - name: VLLM_USE_V1
+          value: "1"
+        - name: STALENESS_THRESHOLD
+          value: "8"
+        - name: RUN_SECONDS
+          value: "9000"
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          set -euo pipefail
+          echo "=== M3 RUN D head: static 1:2 disagg (trainer + engine1 here, engine2 on worker) ==="
+          echo "Node: $(hostname)"; date; nvidia-smi
+          bash /workspace/scripts/run_head.sh 2>&1 | tee /workspace/results/experiment.log
+        securityContext:
+          privileged: true
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+          requests:
+            nvidia.com/gpu: 1
+            cpu: "40"
+            memory: "160Gi"
+        volumeMounts:
+        - name: scripts
+          mountPath: /workspace/scripts
+        - name: results
+          mountPath: /workspace/results
+        - name: dshm
+          mountPath: /dev/shm
+      volumes:
+      - name: scripts
+        configMap:
+          name: code-rlvr-m3d
+          defaultMode: 0755
+      - name: results
+        emptyDir: {}
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Gi
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: m3d-worker
+  namespace: default
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 604800
+  template:
+    metadata:
+      labels:
+        app: m3d-worker
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-h100-80gb
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cloud.google.com/gke-nodepool
+                operator: In
+                values:
+                - h100-2gpu-pool
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - gke-verl-research-clus-h100-2gpu-pool-02b8c734-w0x7
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      - key: timeslice.io/shared
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      containers:
+      - name: worker
+        image: verlai/verl:vllm020.dev2
+        env:
+        - name: VLLM_USE_V1
+          value: "1"
+        - name: RUN_SECONDS
+          value: "9000"
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          set -euo pipefail
+          echo "=== M3 RUN D worker: rollout engine 2 (1 GPU advertised) ==="
+          echo "Node: $(hostname)"; date; nvidia-smi
+          bash /workspace/scripts/run_worker.sh 2>&1 | tee /workspace/results/experiment.log
+        securityContext:
+          privileged: true
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+          requests:
+            nvidia.com/gpu: 1
+            cpu: "40"
+            memory: "160Gi"
+        volumeMounts:
+        - name: scripts
+          mountPath: /workspace/scripts
+        - name: results
+          mountPath: /workspace/results
+        - name: dshm
+          mountPath: /dev/shm
+      volumes:
+      - name: scripts
+        configMap:
+          name: code-rlvr-m3d
+          defaultMode: 0755
+      - name: results
+        emptyDir: {}
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Gi

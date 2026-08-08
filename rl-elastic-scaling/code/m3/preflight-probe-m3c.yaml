@@ -1,0 +1,79 @@
+# M3 RUN B pre-flight probe (same as M2 hardening #1, retargeted at elastic-m3c-code).
+# Runs on the SAME node (trb7), against the SAME snapshot-agent endpoint the
+# controller will use, and exercises the EXACT state-parsing code path
+# (imports policy_controller from the elastic-m3c-code ConfigMap and calls
+# agent_job_states() — the module-level function wait_agent_trainer_running
+# gates on). Attempt 1 died on pb.JobState.Name(str) raising TypeError in
+# this path; this probe would have caught it in 2 minutes instead of 4 hours.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: m3c-preflight-probe
+  namespace: default
+spec:
+  restartPolicy: Never
+  nodeSelector:
+    kubernetes.io/hostname: gke-verl-research-clus-h100-2gpu-pool-02b8c734-w0x7
+  tolerations:
+  - key: nvidia.com/gpu
+    operator: Exists
+    effect: NoSchedule
+  - key: timeslice.io/shared
+    operator: Equal
+    value: "true"
+    effect: NoSchedule
+  containers:
+  - name: probe
+    image: us-central1-docker.pkg.dev/aishuk-test/rl-images/verl-cr-shim:m1
+    imagePullPolicy: IfNotPresent
+    env:
+    - name: NODE_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.hostIP
+    - name: AGENT_ENDPOINT
+      value: "$(NODE_IP):9001"
+    command: ["/bin/bash", "-c"]
+    args:
+    - |
+      set -euo pipefail
+      echo "=== M3C pre-flight probe (node $(hostname), agent $AGENT_ENDPOINT) ==="
+      pip install "git+https://github.com/llm-d-incubation/llm-d-rl-time-slicing.git#subdirectory=pkg/client/python" 2>&1 | tail -2
+      python3 - <<'PROBE'
+      import os, sys
+      sys.path.insert(0, "/workspace/m1")
+      import policy_controller as pc  # the exact module the controller runs
+      from timeslice.snapshot_agent import snapshot_agent_pb2 as pb
+
+      # 1) unit-check the parse helper on BOTH input types (string name is
+      #    what the client actually returns; int is what the old code assumed)
+      assert pc.state_name("JOB_STATE_RUNNING") == "JOB_STATE_RUNNING", "str path broken"
+      assert pc.state_name("JOB_STATE_SAVED") == "JOB_STATE_SAVED", "str path broken"
+      run_int = pb.JobState.Value("JOB_STATE_RUNNING")
+      assert pc.state_name(run_int) == "JOB_STATE_RUNNING", "int path broken"
+
+      # 2) live call against the node's snapshot-agent: the EXACT expression
+      #    wait_agent_trainer_running() evaluates every 15s
+      ep = os.environ["AGENT_ENDPOINT"]
+      st = pc.agent_job_states(ep)
+      print("agent job states:", st)
+      for k, v in st.items():
+          assert isinstance(v, str) and v.startswith("JOB_STATE_"), (k, v)
+      # 3) the gate expression itself must evaluate without raising
+      _ = st.get("elastic-trainer") == "JOB_STATE_RUNNING"
+      print("PREFLIGHT-OK")
+      PROBE
+    resources:
+      requests:
+        cpu: "1"
+        memory: "2Gi"
+      limits:
+        memory: "4Gi"
+    volumeMounts:
+    - name: m1-code
+      mountPath: /workspace/m1
+  volumes:
+  - name: m1-code
+    configMap:
+      name: elastic-m3c-code
+      defaultMode: 0755
