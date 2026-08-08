@@ -108,7 +108,13 @@ See [`snapshot-agent-backend/README.md`](snapshot-agent-backend/README.md) for d
    NCCL_NVLS_ENABLE=0
    ```
 4. Deploy snapshot agent DaemonSet on trainer nodes (`helm install` from `deploy/snapshot-agent/`)
-5. Call snapshot agent gRPC `Snapshot()`/`Restore()` with the `cuda-multi-gpu` backend config
+5. Call snapshot agent gRPC `Snapshot()`/`Restore()` with:
+   ```
+   backend_config:
+     cuda_multi_gpu:
+       explicit_target:
+         pids: [<PID1>, <PID2>]    # GPU worker PIDs from nvidia-smi or NVML
+   ```
 
 **Expected VRAM after snapshot:** 0 (100% freed).
 
