@@ -1,0 +1,179 @@
+package backends
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"os/exec"
+	"sync"
+	"time"
+
+	"github.com/NVIDIA/go-nvml/pkg/nvml"
+)
+
+type nvmlClient interface {
+	Init() nvml.Return
+	Shutdown() nvml.Return
+	DeviceGetCount() (int, nvml.Return)
+}
+
+type defaultNvmlClient struct{}
+
+func (d *defaultNvmlClient) Init() nvml.Return {
+	return nvml.Init()
+}
+
+func (d *defaultNvmlClient) Shutdown() nvml.Return {
+	return nvml.Shutdown()
+}
+
+func (d *defaultNvmlClient) DeviceGetCount() (int, nvml.Return) {
+	return nvml.DeviceGetCount()
+}
+
+// CudaCheckpoint implements the Backend interface using cuda-checkpoint and optionally CRIU.
+type CudaCheckpoint struct {
+	mu          sync.Mutex
+	execCommand func(ctx context.Context, name string, args ...string) ([]byte, error)
+	nvml        nvmlClient
+	lookPath    func(string) (string, error)
+}
+
+// NewCudaCheckpoint creates a new CudaCheckpoint backend.
+func NewCudaCheckpoint() *CudaCheckpoint {
+	return &CudaCheckpoint{
+		execCommand: func(ctx context.Context, name string, args ...string) ([]byte, error) {
+			return exec.CommandContext(ctx, name, args...).CombinedOutput()
+		},
+		nvml:     &defaultNvmlClient{},
+		lookPath: exec.LookPath,
+	}
+}
+
+// Snapshot triggers a snapshot of the accelerator context for a job.
+func (c *CudaCheckpoint) Snapshot(ctx context.Context, pids []string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	slog.InfoContext(ctx, "Snapshotting PIDs", "pids", pids)
+
+	// 1. Lock and Checkpoint CUDA
+	t0 := time.Now()
+	if err := c.checkpointPIDs(ctx, pids); err != nil {
+		return fmt.Errorf("cuda-checkpoint checkpoint failed: %w", err)
+	}
+	slog.InfoContext(ctx, "cuda-checkpoint action took", "duration", time.Since(t0))
+	return nil
+}
+
+// Restore triggers a restoration of the accelerator context for a job.
+func (c *CudaCheckpoint) Restore(ctx context.Context, pids []string) error {
+	if len(pids) == 0 {
+		return fmt.Errorf("at least one PID is required")
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	slog.InfoContext(ctx, "Restoring PIDs", "pids", pids)
+	t0 := time.Now()
+	if err := c.restorePIDs(ctx, pids); err != nil {
+		return fmt.Errorf("cuda-checkpoint toggle failed: %w", err)
+	}
+	slog.InfoContext(ctx, "cuda-checkpoint toggle took", "duration", time.Since(t0), "pids", pids)
+	return nil
+}
+
+func (c *CudaCheckpoint) getCudaCheckpointPath() string {
+	// First check if it's in the PATH
+	if path, err := exec.LookPath("cuda-checkpoint"); err == nil {
+		return path
+	}
+	// Fallback to the relative path used in development
+	return "/usr/local/bin/cuda-checkpoint"
+}
+
+func (c *CudaCheckpoint) runSudoCommand(ctx context.Context, name string, args ...string) error {
+	if out, err := c.execCommand(ctx, name, args...); err != nil {
+		return fmt.Errorf("command failed: %w, output: %s", err, string(out))
+	}
+	return nil
+}
+
+func (c *CudaCheckpoint) checkpointPIDs(ctx context.Context, pids []string) error {
+	binaryPath := c.getCudaCheckpointPath()
+	pidArgs := make([]string, 0, 2*len(pids))
+	for _, pid := range pids {
+		pidArgs = append(pidArgs, "--pid", pid)
+	}
+	if err := c.runSudoCommand(ctx, binaryPath, append([]string{"--action", "lock"}, pidArgs...)...); err != nil {
+		return fmt.Errorf("cuda-checkpoint lock failed: %w", err)
+	}
+	if err := c.runSudoCommand(ctx, binaryPath, append([]string{"--action", "checkpoint"}, pidArgs...)...); err != nil {
+		return fmt.Errorf("cuda-checkpoint checkpoint failed: %w", err)
+	}
+	return nil
+}
+
+func (c *CudaCheckpoint) checkpointSinglePID(ctx context.Context, pid string) error {
+	binaryPath := c.getCudaCheckpointPath()
+	if err := c.runSudoCommand(ctx, binaryPath, "--action", "lock", "--pid", pid); err != nil {
+		return fmt.Errorf("cuda-checkpoint lock pid %s failed: %w", pid, err)
+	}
+	if err := c.runSudoCommand(ctx, binaryPath, "--action", "checkpoint", "--pid", pid); err != nil {
+		return fmt.Errorf("cuda-checkpoint checkpoint pid %s failed: %w", pid, err)
+	}
+	return nil
+}
+
+func (c *CudaCheckpoint) restorePIDs(ctx context.Context, pids []string) error {
+	binaryPath := c.getCudaCheckpointPath()
+	pidArgs := make([]string, 0, 2*len(pids))
+	for _, pid := range pids {
+		pidArgs = append(pidArgs, "--pid", pid)
+	}
+	if err := c.runSudoCommand(ctx, binaryPath, append([]string{"--toggle"}, pidArgs...)...); err != nil {
+		return fmt.Errorf("cuda-checkpoint toggle failed: %w", err)
+	}
+	return nil
+}
+
+func (c *CudaCheckpoint) restoreSinglePID(ctx context.Context, pid string) error {
+	binaryPath := c.getCudaCheckpointPath()
+	if err := c.runSudoCommand(ctx, binaryPath, "--toggle", "--pid", pid); err != nil {
+		return fmt.Errorf("cuda-checkpoint toggle pid %s failed: %w", pid, err)
+	}
+	return nil
+}
+
+// HealthCheck checks if the cuda-checkpoint backend is healthy by initializing the backend
+// and the discovery provider.
+func (c *CudaCheckpoint) HealthCheck(ctx context.Context) error {
+	// 1. Check if cuda-checkpoint executable is available
+	binaryPath := c.getCudaCheckpointPath()
+	if _, err := c.lookPath(binaryPath); err != nil {
+		return fmt.Errorf("cuda-checkpoint executable not found: %w", err)
+	}
+
+	// 2. Initialize NVML
+	if ret := c.nvml.Init(); ret != nvml.SUCCESS {
+		return fmt.Errorf("failed to initialize NVML: %v", nvml.ErrorString(ret))
+	}
+	defer func() {
+		if ret := c.nvml.Shutdown(); ret != nvml.SUCCESS {
+			slog.ErrorContext(ctx, "Failed to shutdown NVML", "error", nvml.ErrorString(ret))
+		}
+	}()
+
+	// 3. Check if there are any GPUs attached to the system
+	count, ret := c.nvml.DeviceGetCount()
+	if ret != nvml.SUCCESS {
+		return fmt.Errorf("failed to get device count: %v", nvml.ErrorString(ret))
+	}
+
+	if count == 0 {
+		return fmt.Errorf("no GPUs found on the system")
+	}
+
+	return nil
+}
