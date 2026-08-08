@@ -576,6 +576,35 @@ This is a fragile workaround. Attempted fix: adding `cudaDeviceSynchronize` in t
 
 SGLang's app-aware path covers TP=2 with zero perf tax, same as vLLM sleep. No shim or cuda-checkpoint needed.
 
+## GPU Interleaving (Multi-Job Alternation)
+
+Validated that two independent workloads can alternate on the same GPUs via C/R — the core requirement for time-slicing between trainer and sampler pools.
+
+**Platform:** 2x H100 80GB (h100-no-sharing pool, asia cluster). SGLang model: Qwen2.5-0.5B TP=2. Trainer: FSDP Linear(4096,4096) with shim v2 + NCCL 2.30 + cuda-checkpoint.
+
+### SGLang A↔B (app-aware release/resume, 3 rounds)
+
+| Round | Action | GPU memory | Inference verified |
+|-------|--------|------------|-------------------|
+| 1 | A loaded → A released → B loaded → B released → A resumed | A: 74→4 GB/GPU, B: 74→8 GB/GPU, A resumed: 78 GB/GPU | Yes |
+| 2 | A released → B resumed → B released → A resumed | release: 8 GB, resume: 74-78 GB | Yes |
+| 3 | A released → B resumed → B released → A resumed | release: 8 GB, resume: 74-78 GB | Yes |
+
+**3/3 PASS.** Both servers survive multiple eviction/reload cycles. Residual memory grows slightly across rounds (~4→8 GB) but stabilizes.
+
+### Trainer A↔B (shim v2 + cuda-checkpoint, 2 rounds)
+
+| Round | Action | GPU memory | Training verified |
+|-------|--------|------------|------------------|
+| 1 | A paused → A frozen → B started → B frozen → A restored | Frozen: 0/0 MiB, A resumed at step 82+ | Yes (loss continued) |
+| 2 | A frozen → B restored → B frozen → A restored | Frozen: 0/0 MiB, both resumed at correct steps | Yes (loss continued) |
+
+**2/2 PASS.** True zero VRAM during freeze. Both trainers maintain correct step counts and loss trajectories across multiple freeze/restore cycles.
+
+### Takeaway
+
+GPU interleaving works for both inference (app-aware) and training (shim + cuda-checkpoint). No state corruption, no memory leaks across alternation cycles. This validates the disaggregated time-slicing flow: trainer GPUs can be reclaimed for sampling and returned without restarting either workload.
+
 ## Known Limitations
 
 1. **cuda-checkpoint cannot freeze multi-GPU processes with captured CUDA graphs.** Driver limitation, not a CLI bug — verified via in-process API. Affects Options B and C. Repro: `graph_cr_api_test.py`.
