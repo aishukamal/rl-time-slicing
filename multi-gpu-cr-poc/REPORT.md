@@ -526,7 +526,7 @@ GPU-CR's `vGPU.so` hooks cudaMalloc → cuMem VMM for all allocations, dumps to 
 | GPU freed | 84-96% | **100%** | **100%** |
 | C/R speed | instant sleep/wake | shim ~400ms + freeze ~4s | data dump 1.2s + freeze 4s |
 | Frameworks | vLLM (`--enable-sleep-mode`), SGLang (`--enable-memory-saver`) | Universal (training, any NCCL app) | Universal |
-| Steady-state perf impact | **Zero** | `--enforce-eager` + `NCCL_DEBUG=INFO` | `--enforce-eager` + TCP tax |
+| Steady-state perf impact | **Zero** | `--enforce-eager` + `NCCL_NVLS_ENABLE=0` | `--enforce-eager` + TCP tax |
 | Snapshot agent backend | `app-endpoint` (APP_VLLM / APP_SGLANG) | `cuda-multi-gpu` | N/A (manual multi_cr_client) |
 
 ## Parallelism Dimension C/R Matrix
@@ -547,11 +547,9 @@ Validated on 2x H100 80GB (h100-no-sharing pool, asia cluster). All using Option
 
 The shim correctly handles **all tested NCCL communication patterns**: AllReduce (DP, TP), Send/Recv (PP), and AllReduce with expert routing (EP). Handle translation works across all patterns. Fresh-uniqueId rendezvous works for all comm group types.
 
-### NCCL CommCheck race condition (known issue, workaround in place)
+### NCCL version requirement
 
-After cuda-checkpoint restore, `ncclCommInitRank` on the recreated comms **consistently fails with rc=6 ("corrupted comm object")** unless `NCCL_DEBUG=INFO` is set. Root cause: cuda-checkpoint restores driver-level CUDA state that NCCL's `CommCheck` validation (in `misc/argcheck.cc`) interprets as stale/corrupted. The `NCCL_DEBUG=INFO` logging introduces memory barriers that change timing enough to avoid the race.
-
-This is a fragile workaround. Attempted fix: adding `cudaDeviceSynchronize` in the shim before `ncclCommInitRank` — **did not help** (rc=1/3 still occurs without `NCCL_DEBUG=INFO`). The race is deeper than unflushed GPU operations — it's in the CUDA driver's internal state machine post-restore. Only `NCCL_DEBUG=INFO`'s extensive logging (memory barriers, synchronization from fprintf) masks it. This is a genuine NVIDIA issue (NCCL or driver), no userspace fix found beyond the debug-logging workaround.
+Shim v2 requires **NCCL ≥ 2.30** for correct `ncclCommDestroy` behavior. Earlier versions (e.g., 2.26) are missing the `ncclDevCommDestroy` symbol, causing silent recreate failures. An earlier test incorrectly attributed this to a "CommCheck race condition" requiring `NCCL_DEBUG=INFO` — the actual root cause was using NCCL 2.26 instead of 2.30. With the correct NCCL version, recreate works cleanly without debug logging.
 
 ### Inference
 
@@ -615,7 +613,7 @@ GPU interleaving works for both inference (app-aware) and training (shim + cuda-
 
 4. **vLLM sleep + cuda-checkpoint incompatible.** After cuMemUnmap, cuda-checkpoint's checkpoint phase hangs — the driver's checkpoint code path cannot handle half-unmapped VMM state.
 
-5. **NCCL CommCheck race after cuda-checkpoint restore.** `ncclCommInitRank` fails with rc=1/3/6 ("corrupted comm object") unless `NCCL_DEBUG=INFO` is set. `cudaDeviceSynchronize` before recreate does not help — the race is in the CUDA driver's internal state post-restore, not unflushed GPU ops. Only the debug logging's implicit memory barriers mask it. Genuine NVIDIA issue.
+5. **Requires NCCL ≥ 2.30.** Earlier versions (e.g., 2.26) are missing `ncclDevCommDestroy`, causing silent comm recreate failures. Previously misdiagnosed as a "CommCheck race" requiring `NCCL_DEBUG=INFO` — debunked (wrong NCCL version was the root cause).
 
 6. **SGLang + cuda-checkpoint (Option B): restore fails on multi-GPU.** Both SGLang workers open both GPUs (30+ FDs each to `/dev/nvidia0` and `/dev/nvidia1`), creating multi-device CUDA contexts that cuda-checkpoint can't restore. Workaround: use SGLang's app-aware `release_memory_occupation` / `resume_memory_occupation` (Option A) instead — works for TP=2, frees 84% GPU memory, already integrated in snapshot agent.
 
