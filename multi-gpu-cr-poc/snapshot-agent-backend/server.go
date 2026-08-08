@@ -23,28 +23,28 @@ import (
 // Server implements the SnapshotAgentService gRPC server.
 type Server struct {
 	pb.UnimplementedSnapshotAgentServiceServer
-	state          *sm.StateManager
-	backendMap     map[backends.BackendType]backends.Backend
-	defaultBackend backends.BackendType
+	state           *sm.StateManager
+	backendMap      map[backends.BackendType]backends.Backend
+	defaultBackend  backends.BackendType
+	deploymentMode  string
+	channelRegistry *backends.ChannelRegistry
 }
 
-// NewServer creates a new Server instance.
-func NewServer(backendMap map[backends.BackendType]backends.Backend, defaultBackend backends.BackendType) *Server {
+// NewServer creates a new Server instance. channelRegistry is shared with
+// the app-channel backend so workloads registered through the
+// WorkloadChannel RPC are reachable by Snapshot/Restore.
+func NewServer(
+	backendMap map[backends.BackendType]backends.Backend,
+	defaultBackend backends.BackendType,
+	deploymentMode string,
+	channelRegistry *backends.ChannelRegistry,
+) *Server {
 	return &Server{
-		state:          sm.NewStateManager(),
-		backendMap:     backendMap,
-		defaultBackend: defaultBackend,
-	}
-}
-
-func (s *Server) getBackendType(backend pb.Backend) backends.BackendType {
-	switch backend {
-	case pb.Backend_BACKEND_CUDA:
-		return backends.BackendCuda
-	case pb.Backend_BACKEND_CUDA_MULTI_GPU:
-		return backends.BackendCudaMultiGPU
-	default:
-		return s.defaultBackend
+		state:           sm.NewStateManager(),
+		backendMap:      backendMap,
+		defaultBackend:  defaultBackend,
+		deploymentMode:  deploymentMode,
+		channelRegistry: channelRegistry,
 	}
 }
 
@@ -54,45 +54,25 @@ func (s *Server) Snapshot(ctx context.Context, req *pb.SnapshotRequest) (*pb.Sna
 	ctx = logging.WithJobID(ctx, req.GetJobId())
 	ctx = logging.WithGroupID(ctx, req.GetGroup())
 
-	slog.InfoContext(ctx, "Snapshot called", "backend", req.GetBackend())
-
-	backendType := s.getBackendType(req.GetBackend())
+	backendType := s.getSnapshotBackendType(req.GetBackendConfig())
+	slog.InfoContext(ctx, "Snapshot called", "backend", backendType)
 
 	backend, ok := s.backendMap[backendType]
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "backend %s not found", backendType)
 	}
 
+	s.ensureJobRunningIfGPUOccupied(ctx, req.GetJobId(), req.GetGroup())
+
 	bgCtx := context.WithoutCancel(ctx)
-	opID, err := s.state.StartSnapshot(req.GetJobId(), req.GetGroup(), func() error {
-		slog.InfoContext(bgCtx, "Background: Starting snapshot", "backend", backendType)
-		pods, err := podutils.GetLocalPods(bgCtx, req.GetJobId())
-		if err != nil {
-			return fmt.Errorf("failed to get local pods: %w", err)
-		}
+	config := req.GetBackendConfig()
 
-		if len(pods) == 0 {
-			return fmt.Errorf("no pods found for job %s", req.GetJobId())
-		}
+	snapshotFn, fnErr := s.buildSnapshotFn(bgCtx, req.GetJobId(), backendType, backend, config)
+	if fnErr != nil {
+		return nil, fnErr
+	}
 
-		allPIDs, allPIDStrings, err := getPIDsFromPods(bgCtx, pods)
-		if err != nil {
-			return fmt.Errorf("failed to get PIDs from pods: %w", err)
-		}
-
-		if len(allPIDStrings) == 0 {
-			return fmt.Errorf("no GPU PIDs found for job %s", req.GetJobId())
-		}
-
-		err = backend.Snapshot(bgCtx, allPIDStrings)
-		if err != nil {
-			return fmt.Errorf("failed to snapshot job %s: %w", req.GetJobId(), err)
-		}
-
-		s.state.UpdateJobPIDs(req.GetJobId(), allPIDs)
-		slog.InfoContext(bgCtx, "PIDs for job", "pids", allPIDs)
-		return nil
-	})
+	opID, err := s.state.StartSnapshot(req.GetJobId(), req.GetGroup(), snapshotFn)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to start snapshot", "error", err)
 		return nil, err
@@ -101,15 +81,177 @@ func (s *Server) Snapshot(ctx context.Context, req *pb.SnapshotRequest) (*pb.Sna
 	return &pb.SnapshotResponse{OperationId: opID}, nil
 }
 
+func (s *Server) getSnapshotBackendType(config *pb.BackendConfig) backends.BackendType {
+	if config == nil {
+		return s.defaultBackend
+	}
+	if config.GetCuda() != nil {
+		return backends.BackendCuda
+	}
+	if config.GetAppEndpoint() != nil {
+		return backends.BackendAppEndpoint
+	}
+	if config.GetAppChannel() != nil {
+		return backends.BackendAppChannel
+	}
+	if config.GetCudaMultiGpu() != nil {
+		return backends.BackendCudaMultiGPU
+	}
+	return s.defaultBackend
+}
+
+// ensureJobRunningIfGPUOccupied registers the job and, if it is IDLE while
+// the GPU has running compute processes, transitions it to RUNNING.
+//
+// Standalone mode only: in k8s mode the watcher is the single source of
+// state-machine transitions (and additionally binds jobs to their targets,
+// e.g. PIDs for the CUDA backend — a backend-specific concern that a future
+// discovery interface will own per backend).
+func (s *Server) ensureJobRunningIfGPUOccupied(ctx context.Context, jobID, group string) {
+	if s.deploymentMode != "standalone" {
+		return
+	}
+	s.state.RegisterJob(jobID, group)
+	statuses := s.state.GetJobStatus()
+	for _, js := range statuses {
+		if js.JobId == jobID && js.State == pb.JobState_JOB_STATE_IDLE {
+			occupied, err := podutils.HasGPUProcesses(ctx)
+			if err != nil {
+				slog.WarnContext(ctx, "NVML check failed, skipping auto-transition", "error", err)
+				return
+			}
+			if occupied {
+				slog.InfoContext(ctx, "GPU occupied, transitioning job to RUNNING", "jobID", jobID)
+				if err := s.state.TransitionToRunning(jobID, nil); err != nil {
+					slog.WarnContext(ctx, "Failed to auto-transition job", "jobID", jobID, "error", err)
+				}
+			}
+			break
+		}
+	}
+}
+
+// buildSnapshotFn returns the background snapshot function for the given
+// deployment mode and backend. In standalone mode the caller-provided
+// BackendConfig is passed through to the backend as-is. In k8s mode, the CUDA
+// backend needs PID discovery (resolve PIDs from pods via the watcher's job
+// labels, then cache them for restore); application-aware backends resolve
+// their targets themselves (HTTP endpoints from the config, or the workload
+// channel registered under the job ID), so the config is passed through.
+func (s *Server) buildSnapshotFn(
+	bgCtx context.Context,
+	jobID string,
+	backendType backends.BackendType,
+	backend backends.Backend,
+	config *pb.BackendConfig,
+) (func() error, error) {
+	switch s.deploymentMode {
+	case "standalone":
+		return func() error {
+			slog.InfoContext(bgCtx, "Background: Starting snapshot", "backend", backendType)
+			return backend.Snapshot(bgCtx, backends.Request{JobID: jobID, Config: config})
+		}, nil
+	case "k8s":
+		switch backendType {
+		case backends.BackendCuda:
+			explicitPIDs := extractExplicitPIDs(config)
+			return func() error {
+				slog.InfoContext(bgCtx, "Background: Starting snapshot", "backend", backendType)
+				allPIDs, allPIDStrings, pidErr := resolvePIDs(bgCtx, jobID, explicitPIDs)
+				if pidErr != nil {
+					return pidErr
+				}
+				cudaReq := backends.Request{JobID: jobID, Config: backends.BuildCudaConfig(allPIDStrings)}
+				if err := backend.Snapshot(bgCtx, cudaReq); err != nil {
+					return fmt.Errorf("failed to snapshot job %s: %w", jobID, err)
+				}
+				s.state.UpdateJobPIDs(jobID, allPIDs)
+				return nil
+			}, nil
+		case backends.BackendAppEndpoint, backends.BackendAppChannel:
+			return func() error {
+				slog.InfoContext(bgCtx, "Background: Starting snapshot", "backend", backendType)
+				return backend.Snapshot(bgCtx, backends.Request{JobID: jobID, Config: config})
+			}, nil
+		default:
+			return nil, status.Errorf(codes.InvalidArgument, "backend %q is not supported in k8s mode", backendType)
+		}
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "unknown deployment mode %q", s.deploymentMode)
+	}
+}
+
+// extractExplicitPIDs returns the explicitly targeted PIDs from a CUDA
+// BackendConfig, or nil if none were provided.
+func extractExplicitPIDs(config *pb.BackendConfig) []int32 {
+	cuda := config.GetCuda()
+	if cuda == nil {
+		return nil
+	}
+	target := cuda.GetExplicitTarget()
+	if target == nil {
+		return nil
+	}
+	return target.GetPids()
+}
+
+// buildRestoreFn returns the background restore function for the given
+// deployment mode and backend. In standalone mode the caller-provided
+// BackendConfig is passed through as-is. In k8s mode, the CUDA backend
+// restores from the PIDs cached at snapshot time (NVML cannot re-discover
+// them after checkpoint frees the GPU); application-aware backends resolve
+// their targets themselves (HTTP endpoints from the config, or the workload
+// channel registered under the job ID), so the config is passed through.
+func (s *Server) buildRestoreFn(
+	bgCtx context.Context,
+	jobID string,
+	backendType backends.BackendType,
+	backend backends.Backend,
+	config *pb.BackendConfig,
+) (func() error, error) {
+	switch s.deploymentMode {
+	case "standalone":
+		return func() error {
+			slog.InfoContext(bgCtx, "Background: Starting restore", "backend", backendType)
+			return backend.Restore(bgCtx, backends.Request{JobID: jobID, Config: config})
+		}, nil
+	case "k8s":
+		switch backendType {
+		case backends.BackendCuda:
+			return func() error {
+				slog.InfoContext(bgCtx, "Background: Starting restore", "backend", backendType)
+				pids, pidErr := s.state.GetJobPIDs(jobID)
+				if pidErr != nil {
+					return fmt.Errorf("failed to get PIDs for job %s: %w", jobID, pidErr)
+				}
+				var pidStrings []string
+				for _, pid := range pids {
+					pidStrings = append(pidStrings, strconv.Itoa(pid))
+				}
+				slog.InfoContext(bgCtx, "Restoring PIDs", "pids", pidStrings, "backend", backendType)
+				return backend.Restore(bgCtx, backends.Request{JobID: jobID, Config: backends.BuildCudaConfig(pidStrings)})
+			}, nil
+		case backends.BackendAppEndpoint, backends.BackendAppChannel:
+			return func() error {
+				slog.InfoContext(bgCtx, "Background: Starting restore", "backend", backendType)
+				return backend.Restore(bgCtx, backends.Request{JobID: jobID, Config: config})
+			}, nil
+		default:
+			return nil, status.Errorf(codes.InvalidArgument, "backend %q is not supported in k8s mode", backendType)
+		}
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "unknown deployment mode %q", s.deploymentMode)
+	}
+}
+
 // Restore triggers an asynchronous restoration of the accelerator context for a job.
 func (s *Server) Restore(ctx context.Context, req *pb.RestoreRequest) (*pb.RestoreResponse, error) {
 	ctx = logging.WithServerMethod(ctx, "Restore")
 	ctx = logging.WithJobID(ctx, req.GetJobId())
 	ctx = logging.WithGroupID(ctx, req.GetGroup())
 
-	slog.InfoContext(ctx, "Restore called", "backend", req.GetBackend())
-
-	backendType := s.getBackendType(req.GetBackend())
+	backendType := s.getSnapshotBackendType(req.GetBackendConfig())
+	slog.InfoContext(ctx, "Restore called", "backend", backendType)
 
 	backend, ok := s.backendMap[backendType]
 	if !ok {
@@ -117,25 +259,14 @@ func (s *Server) Restore(ctx context.Context, req *pb.RestoreRequest) (*pb.Resto
 	}
 
 	bgCtx := context.WithoutCancel(ctx)
-	opID, err := s.state.StartRestore(req.GetJobId(), req.GetGroup(), func() error {
-		slog.InfoContext(bgCtx, "Background: Starting restore", "backend", backendType)
+	restoreConfig := req.GetBackendConfig()
 
-		pids, err := s.state.GetJobPIDs(req.GetJobId())
-		if err != nil {
-			return fmt.Errorf("failed to get PIDs for job %s: %w", req.GetJobId(), err)
-		}
+	restoreFn, fnErr := s.buildRestoreFn(bgCtx, req.GetJobId(), backendType, backend, restoreConfig)
+	if fnErr != nil {
+		return nil, fnErr
+	}
 
-		var pidStrings []string
-		for _, pid := range pids {
-			pidStrings = append(pidStrings, strconv.Itoa(pid))
-		}
-
-		slog.InfoContext(bgCtx, "Restoring PIDs", "pids", pidStrings, "backend", backendType)
-		if err := backend.Restore(bgCtx, pidStrings); err != nil {
-			return fmt.Errorf("failed to restore job %s: %w", req.GetJobId(), err)
-		}
-		return nil
-	})
+	opID, err := s.state.StartRestore(req.GetJobId(), req.GetGroup(), restoreFn)
 	if err != nil {
 		return nil, err
 	}
@@ -240,6 +371,8 @@ func StartServer(
 	port int,
 	backendMap map[backends.BackendType]backends.Backend,
 	defaultBackend backends.BackendType,
+	deploymentMode string,
+	channelRegistry *backends.ChannelRegistry,
 ) error {
 	lc := net.ListenConfig{}
 	lis, err := lc.Listen(ctx, "tcp", fmt.Sprintf(":%d", port))
@@ -247,8 +380,24 @@ func StartServer(
 		return fmt.Errorf("failed to listen: %w", err)
 	}
 
+	// 1. Initialize K8s Client
+	k8sClient, err := podutils.GetK8sClient()
+	if err != nil {
+		return fmt.Errorf("failed to get K8s client: %w", err)
+	}
+
+	// 2. Create Server (which creates StateManager internally)
+	srv := NewServer(backendMap, defaultBackend, deploymentMode, channelRegistry)
+
+	// 3. Start the Watcher internally
+	watcher, err := NewWatcher(k8sClient, srv.state)
+	if err != nil {
+		return fmt.Errorf("failed to create watcher: %w", err)
+	}
+	watcher.Start(ctx)
+
 	s := grpc.NewServer()
-	pb.RegisterSnapshotAgentServiceServer(s, NewServer(backendMap, defaultBackend))
+	pb.RegisterSnapshotAgentServiceServer(s, srv)
 	grpc_health_v1.RegisterHealthServer(s, NewHealthServer(backendMap, defaultBackend))
 
 	slog.InfoContext(ctx, "Starting gRPC server", "port", port)
@@ -273,5 +422,38 @@ func getPIDsFromPods(ctx context.Context, pods []v1.Pod) ([]int, []string, error
 			allPIDStrings = append(allPIDStrings, strconv.Itoa(pid))
 		}
 	}
+	return allPIDs, allPIDStrings, nil
+}
+
+//nolint:nonamedreturns // Conflict between gocritic's unnamedResult and nonamedreturns
+func resolvePIDs(ctx context.Context, jobID string, reqPIDs []int32) (allPIDs []int, allPIDStrings []string, err error) {
+	if len(reqPIDs) > 0 {
+		allPIDs = make([]int, 0, len(reqPIDs))
+		allPIDStrings = make([]string, 0, len(reqPIDs))
+		for _, pid := range reqPIDs {
+			allPIDs = append(allPIDs, int(pid))
+			allPIDStrings = append(allPIDStrings, strconv.Itoa(int(pid)))
+		}
+		return allPIDs, allPIDStrings, nil
+	}
+
+	pods, err := podutils.GetLocalPods(ctx, jobID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get local pods: %w", err)
+	}
+
+	if len(pods) == 0 {
+		return nil, nil, fmt.Errorf("no pods found for job %s", jobID)
+	}
+
+	allPIDs, allPIDStrings, errPIDs := getPIDsFromPods(ctx, pods)
+	if errPIDs != nil {
+		return nil, nil, fmt.Errorf("failed to get PIDs from pods: %w", errPIDs)
+	}
+
+	if len(allPIDStrings) == 0 {
+		return nil, nil, fmt.Errorf("no GPU PIDs found for job %s", jobID)
+	}
+
 	return allPIDs, allPIDStrings, nil
 }

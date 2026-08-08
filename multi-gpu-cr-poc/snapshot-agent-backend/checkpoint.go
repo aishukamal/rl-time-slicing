@@ -1,30 +1,50 @@
 package backends
 
-import "context"
+import (
+	"context"
+
+	pb "github.com/llm-d-incubation/llm-d-rl-time-slicing/pkg/snapshot-agent/api/v1alpha1"
+)
 
 // BackendType represents the type of accelerator backend.
 type BackendType string
 
 const (
-	// BackendCuda is the CUDA-based checkpointing backend for single-GPU workloads.
+	// BackendCuda is the CUDA-based checkpointing backend.
 	BackendCuda BackendType = "cuda"
-	// BackendCudaMultiGPU is the CUDA backend for multi-GPU (TP) workloads.
-	// It sends NCCL suspend/resume signals and checkpoints PIDs sequentially.
-	BackendCudaMultiGPU BackendType = "cuda-multi-gpu"
 	// BackendNoop is a dummy backend for testing.
 	BackendNoop BackendType = "noop"
+	// BackendAppEndpoint suspends/resumes application-aware workloads
+	// (vLLM, SGLang, ...) through their HTTP APIs.
+	BackendAppEndpoint BackendType = "app-endpoint"
+	// BackendAppChannel suspends/resumes application-aware workloads through
+	// their registered workload channels (see the WorkloadChannel RPC).
+	BackendAppChannel BackendType = "app-channel"
+	// BackendCudaMultiGPU wraps CUDA checkpoint with NCCL destroy/recreate
+	// signals for multi-GPU (TP/DP/PP/EP) workloads using shim v2.
+	BackendCudaMultiGPU BackendType = "cuda-multi-gpu"
 )
 
+// Request carries one backend invocation: the job it targets and the
+// caller-provided (or server-resolved) backend configuration. Server-side
+// per-job context needed by backends belongs here, keeping the wire API and
+// the Backend interface stable as it grows.
+type Request struct {
+	JobID  string
+	Config *pb.BackendConfig
+}
+
 // Backend defines the interface for checkpoint and restore operations.
+// Each backend extracts what it needs from the Request and validates its
+// own required fields, returning a clear error if inputs are missing.
 type Backend interface {
 	// Snapshot triggers a snapshot of the accelerator context for a job.
-	// Returns storageBytes, deviceBytes, and error.
-	Snapshot(ctx context.Context, pids []string) error
+	Snapshot(ctx context.Context, req Request) error
 
 	// Restore triggers a restoration of the accelerator context for a job.
-	Restore(ctx context.Context, pids []string) error
+	Restore(ctx context.Context, req Request) error
 
-	// HealthCheck checks if the backend is healthy by initializing the backend
-	// and the discovery provider.
+	// HealthCheck checks if the backend is healthy and able to serve
+	// snapshot/restore requests.
 	HealthCheck(ctx context.Context) error
 }

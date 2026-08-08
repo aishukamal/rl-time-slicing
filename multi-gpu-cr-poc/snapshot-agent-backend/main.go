@@ -19,6 +19,7 @@ import (
 	"flag"
 	"log/slog"
 	"os"
+	"strconv"
 
 	"github.com/llm-d-incubation/llm-d-rl-time-slicing/pkg/logging"
 	"github.com/llm-d-incubation/llm-d-rl-time-slicing/pkg/snapshot-agent/backends"
@@ -32,18 +33,45 @@ func main() {
 	slog.SetDefault(slog.New(ctxHandler))
 
 	port := flag.Int("port", 9001, "The port to listen on")
+	deploymentMode := flag.String("deployment-mode", "standalone", "Deployment mode ('standalone' or 'k8s')")
 	flag.Parse()
 
-	ctx := context.Background()
-
-	registeredBackends := map[backends.BackendType]backends.Backend{
-		backends.BackendCuda:         backends.NewCudaCheckpoint(),
-		backends.BackendCudaMultiGPU: backends.NewCudaMultiGPUCheckpoint(),
-		backends.BackendNoop:         backends.NewNoopBackend(),
+	depMode := *deploymentMode
+	if envDepMode := os.Getenv("DEPLOYMENT_MODE"); envDepMode != "" {
+		depMode = envDepMode
 	}
 
-	slog.InfoContext(ctx, "Starting Snapshot Agent", "port", *port)
-	if err := server.StartServer(ctx, *port, registeredBackends, backends.BackendCuda); err != nil {
+	// AGENT_PORT overrides the flag, mirroring DEPLOYMENT_MODE: the Helm
+	// chart configures the agent through env vars, not flags.
+	listenPort := *port
+	if envPort := os.Getenv("AGENT_PORT"); envPort != "" {
+		p, err := strconv.Atoi(envPort)
+		if err != nil {
+			slog.Error("Invalid AGENT_PORT", "value", envPort, "error", err)
+			os.Exit(1)
+		}
+		listenPort = p
+	}
+
+	if depMode != "standalone" && depMode != "k8s" {
+		slog.Error("Invalid deployment mode, must be 'standalone' or 'k8s'", "mode", depMode)
+		os.Exit(1)
+	}
+	ctx := context.Background()
+
+	// The channel registry is shared between the app-channel backend and the
+	// server's WorkloadChannel RPC handler.
+	channelRegistry := backends.NewChannelRegistry()
+	registeredBackends := map[backends.BackendType]backends.Backend{
+		backends.BackendCuda:        backends.NewCudaCheckpoint(),
+		backends.BackendCudaMultiGPU: backends.NewCudaMultiGPUCheckpoint(),
+		backends.BackendNoop:        backends.NewNoopBackend(),
+		backends.BackendAppEndpoint: backends.NewAppEndpointBackend(),
+		backends.BackendAppChannel:  backends.NewAppChannelBackend(channelRegistry),
+	}
+
+	slog.InfoContext(ctx, "Starting Snapshot Agent", "port", listenPort, "deploymentMode", depMode)
+	if err := server.StartServer(ctx, listenPort, registeredBackends, backends.BackendCuda, depMode, channelRegistry); err != nil {
 		slog.ErrorContext(ctx, "Failed to start server", "error", err)
 		os.Exit(1)
 	}

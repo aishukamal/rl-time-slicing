@@ -7,28 +7,36 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+
+	pb "github.com/llm-d-incubation/llm-d-rl-time-slicing/pkg/snapshot-agent/api/v1alpha1"
 )
 
 const (
-	// SIGRTMIN on Linux is 34. Suspend = SIGRTMIN+1 = 35, Resume = SIGRTMIN+2 = 36.
-	sigNCCLSuspend = 35
-	sigNCCLResume  = 36
+	// SIGRTMIN on Linux is 34.
+	// Signal 35 (SIGRTMIN+1): shim v2 destroys NCCL comms (ncclCommDestroy).
+	// Signal 36 (SIGRTMIN+2): shim v2 arms lazy NCCL recreate.
+	sigNCCLDestroy  = 35
+	sigNCCLRecreate = 36
 
-	ncclSuspendWait = 3 * time.Second
-	restorePIDWait  = 1 * time.Second
+	ncclDestroyWait = 3 * time.Second
+	restorePIDDelay = 1 * time.Second
 )
 
-// CudaMultiGPUCheckpoint implements the Backend interface for multi-GPU (TP)
-// workloads. It wraps CudaCheckpoint with NCCL suspend/resume signals and
+// CudaMultiGPUCheckpoint implements the Backend interface for multi-GPU (TP/DP/PP/EP)
+// workloads. It wraps CudaCheckpoint with NCCL destroy/recreate signals and
 // sequential per-PID checkpoint/restore.
 //
-// The workload must have the CR shim loaded via LD_PRELOAD, which registers
-// signal handlers for ncclCommSuspend (SIGRTMIN+1) and ncclCommResume (SIGRTMIN+2).
-// The workload must also have NCCL TCP transport forced via:
+// The workload must have shim v2 (libcr-shim-v2.so) loaded via LD_PRELOAD,
+// which registers signal handlers for:
+//   - SIGRTMIN+1 (35): ncclCommDestroy all tracked comms
+//   - SIGRTMIN+2 (36): arm lazy ncclCommInitRank with fresh uniqueId rendezvous
 //
-//	NCCL_P2P_DISABLE=1 NCCL_SHM_DISABLE=1 NCCL_NVLS_ENABLE=0
+// Required env vars on the workload:
+//
+//	NCCL_NVLS_ENABLE=0  (driver bug: multicast broken post-restore)
+//	CR_NCCL_LIB=/path/to/libnccl.so.2  (shim needs to find real NCCL)
 type CudaMultiGPUCheckpoint struct {
-	base      *CudaCheckpoint
+	base       *CudaCheckpoint
 	sendSignal func(pid int, sig syscall.Signal) error
 }
 
@@ -42,58 +50,55 @@ func NewCudaMultiGPUCheckpoint() *CudaMultiGPUCheckpoint {
 	}
 }
 
-// Snapshot suspends NCCL communicators, then sequentially checkpoints each PID.
-func (c *CudaMultiGPUCheckpoint) Snapshot(ctx context.Context, pids []string) error {
+// Snapshot destroys NCCL communicators, then checkpoints all PIDs.
+func (c *CudaMultiGPUCheckpoint) Snapshot(ctx context.Context, req Request) error {
+	pids := ExtractMultiGPUPIDs(req.Config)
 	if len(pids) == 0 {
-		return fmt.Errorf("at least one PID is required")
+		return fmt.Errorf("at least one PID is required for multi-GPU snapshot")
 	}
 
 	c.base.mu.Lock()
 	defer c.base.mu.Unlock()
 
-	slog.InfoContext(ctx, "Multi-GPU snapshot: suspending NCCL", "pids", pids)
+	slog.InfoContext(ctx, "Multi-GPU snapshot: destroying NCCL comms", "pids", pids)
 	t0 := time.Now()
-	if err := c.suspendNCCL(pids); err != nil {
-		return fmt.Errorf("NCCL suspend failed: %w", err)
+	if err := c.signalAll(pids, sigNCCLDestroy); err != nil {
+		return fmt.Errorf("NCCL destroy signal failed: %w", err)
 	}
-	slog.InfoContext(ctx, "NCCL suspended", "duration", time.Since(t0))
+	time.Sleep(ncclDestroyWait)
+	slog.InfoContext(ctx, "NCCL comms destroyed", "duration", time.Since(t0))
 
-	slog.InfoContext(ctx, "Multi-GPU snapshot: checkpointing PIDs sequentially", "pids", pids)
+	slog.InfoContext(ctx, "Multi-GPU snapshot: checkpointing PIDs", "pids", pids)
 	t1 := time.Now()
-	for _, pid := range pids {
-		if err := c.base.checkpointSinglePID(ctx, pid); err != nil {
-			return fmt.Errorf("checkpoint pid %s failed: %w", pid, err)
-		}
+	if err := c.base.checkpointPIDs(ctx, pids); err != nil {
+		return fmt.Errorf("checkpoint failed: %w", err)
 	}
 	slog.InfoContext(ctx, "All PIDs checkpointed", "count", len(pids), "duration", time.Since(t1))
 	return nil
 }
 
-// Restore sequentially restores each PID, then resumes NCCL communicators.
-func (c *CudaMultiGPUCheckpoint) Restore(ctx context.Context, pids []string) error {
+// Restore restores all PIDs, then arms lazy NCCL recreate.
+func (c *CudaMultiGPUCheckpoint) Restore(ctx context.Context, req Request) error {
+	pids := ExtractMultiGPUPIDs(req.Config)
 	if len(pids) == 0 {
-		return fmt.Errorf("at least one PID is required")
+		return fmt.Errorf("at least one PID is required for multi-GPU restore")
 	}
 
 	c.base.mu.Lock()
 	defer c.base.mu.Unlock()
 
-	slog.InfoContext(ctx, "Multi-GPU restore: restoring PIDs sequentially", "pids", pids)
+	slog.InfoContext(ctx, "Multi-GPU restore: restoring PIDs", "pids", pids)
 	t0 := time.Now()
-	for _, pid := range pids {
-		if err := c.base.restoreSinglePID(ctx, pid); err != nil {
-			return fmt.Errorf("restore pid %s failed: %w", pid, err)
-		}
-		time.Sleep(restorePIDWait)
+	if err := c.base.restorePIDs(ctx, pids); err != nil {
+		return fmt.Errorf("restore failed: %w", err)
 	}
 	slog.InfoContext(ctx, "All PIDs restored", "count", len(pids), "duration", time.Since(t0))
 
-	slog.InfoContext(ctx, "Multi-GPU restore: resuming NCCL", "pids", pids)
-	t1 := time.Now()
-	if err := c.resumeNCCL(pids); err != nil {
-		return fmt.Errorf("NCCL resume failed: %w", err)
+	slog.InfoContext(ctx, "Multi-GPU restore: arming NCCL recreate", "pids", pids)
+	if err := c.signalAll(pids, sigNCCLRecreate); err != nil {
+		return fmt.Errorf("NCCL recreate signal failed: %w", err)
 	}
-	slog.InfoContext(ctx, "NCCL resumed", "duration", time.Since(t1))
+	slog.InfoContext(ctx, "NCCL recreate armed")
 	return nil
 }
 
@@ -102,29 +107,39 @@ func (c *CudaMultiGPUCheckpoint) HealthCheck(ctx context.Context) error {
 	return c.base.HealthCheck(ctx)
 }
 
-func (c *CudaMultiGPUCheckpoint) suspendNCCL(pids []string) error {
+func (c *CudaMultiGPUCheckpoint) signalAll(pids []string, sig syscall.Signal) error {
 	for _, pidStr := range pids {
 		pid, err := strconv.Atoi(pidStr)
 		if err != nil {
 			return fmt.Errorf("invalid pid %q: %w", pidStr, err)
 		}
-		if err := c.sendSignal(pid, sigNCCLSuspend); err != nil {
-			return fmt.Errorf("failed to send suspend signal to pid %d: %w", pid, err)
+		if err := c.sendSignal(pid, sig); err != nil {
+			return fmt.Errorf("failed to send signal %d to pid %d: %w", sig, pid, err)
 		}
 	}
-	time.Sleep(ncclSuspendWait)
 	return nil
 }
 
-func (c *CudaMultiGPUCheckpoint) resumeNCCL(pids []string) error {
-	for _, pidStr := range pids {
-		pid, err := strconv.Atoi(pidStr)
-		if err != nil {
-			return fmt.Errorf("invalid pid %q: %w", pidStr, err)
-		}
-		if err := c.sendSignal(pid, sigNCCLResume); err != nil {
-			return fmt.Errorf("failed to send resume signal to pid %d: %w", pid, err)
-		}
+// ExtractMultiGPUPIDs extracts PID strings from a BackendConfig.
+// Supports CudaMultiGPUBackendConfig (preferred) and falls back to CudaBackendConfig.
+func ExtractMultiGPUPIDs(config *pb.BackendConfig) []string {
+	if config == nil {
+		return nil
 	}
-	return nil
+	if mg := config.GetCudaMultiGpu(); mg != nil {
+		target := mg.GetExplicitTarget()
+		if target == nil {
+			return nil
+		}
+		return int32sToStrings(target.GetPids())
+	}
+	return ExtractPIDStrings(config)
+}
+
+func int32sToStrings(pids []int32) []string {
+	out := make([]string, 0, len(pids))
+	for _, pid := range pids {
+		out = append(out, strconv.Itoa(int(pid)))
+	}
+	return out
 }

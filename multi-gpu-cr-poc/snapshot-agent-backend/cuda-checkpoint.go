@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"log/slog"
 	"os/exec"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/NVIDIA/go-nvml/pkg/nvml"
+	pb "github.com/llm-d-incubation/llm-d-rl-time-slicing/pkg/snapshot-agent/api/v1alpha1"
 )
 
 type nvmlClient interface {
@@ -51,13 +53,17 @@ func NewCudaCheckpoint() *CudaCheckpoint {
 }
 
 // Snapshot triggers a snapshot of the accelerator context for a job.
-func (c *CudaCheckpoint) Snapshot(ctx context.Context, pids []string) error {
+func (c *CudaCheckpoint) Snapshot(ctx context.Context, req Request) error {
+	pids := ExtractPIDStrings(req.Config)
+	if len(pids) == 0 {
+		return fmt.Errorf("at least one PID is required for CUDA snapshot")
+	}
+
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	slog.InfoContext(ctx, "Snapshotting PIDs", "pids", pids)
 
-	// 1. Lock and Checkpoint CUDA
 	t0 := time.Now()
 	if err := c.checkpointPIDs(ctx, pids); err != nil {
 		return fmt.Errorf("cuda-checkpoint checkpoint failed: %w", err)
@@ -67,9 +73,10 @@ func (c *CudaCheckpoint) Snapshot(ctx context.Context, pids []string) error {
 }
 
 // Restore triggers a restoration of the accelerator context for a job.
-func (c *CudaCheckpoint) Restore(ctx context.Context, pids []string) error {
+func (c *CudaCheckpoint) Restore(ctx context.Context, req Request) error {
+	pids := ExtractPIDStrings(req.Config)
 	if len(pids) == 0 {
-		return fmt.Errorf("at least one PID is required")
+		return fmt.Errorf("at least one PID is required for CUDA restore")
 	}
 
 	c.mu.Lock()
@@ -82,6 +89,43 @@ func (c *CudaCheckpoint) Restore(ctx context.Context, pids []string) error {
 	}
 	slog.InfoContext(ctx, "cuda-checkpoint toggle took", "duration", time.Since(t0), "pids", pids)
 	return nil
+}
+
+// ExtractPIDStrings extracts PID strings from a BackendConfig.
+func ExtractPIDStrings(config *pb.BackendConfig) []string {
+	if config == nil {
+		return nil
+	}
+	cuda := config.GetCuda()
+	if cuda == nil {
+		return nil
+	}
+	target := cuda.GetExplicitTarget()
+	if target == nil {
+		return nil
+	}
+	pids := make([]string, 0, len(target.GetPids()))
+	for _, pid := range target.GetPids() {
+		pids = append(pids, strconv.Itoa(int(pid)))
+	}
+	return pids
+}
+
+// BuildCudaConfig wraps PID strings into a BackendConfig.
+func BuildCudaConfig(pidStrings []string) *pb.BackendConfig {
+	pids := make([]int32, 0, len(pidStrings))
+	for _, s := range pidStrings {
+		if pid, err := strconv.ParseInt(s, 10, 32); err == nil {
+			pids = append(pids, int32(pid))
+		}
+	}
+	return &pb.BackendConfig{
+		Backend: &pb.BackendConfig_Cuda{
+			Cuda: &pb.CudaBackendConfig{
+				ExplicitTarget: &pb.ProcessTarget{Pids: pids},
+			},
+		},
+	}
 }
 
 func (c *CudaCheckpoint) getCudaCheckpointPath() string {
@@ -115,17 +159,6 @@ func (c *CudaCheckpoint) checkpointPIDs(ctx context.Context, pids []string) erro
 	return nil
 }
 
-func (c *CudaCheckpoint) checkpointSinglePID(ctx context.Context, pid string) error {
-	binaryPath := c.getCudaCheckpointPath()
-	if err := c.runSudoCommand(ctx, binaryPath, "--action", "lock", "--pid", pid); err != nil {
-		return fmt.Errorf("cuda-checkpoint lock pid %s failed: %w", pid, err)
-	}
-	if err := c.runSudoCommand(ctx, binaryPath, "--action", "checkpoint", "--pid", pid); err != nil {
-		return fmt.Errorf("cuda-checkpoint checkpoint pid %s failed: %w", pid, err)
-	}
-	return nil
-}
-
 func (c *CudaCheckpoint) restorePIDs(ctx context.Context, pids []string) error {
 	binaryPath := c.getCudaCheckpointPath()
 	pidArgs := make([]string, 0, 2*len(pids))
@@ -134,14 +167,6 @@ func (c *CudaCheckpoint) restorePIDs(ctx context.Context, pids []string) error {
 	}
 	if err := c.runSudoCommand(ctx, binaryPath, append([]string{"--toggle"}, pidArgs...)...); err != nil {
 		return fmt.Errorf("cuda-checkpoint toggle failed: %w", err)
-	}
-	return nil
-}
-
-func (c *CudaCheckpoint) restoreSinglePID(ctx context.Context, pid string) error {
-	binaryPath := c.getCudaCheckpointPath()
-	if err := c.runSudoCommand(ctx, binaryPath, "--toggle", "--pid", pid); err != nil {
-		return fmt.Errorf("cuda-checkpoint toggle pid %s failed: %w", pid, err)
 	}
 	return nil
 }
