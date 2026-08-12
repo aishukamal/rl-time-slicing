@@ -567,7 +567,14 @@ Shim v2 requires **NCCL ≥ 2.30** for correct `ncclCommDestroy` behavior. Earli
 
 **vLLM sleep covers all inference parallelism: TP, PP, EP.** No shim or cuda-checkpoint needed. The sleep endpoint releases model weights and KV cache; NCCL comms, graphs, and transport state survive untouched.
 
-**SGLang + cuda-checkpoint (shim v2, Option B):** destroy and freeze succeed (VRAM→4 MiB), but cuda-checkpoint restore returns "invalid argument." Root cause: **both SGLang workers open both GPUs** (`/dev/nvidia0` AND `/dev/nvidia1` — 30+ FDs each), creating multi-device CUDA contexts. cuda-checkpoint's restore path fails on the cross-device state. This is the same driver limitation that blocks CUDA graphs on multi-device processes. vLLM also opens both GPUs from each worker (7 FDs to the non-primary device) but succeeds — the difference is likely in SGLang's FlashInfer kernels or shared-memory IPC queues (`sgl_shm_mq_*`) creating additional cross-device state that the driver can't restore.
+**SGLang + cuda-checkpoint (shim v2, Option B):** NCCL destroy and freeze succeed (VRAM→4 MiB), but `cuda-checkpoint --toggle` (thaw) returns "invalid argument" with driver errors (`NV_ERR_OBJECT_NOT_FOUND`). Root cause (exhaustively investigated on clean pod, fresh `lmsysorg/sglang:v0.4.7-cu124` image):
+
+- **Both SGLang workers open both GPUs** (`/dev/nvidia0` AND `/dev/nvidia1`), creating multi-device CUDA contexts that cuda-checkpoint cannot restore.
+- **Not NCCL-related:** the shim's NCCL destroy/recreate cycle works correctly in isolation (destroy → recreate → inference passes without cuda-checkpoint). The failure is specifically in cuda-checkpoint's thaw of the multi-device CUDA context.
+- **Not custom all-reduce IPC:** `--disable-custom-all-reduce` does not fix it. The multi-device contexts come from SGLang's architecture itself.
+- **Not FlashInfer or any single component:** progressive component testing (bare NCCL → model → FlashInfer → Triton) showed each component passes individually; the failure is specific to full SGLang server initialization.
+- **SGLang TP=1 works:** single-GPU SGLang + cuda-checkpoint passes, confirming the issue is multi-device specific.
+- **vLLM TP=2 works:** vLLM also opens both GPUs but restores successfully — SGLang creates additional cross-device state during its server initialization that vLLM does not.
 
 **SGLang + app-aware release/resume (Option A):** SGLang has its own cuMemUnmap-based memory release via `release_memory_occupation` / `resume_memory_occupation` endpoints. Requires `--enable-memory-saver` flag at launch. Already integrated into the snapshot agent as `APP_SGLANG` in the `app-endpoint` backend.
 
@@ -576,7 +583,7 @@ Shim v2 requires **NCCL ≥ 2.30** for correct `ncclCommDestroy` behavior. Earli
 | Cycle 1 | release → 2.3 GB/GPU → resume → inference | 84% (14.2→2.3 GB) | **PASS** |
 | Cycle 2 | release → resume → inference | 84% | **PASS** |
 
-SGLang's app-aware path covers TP=2 with zero perf tax, same as vLLM sleep. No shim or cuda-checkpoint needed.
+SGLang's app-aware path covers TP/PP/EP with zero perf tax, same as vLLM sleep. No shim or cuda-checkpoint needed. This is the recommended C/R mechanism for SGLang.
 
 ## GPU Interleaving (Multi-Job Alternation)
 
@@ -619,4 +626,4 @@ GPU interleaving works for both inference (app-aware) and training (shim + cuda-
 
 5. **Requires NCCL ≥ 2.30.** Earlier versions (e.g., 2.26) are missing `ncclDevCommDestroy`, causing silent comm recreate failures. Previously misdiagnosed as a "CommCheck race" requiring `NCCL_DEBUG=INFO` — debunked (wrong NCCL version was the root cause).
 
-6. **SGLang + cuda-checkpoint (Option B): restore fails on multi-GPU.** Both SGLang workers open both GPUs (30+ FDs each to `/dev/nvidia0` and `/dev/nvidia1`), creating multi-device CUDA contexts that cuda-checkpoint can't restore. Workaround: use SGLang's app-aware `release_memory_occupation` / `resume_memory_occupation` (Option A) instead — works for TP/PP/EP, frees 81-97% GPU memory, already integrated in snapshot agent.
+6. **SGLang + cuda-checkpoint (Option B): thaw fails on multi-GPU.** SGLang workers create multi-device CUDA contexts that cuda-checkpoint cannot restore. Exhaustively investigated: not NCCL (shim destroy/recreate works in isolation), not custom all-reduce IPC (`--disable-custom-all-reduce` doesn't help), not any single component (progressive testing passes). The failure is in cuda-checkpoint's thaw of SGLang's specific multi-device CUDA state. SGLang TP=1 passes; vLLM TP=2 passes — the issue is specific to SGLang's multi-GPU server architecture. **Use SGLang's app-aware `release_memory_occupation` / `resume_memory_occupation` (Option A)** — works for TP/PP/EP, frees 81-97% GPU memory, zero perf tax, already integrated in snapshot agent.
