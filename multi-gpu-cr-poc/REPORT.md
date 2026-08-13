@@ -528,7 +528,7 @@ GPU-CR's `vGPU.so` hooks cudaMalloc → cuMem VMM for all allocations, dumps to 
 | GPU freed | 84-96% | **100%** | **100%** |
 | C/R speed | instant sleep/wake | shim ~400ms + freeze ~4s | data dump 1.2s + freeze 4s |
 | Frameworks | vLLM (`--enable-sleep-mode`), SGLang (`--enable-memory-saver`) | Universal (training, any NCCL app) | Universal |
-| Steady-state perf impact | **Zero** | `--enforce-eager` + `NCCL_NVLS_ENABLE=0` | `--enforce-eager` + TCP tax |
+| Steady-state perf impact | **Zero** | `--enforce-eager` + `NCCL_NVLS_ENABLE=0` + `--disable-custom-all-reduce` | `--enforce-eager` + TCP tax |
 | Snapshot agent backend | `app-endpoint` (APP_VLLM / APP_SGLANG) | `cuda-multi-gpu` | N/A (manual multi_cr_client) |
 
 ## Parallelism Dimension C/R Matrix
@@ -560,21 +560,18 @@ Shim v2 requires **NCCL ≥ 2.30** for correct `ncclCommDestroy` behavior. Earli
 | I1 | vLLM | TP=2 | opt-1.3b | Option A (sleep) | 96% | **PASS** |
 | I2 | vLLM | PP=2 | opt-1.3b | Option A (sleep) | 83% (14.7→2.5 GB/GPU) | **PASS** |
 | I3 | vLLM | EP=2 | Mixtral-8x7B | Option A (sleep) | 95% (75.5→3.7 GB/GPU) | **PASS** |
-| I4 | SGLang | TP=2 | opt-1.3b | Option B (shim v2 + cuda-ckpt) | 100% (freeze OK) | **FAIL** — restore "invalid argument" (multi-device CUDA state) |
+| I4 | SGLang | TP=2 | Qwen2.5-0.5B | Option B (shim v2 + cuda-ckpt) | 100% (4 MiB/GPU) | **PASS** (needs `SGLANG_NCCL_SO_PATH=shim`, `--disable-custom-all-reduce`) |
 | I5 | SGLang | TP=2 | opt-1.3b | Option A (release/resume) | 84% (14.2→2.3 GB) | **PASS** (needs `--enable-memory-saver`) |
 | I6 | SGLang | PP=2 | Qwen2.5-0.5B | Option A (release/resume) | 81% (15.3→2.9 GB/GPU) | **PASS** |
 | I7 | SGLang | EP=2 | Mixtral-8x7B | Option A (release/resume) | 96.6% (70.5→2.4 GB/GPU) | **PASS** |
 
 **vLLM sleep covers all inference parallelism: TP, PP, EP.** No shim or cuda-checkpoint needed. The sleep endpoint releases model weights and KV cache; NCCL comms, graphs, and transport state survive untouched.
 
-**SGLang + cuda-checkpoint (shim v2, Option B):** NCCL destroy and freeze succeed (VRAM→4 MiB), but `cuda-checkpoint --toggle` (thaw) returns "invalid argument" with driver errors (`NV_ERR_OBJECT_NOT_FOUND`). Root cause (exhaustively investigated on clean pod, fresh `lmsysorg/sglang:v0.4.7-cu124` image):
+**SGLang + cuda-checkpoint (shim v2, Option B): PASS.** Requires two SGLang-specific settings:
+1. `SGLANG_NCCL_SO_PATH=/path/to/libcr-shim-v2.so` — SGLang loads NCCL via ctypes (like vLLM's `VLLM_NCCL_SO_PATH`), bypassing LD_PRELOAD. Pointing this at the shim ensures the pynccl tensor-parallel comm is tracked and destroyed.
+2. `--disable-custom-all-reduce` — SGLang's custom all-reduce uses CUDA IPC handles (`cudaIpcGetMemHandle`/`cudaIpcOpenMemHandle`) loaded via ctypes, which cannot be intercepted by LD_PRELOAD. cuda-checkpoint cannot restore processes with active IPC memory handles. This is the same limitation as vLLM — both frameworks require this flag for cuda-checkpoint.
 
-- **Both SGLang workers open both GPUs** (`/dev/nvidia0` AND `/dev/nvidia1`), creating multi-device CUDA contexts that cuda-checkpoint cannot restore.
-- **Not NCCL-related:** the shim's NCCL destroy/recreate cycle works correctly in isolation (destroy → recreate → inference passes without cuda-checkpoint). The failure is specifically in cuda-checkpoint's thaw of the multi-device CUDA context.
-- **Not custom all-reduce IPC:** `--disable-custom-all-reduce` does not fix it. The multi-device contexts come from SGLang's architecture itself.
-- **Not FlashInfer or any single component:** progressive component testing (bare NCCL → model → FlashInfer → Triton) showed each component passes individually; the failure is specific to full SGLang server initialization.
-- **SGLang TP=1 works:** single-GPU SGLang + cuda-checkpoint passes, confirming the issue is multi-device specific.
-- **vLLM TP=2 works:** vLLM also opens both GPUs but restores successfully — SGLang creates additional cross-device state during its server initialization that vLLM does not.
+The shim v2 uses deferred destroy: the signal handler sets a flag and returns immediately, a background thread drains pending GPU work via `cudaDeviceSynchronize`, then destroys all NCCL comms. This avoids a deadlock where both ranks' signal handlers try to destroy while each has pending collectives requiring the other rank. Destroy completes in ~420-930ms, recreate in ~113-125ms.
 
 **SGLang + app-aware release/resume (Option A):** SGLang has its own cuMemUnmap-based memory release via `release_memory_occupation` / `resume_memory_occupation` endpoints. Requires `--enable-memory-saver` flag at launch. Already integrated into the snapshot agent as `APP_SGLANG` in the `app-endpoint` backend.
 
@@ -583,7 +580,7 @@ Shim v2 requires **NCCL ≥ 2.30** for correct `ncclCommDestroy` behavior. Earli
 | Cycle 1 | release → 2.3 GB/GPU → resume → inference | 84% (14.2→2.3 GB) | **PASS** |
 | Cycle 2 | release → resume → inference | 84% | **PASS** |
 
-SGLang's app-aware path covers TP/PP/EP with zero perf tax, same as vLLM sleep. No shim or cuda-checkpoint needed. This is the recommended C/R mechanism for SGLang.
+SGLang's app-aware path covers TP/PP/EP with zero perf tax, same as vLLM sleep. No shim or cuda-checkpoint needed.
 
 ## GPU Interleaving (Multi-Job Alternation)
 
@@ -626,4 +623,4 @@ GPU interleaving works for both inference (app-aware) and training (shim + cuda-
 
 5. **Requires NCCL ≥ 2.30.** Earlier versions (e.g., 2.26) are missing `ncclDevCommDestroy`, causing silent comm recreate failures. Previously misdiagnosed as a "CommCheck race" requiring `NCCL_DEBUG=INFO` — debunked (wrong NCCL version was the root cause).
 
-6. **SGLang + cuda-checkpoint (Option B): thaw fails on multi-GPU.** SGLang workers create multi-device CUDA contexts that cuda-checkpoint cannot restore. Exhaustively investigated: not NCCL (shim destroy/recreate works in isolation), not custom all-reduce IPC (`--disable-custom-all-reduce` doesn't help), not any single component (progressive testing passes). The failure is in cuda-checkpoint's thaw of SGLang's specific multi-device CUDA state. SGLang TP=1 passes; vLLM TP=2 passes — the issue is specific to SGLang's multi-GPU server architecture. **Use SGLang's app-aware `release_memory_occupation` / `resume_memory_occupation` (Option A)** — works for TP/PP/EP, frees 81-97% GPU memory, zero perf tax, already integrated in snapshot agent.
+6. **`--disable-custom-all-reduce` required for cuda-checkpoint (Option B).** Both vLLM and SGLang's custom all-reduce uses CUDA IPC handles (`cudaIpcGetMemHandle`/`cudaIpcOpenMemHandle`) loaded via ctypes, bypassing LD_PRELOAD interception. cuda-checkpoint cannot restore processes with active IPC memory handles. Performance impact: negligible (<1-2% throughput, only affects small all-reduces where NCCL launch overhead dominates). For production at scale (70B+ models), NCCL's NVLink path handles the same operations at equivalent speed.
