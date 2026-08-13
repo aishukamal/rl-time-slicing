@@ -43,6 +43,9 @@
  *     ranks resume together after SIGRTMIN+2 (init is collective, performed
  *     lazily at the first collective per rank).
  *   - NCCL_NVLS_ENABLE=0 at launch (see above). NVLink P2P stays on.
+ *   - Custom all-reduce disabled (--disable-custom-all-reduce): CUDA IPC
+ *     handles from custom all-reduce cannot be intercepted via LD_PRELOAD
+ *     (frameworks use ctypes to load libcudart directly).
  *
  * Build:
  *   gcc -shared -fPIC -o libcr-shim-v2.so universal_cr_shim_v2.c -ldl -lpthread
@@ -70,6 +73,7 @@ typedef struct { char internal[128]; } ncclUniqueId;
 /* ---- real-function pointer types (enums passed as int: ABI-compatible) -- */
 typedef ncclResult_t (*fnInitRank)(ncclComm_t*, int, ncclUniqueId, int);
 typedef ncclResult_t (*fnInitRankConfig)(ncclComm_t*, int, ncclUniqueId, int, void*);
+typedef ncclResult_t (*fnCommSplit)(ncclComm_t, int, int, ncclComm_t*, void*);
 typedef ncclResult_t (*fnGetUniqueId)(ncclUniqueId*);
 typedef ncclResult_t (*fnCommDestroy)(ncclComm_t);
 typedef ncclResult_t (*fnCommAbort)(ncclComm_t);
@@ -91,6 +95,7 @@ typedef ncclResult_t (*fnCommDeregister)(const ncclComm_t, void*);
 
 static fnInitRank          real_InitRank;
 static fnInitRankConfig    real_InitRankConfig;
+static fnCommSplit         real_CommSplit;
 static fnGetUniqueId       real_GetUniqueId;
 static fnCommDestroy       real_CommDestroy;
 static fnCommAbort         real_CommAbort;
@@ -133,6 +138,7 @@ static void* real_nccl_handle(void) {
 static void resolve_all(void) {
     RESOLVE(real_InitRank,          fnInitRank,          "ncclCommInitRank");
     RESOLVE(real_InitRankConfig,    fnInitRankConfig,    "ncclCommInitRankConfig");
+    RESOLVE(real_CommSplit,         fnCommSplit,         "ncclCommSplit");
     RESOLVE(real_GetUniqueId,       fnGetUniqueId,       "ncclGetUniqueId");
     RESOLVE(real_CommDestroy,       fnCommDestroy,       "ncclCommDestroy");
     RESOLVE(real_CommAbort,         fnCommAbort,         "ncclCommAbort");
@@ -186,7 +192,6 @@ cudaError_t cudaGraphInstantiate(cudaGraphExec_t* out, cudaGraph_t graph,
     return r;
 }
 
-/* Also intercept the older 5-arg overload (CUDA <12.x compat) */
 cudaError_t cudaGraphInstantiate_v2(cudaGraphExec_t* out, cudaGraph_t graph,
                                      void* errNode, char* errLog, size_t bufSize) {
     typedef cudaError_t (*fn5)(cudaGraphExec_t*, cudaGraph_t, void*, char*, size_t);
@@ -200,8 +205,6 @@ cudaError_t cudaGraphInstantiate_v2(cudaGraphExec_t* out, cudaGraph_t graph,
     return r;
 }
 
-/* PyTorch/torch.compile uses this variant (libtorch_cuda.so links
- * cudaGraphInstantiateWithFlags from libcudart.so) */
 cudaError_t cudaGraphInstantiateWithFlags(cudaGraphExec_t* out, cudaGraph_t graph,
                                           unsigned long long flags) {
     typedef cudaError_t (*fnFlags)(cudaGraphExec_t*, cudaGraph_t, unsigned long long);
@@ -220,7 +223,6 @@ cudaError_t cudaGraphInstantiateWithFlags(cudaGraphExec_t* out, cudaGraph_t grap
 cudaError_t cudaGraphExecDestroy(cudaGraphExec_t ge) {
     if (!real_GraphExecDestroy)
         real_GraphExecDestroy = (fnGraphExecDestroy)dlsym(RTLD_NEXT, "cudaGraphExecDestroy");
-    /* remove from tracking */
     for (int i = 0; i < n_graphs; i++) {
         if (tracked_graphs[i] == ge) {
             tracked_graphs[i] = tracked_graphs[--n_graphs];
@@ -230,7 +232,6 @@ cudaError_t cudaGraphExecDestroy(cudaGraphExec_t ge) {
     return real_GraphExecDestroy ? real_GraphExecDestroy(ge) : 0;
 }
 
-/* Also track graph templates (cudaGraph_t), not just executables */
 typedef cudaError_t (*fnGraphDestroy)(cudaGraph_t);
 static fnGraphDestroy real_GraphDestroy;
 
@@ -238,7 +239,6 @@ static fnGraphDestroy real_GraphDestroy;
 static cudaGraph_t tracked_templates[MAX_GRAPH_TEMPLATES];
 static int n_templates = 0;
 
-/* Intercept cudaGraphCreate to track templates */
 cudaError_t cudaGraphCreate(cudaGraph_t* out, unsigned int flags) {
     typedef cudaError_t (*fn)(cudaGraph_t*, unsigned int);
     static fn real_fn;
@@ -262,7 +262,6 @@ cudaError_t cudaGraphDestroy(cudaGraph_t g) {
     return real_GraphDestroy ? real_GraphDestroy(g) : 0;
 }
 
-/* Also intercept cudaStreamEndCapture which produces a graph template */
 typedef cudaError_t (*fnStreamEndCapture)(void*, cudaGraph_t*);
 cudaError_t cudaStreamEndCapture(void* stream, cudaGraph_t* out) {
     static fnStreamEndCapture real_fn;
@@ -283,7 +282,6 @@ static void reset_all_graphs(void) {
     fprintf(stderr, "[cr-shim2] PID %d: resetting %d graph execs + %d graph templates\n",
             getpid(), n_graphs, n_templates);
 
-    /* Destroy executables first (they reference templates) */
     for (int i = 0; i < n_graphs; i++) {
         if (real_GraphExecDestroy && tracked_graphs[i])
             real_GraphExecDestroy(tracked_graphs[i]);
@@ -291,7 +289,6 @@ static void reset_all_graphs(void) {
     int exec_count = n_graphs;
     n_graphs = 0;
 
-    /* Then destroy templates */
     for (int i = 0; i < n_templates; i++) {
         if (real_GraphDestroy && tracked_templates[i])
             real_GraphDestroy(tracked_templates[i]);
@@ -299,7 +296,6 @@ static void reset_all_graphs(void) {
     int tmpl_count = n_templates;
     n_templates = 0;
 
-    /* Synchronize all devices to flush driver-side cleanup */
     typedef int (*fnDevSync)(void);
     fnDevSync ds = (fnDevSync)dlsym(RTLD_NEXT, "cudaDeviceSynchronize");
     if (ds) ds();
@@ -316,13 +312,17 @@ typedef struct {
     ncclComm_t cur_handle;
     int nranks;
     int rank;
-    int cudev;       /* cached for query calls while destroyed */
+    int cudev;           /* cached for query calls while destroyed */
     int destroyed;
+    int is_split;        /* created via ncclCommSplit, not InitRank */
+    ncclComm_t split_parent;  /* app_handle of parent (for recreate) */
+    int split_color;
+    int split_key;
 } comm_rec_t;
 
 static comm_rec_t comms[MAX_COMMS];
 static int n_comms = 0;
-static int generation = 0;              /* bumped per recreate cycle */
+static int generation = 0;
 static volatile sig_atomic_t need_recreate = 0;
 static pthread_mutex_t recreate_mtx = PTHREAD_MUTEX_INITIALIZER;
 
@@ -362,9 +362,37 @@ static void track(ncclComm_t comm, int nranks, int rank) {
     r->rank = rank;
     r->cudev = -1;
     r->destroyed = 0;
+    r->is_split = 0;
+    r->split_parent = NULL;
+    r->split_color = 0;
+    r->split_key = 0;
     if (real_CommCuDevice) real_CommCuDevice(comm, &r->cudev);
     fprintf(stderr, "[cr-shim2] PID %d: tracked comm %p (#%d, rank=%d/%d, dev=%d)\n",
             getpid(), comm, n_comms, rank, nranks, r->cudev);
+}
+
+static void track_split(ncclComm_t comm, ncclComm_t parent_app, int color, int key) {
+    if (n_comms >= MAX_COMMS) {
+        fprintf(stderr, "[cr-shim2] PID %d: comm table full!\n", getpid());
+        return;
+    }
+    int nranks = 0, rank = 0, cudev = -1;
+    if (real_CommCount) real_CommCount(comm, &nranks);
+    if (real_CommUserRank) real_CommUserRank(comm, &rank);
+    if (real_CommCuDevice) real_CommCuDevice(comm, &cudev);
+    comm_rec_t* r = &comms[n_comms++];
+    r->app_handle = comm;
+    r->cur_handle = comm;
+    r->nranks = nranks;
+    r->rank = rank;
+    r->cudev = cudev;
+    r->destroyed = 0;
+    r->is_split = 1;
+    r->split_parent = parent_app;
+    r->split_color = color;
+    r->split_key = key;
+    fprintf(stderr, "[cr-shim2] PID %d: tracked SPLIT comm %p (#%d, rank=%d/%d, dev=%d, parent=%p, color=%d)\n",
+            getpid(), comm, n_comms, rank, nranks, cudev, parent_app, color);
 }
 
 ncclResult_t ncclCommInitRank(ncclComm_t* comm, int nranks, ncclUniqueId id, int rank) {
@@ -378,28 +406,55 @@ ncclResult_t ncclCommInitRankConfig(ncclComm_t* comm, int nranks, ncclUniqueId i
                                     int rank, void* config) {
     resolve_all();
     ncclResult_t r = real_InitRankConfig(comm, nranks, id, rank, config);
-    /* nonblocking configs return ncclInProgress (7) with a valid comm */
     if ((r == 0 || r == 7) && comm && *comm) track(*comm, nranks, rank);
     return r;
 }
 
-/* ---- destroy: SIGRTMIN+1 -------------------------------------------------
- * ncclCommDestroy tears down ALL transport state — P2P imports/exports,
- * SHM segments, proxy threads. After this the process has no cross-process
- * GPU state and cuda-checkpoint can freeze it, even for NVLink workloads.
- * Runs in signal-handler context: the workload is quiesced (main thread
- * parked in sleep, no NCCL/CUDA calls in flight), which makes this safe in
- * practice. */
-static void destroy_handler(int sig) {
-    (void)sig;
+ncclResult_t ncclCommSplit(ncclComm_t parent, int color, int key,
+                           ncclComm_t* newcomm, void* config) {
+    resolve_all();
+    ncclComm_t real_parent = xlate(parent);
+    ncclResult_t r = real_CommSplit(real_parent, color, key, newcomm, config);
+    if ((r == 0 || r == 7) && newcomm && *newcomm)
+        track_split(*newcomm, parent, color, key);
+    return r;
+}
+
+/* ---- deferred destroy ----------------------------------------------------
+ * The signal handler MUST NOT call ncclCommDestroy directly. When two ranks
+ * receive the signal simultaneously, each handler tries to destroy while the
+ * other rank's pending collective needs the other to participate →
+ * cudaDeviceSynchronize inside destroy deadlocks both.
+ *
+ * Fix: signal handler sets a flag and returns immediately. The pending
+ * collectives complete naturally (both ranks' app threads resume and
+ * participate). A background thread detects the flag, drains GPU work
+ * with cudaDeviceSynchronize, then destroys all comms safely.
+ *
+ * The background thread writes a marker file when destroy is complete,
+ * so the external orchestrator knows when to proceed with cuda-checkpoint. */
+
+static volatile sig_atomic_t need_destroy = 0;
+static volatile sig_atomic_t destroy_done = 0;
+static pthread_t destroy_thread;
+static int destroy_thread_started = 0;
+
+static void do_destroy(void) {
     double t0 = now_ms();
     resolve_all();
-    /* When using cuMemUnmap-based sleep (not cuda-checkpoint), CUDA graphs
-     * can survive — they reference virtual addresses which stay reserved.
-     * Only reset graphs when CR_RESET_GRAPHS=1 (cuda-checkpoint path).
-     * For the sleep/wake path, skip graph reset to keep them alive. */
+
     if (getenv("CR_RESET_GRAPHS") && getenv("CR_RESET_GRAPHS")[0] == '1')
         reset_all_graphs();
+
+    /* Drain all pending GPU work first — this lets in-flight collectives
+     * from all ranks complete before we tear anything down. */
+    typedef int (*fnDevSync)(void);
+    fnDevSync dev_sync = (fnDevSync)dlsym(RTLD_NEXT, "cudaDeviceSynchronize");
+    if (dev_sync) {
+        fprintf(stderr, "[cr-shim2] PID %d: draining GPU work...\n", getpid());
+        dev_sync();
+    }
+
     fprintf(stderr, "[cr-shim2] PID %d: DESTROY — %d comms\n", getpid(), n_comms);
     for (int i = 0; i < n_comms; i++) {
         if (comms[i].destroyed) continue;
@@ -409,105 +464,168 @@ static void destroy_handler(int sig) {
         comms[i].destroyed = 1;
     }
 
-    /* Synchronize all devices to ensure destroy is fully flushed */
-    typedef int (*fnDevSync)(void);
-    fnDevSync dev_sync = (fnDevSync)dlsym(RTLD_NEXT, "cudaDeviceSynchronize");
     if (dev_sync) dev_sync();
 
+    /* Write marker so external orchestrator knows destroy is complete */
+    char marker[256];
+    snprintf(marker, sizeof(marker), "%s/destroy_done_%d", rdir(), getpid());
+    int fd = open(marker, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if (fd >= 0) { write(fd, "1", 1); close(fd); }
+
+    destroy_done = 1;
     fprintf(stderr, "[cr-shim2] PID %d: destroy done %.1fms\n", getpid(), now_ms() - t0);
 }
 
-/* ---- recreate arm: SIGRTMIN+2 --------------------------------------------
- * Async-signal-safe: only sets a flag. The heavy lifting (rendezvous +
- * collective ncclCommInitRank) happens lazily on the app's own thread at
- * the first intercepted collective call — a safe context for the thread
- * spawns / mallocs / socket work that NCCL init does. */
+static void* destroy_thread_fn(void* arg) {
+    (void)arg;
+    while (1) {
+        if (need_destroy && !destroy_done) {
+            need_destroy = 0;
+            do_destroy();
+        }
+        usleep(5000);   /* 5ms poll */
+    }
+    return NULL;
+}
+
+/* ---- destroy: SIGRTMIN+1 -------------------------------------------------
+ * Async-signal-safe: only sets a flag. The background thread does the
+ * actual destroy after draining pending GPU work. */
+static void destroy_handler(int sig) {
+    (void)sig;
+    destroy_done = 0;
+    need_destroy = 1;
+    fprintf(stderr, "[cr-shim2] PID %d: DESTROY requested (deferred to background thread)\n",
+            getpid());
+}
+
+/* ---- recreate arm: SIGRTMIN+2 -------------------------------------------- */
 static void recreate_arm_handler(int sig) {
     (void)sig;
     need_recreate = 1;
+    /* Clean up destroy marker for next cycle */
+    char marker[256];
+    snprintf(marker, sizeof(marker), "%s/destroy_done_%d", rdir(), getpid());
+    unlink(marker);
 }
 
 /* ---- lazy recreate: runs on the app thread ------------------------------- */
+static void recreate_initrank_comm(int i) {
+    char path[480], tmp[512];
+    snprintf(path, sizeof(path), "%s/uid_%d_%d", rdir(), i, generation);
+    ncclUniqueId uid;
+
+    if (comms[i].rank == 0) {
+        int rc = real_GetUniqueId(&uid);
+        if (rc != 0) {
+            fprintf(stderr, "[cr-shim2] PID %d:   GetUniqueId failed rc=%d\n", getpid(), rc);
+            return;
+        }
+        snprintf(tmp, sizeof(tmp), "%s.tmp", path);
+        int fd = open(tmp, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd < 0) {
+            fprintf(stderr, "[cr-shim2] PID %d:   cannot write %s: %s\n",
+                    getpid(), tmp, strerror(errno));
+            return;
+        }
+        ssize_t w = write(fd, &uid, sizeof(uid));
+        close(fd);
+        if (w != sizeof(uid)) { fprintf(stderr, "[cr-shim2] short write\n"); return; }
+        rename(tmp, path);
+        fprintf(stderr, "[cr-shim2] PID %d:   comm #%d: published fresh uid\n", getpid(), i);
+    } else {
+        int got = 0;
+        for (int tries = 0; tries < 6000; tries++) {
+            int fd = open(path, O_RDONLY);
+            if (fd >= 0) {
+                ssize_t rd = read(fd, &uid, sizeof(uid));
+                close(fd);
+                if (rd == sizeof(uid)) { got = 1; break; }
+            }
+            usleep(10000);
+        }
+        if (!got) {
+            fprintf(stderr, "[cr-shim2] PID %d:   comm #%d: rendezvous TIMEOUT (%s)\n",
+                    getpid(), i, path);
+            return;
+        }
+        fprintf(stderr, "[cr-shim2] PID %d:   comm #%d: got fresh uid\n", getpid(), i);
+    }
+
+    ncclComm_t nc = NULL;
+    int rc = real_InitRank(&nc, comms[i].nranks, uid, comms[i].rank);
+    if (rc != 0 || !nc) {
+        fprintf(stderr, "[cr-shim2] PID %d:   comm #%d: re-init FAILED rc=%d\n",
+                getpid(), i, rc);
+        return;
+    }
+    fprintf(stderr, "[cr-shim2] PID %d:   comm #%d: recreated %p -> %p (rank=%d/%d)\n",
+            getpid(), i, comms[i].app_handle, nc, comms[i].rank, comms[i].nranks);
+    comms[i].cur_handle = nc;
+    comms[i].destroyed = 0;
+}
+
+static void recreate_split_comm(int i) {
+    comm_rec_t* parent = find_rec(comms[i].split_parent);
+    if (!parent || parent->destroyed) {
+        fprintf(stderr, "[cr-shim2] PID %d:   comm #%d: split parent %p not ready\n",
+                getpid(), i, comms[i].split_parent);
+        return;
+    }
+    ncclComm_t nc = NULL;
+    int rc = real_CommSplit(parent->cur_handle, comms[i].split_color,
+                            comms[i].split_key, &nc, NULL);
+    if (rc != 0 || !nc) {
+        fprintf(stderr, "[cr-shim2] PID %d:   comm #%d: re-split FAILED rc=%d\n",
+                getpid(), i, rc);
+        return;
+    }
+    fprintf(stderr, "[cr-shim2] PID %d:   comm #%d: re-split %p -> %p (color=%d, key=%d)\n",
+            getpid(), i, comms[i].app_handle, nc, comms[i].split_color, comms[i].split_key);
+    comms[i].cur_handle = nc;
+    comms[i].destroyed = 0;
+}
+
 static void do_recreate_locked(void) {
     double t0 = now_ms();
     resolve_all();
     generation++;
     mkdir(rdir(), 0777);
-    fprintf(stderr, "[cr-shim2] PID %d: RECREATE (lazy, on app thread) — %d comms (gen=%d)\n",
-            getpid(), n_comms, generation);
 
+    int n_init = 0, n_split = 0;
     for (int i = 0; i < n_comms; i++) {
-        if (!comms[i].destroyed) continue;
-
-        char path[480], tmp[512];
-        snprintf(path, sizeof(path), "%s/uid_%d_%d", rdir(), i, generation);
-        ncclUniqueId uid;
-
-        if (comms[i].rank == 0) {
-            int rc = real_GetUniqueId(&uid);
-            if (rc != 0) {
-                fprintf(stderr, "[cr-shim2] PID %d:   GetUniqueId failed rc=%d\n", getpid(), rc);
-                continue;
-            }
-            snprintf(tmp, sizeof(tmp), "%s.tmp", path);
-            int fd = open(tmp, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-            if (fd < 0) {
-                fprintf(stderr, "[cr-shim2] PID %d:   cannot write %s: %s\n",
-                        getpid(), tmp, strerror(errno));
-                continue;
-            }
-            ssize_t w = write(fd, &uid, sizeof(uid));
-            close(fd);
-            if (w != sizeof(uid)) { fprintf(stderr, "[cr-shim2] short write\n"); continue; }
-            rename(tmp, path);   /* atomic publish */
-            fprintf(stderr, "[cr-shim2] PID %d:   comm #%d: published fresh uid\n", getpid(), i);
-        } else {
-            int got = 0;
-            for (int tries = 0; tries < 6000; tries++) {   /* up to 60s */
-                int fd = open(path, O_RDONLY);
-                if (fd >= 0) {
-                    ssize_t rd = read(fd, &uid, sizeof(uid));
-                    close(fd);
-                    if (rd == sizeof(uid)) { got = 1; break; }
-                }
-                usleep(10000);
-            }
-            if (!got) {
-                fprintf(stderr, "[cr-shim2] PID %d:   comm #%d: rendezvous TIMEOUT (%s)\n",
-                        getpid(), i, path);
-                continue;
-            }
-            fprintf(stderr, "[cr-shim2] PID %d:   comm #%d: got fresh uid\n", getpid(), i);
-        }
-
-        /* Synchronize all CUDA devices before re-init. After
-         * cuda-checkpoint restore, the driver-level CUDA state may
-         * not be fully flushed. Without this barrier, NCCL's CommCheck
-         * sees partially-restored state and fails with rc=6
-         * ("corrupted comm object"). */
-        typedef int (*fnDevSync)(void);
-        static fnDevSync dev_sync;
-        if (!dev_sync) dev_sync = (fnDevSync)dlsym(RTLD_NEXT, "cudaDeviceSynchronize");
-        if (dev_sync) dev_sync();
-
-        /* collective re-init — every rank reaches here from its first
-         * post-resume collective */
-        ncclComm_t nc = NULL;
-        int rc = real_InitRank(&nc, comms[i].nranks, uid, comms[i].rank);
-        if (rc != 0 || !nc) {
-            fprintf(stderr, "[cr-shim2] PID %d:   comm #%d: re-init FAILED rc=%d\n",
-                    getpid(), i, rc);
-            continue;
-        }
-        fprintf(stderr, "[cr-shim2] PID %d:   comm #%d: recreated %p -> %p (rank=%d/%d)\n",
-                getpid(), i, comms[i].app_handle, nc, comms[i].rank, comms[i].nranks);
-        comms[i].cur_handle = nc;
-        comms[i].destroyed = 0;
+        if (comms[i].is_split) n_split++; else n_init++;
     }
+    fprintf(stderr, "[cr-shim2] PID %d: RECREATE (lazy, on app thread) — %d comms (%d init + %d split, gen=%d)\n",
+            getpid(), n_comms, n_init, n_split, generation);
+
+    typedef int (*fnDevSync)(void);
+    static fnDevSync dev_sync;
+    if (!dev_sync) dev_sync = (fnDevSync)dlsym(RTLD_NEXT, "cudaDeviceSynchronize");
+    if (dev_sync) dev_sync();
+
+    /* Pass 1: recreate InitRank comms (parents must exist before splits) */
+    for (int i = 0; i < n_comms; i++) {
+        if (!comms[i].destroyed || comms[i].is_split) continue;
+        recreate_initrank_comm(i);
+    }
+
+    /* Pass 2: recreate split comms from their (now-live) parents */
+    for (int i = 0; i < n_comms; i++) {
+        if (!comms[i].destroyed || !comms[i].is_split) continue;
+        recreate_split_comm(i);
+    }
+
     fprintf(stderr, "[cr-shim2] PID %d: recreate done %.1fms\n", getpid(), now_ms() - t0);
 }
 
 static void ensure_live(void) {
+    /* If destroy is pending or in progress, block until it completes.
+     * This prevents app threads from issuing new collectives while
+     * the background thread is draining and destroying. */
+    if (need_destroy || (!destroy_done && need_destroy)) {
+        while (!destroy_done) usleep(10000);
+    }
     if (!need_recreate) return;
     pthread_mutex_lock(&recreate_mtx);
     if (need_recreate) {
@@ -517,10 +635,7 @@ static void ensure_live(void) {
     pthread_mutex_unlock(&recreate_mtx);
 }
 
-/* ---- translated call surface --------------------------------------------
- * Collectives trigger the lazy recreate; query calls are answered from
- * cache while the comm is destroyed (keeps PyTorch's watchdog off a dead
- * comm during the C/R window). */
+/* ---- translated call surface -------------------------------------------- */
 
 ncclResult_t ncclAllReduce(const void* s, void* r, size_t n, int dt, int op,
                            ncclComm_t c, void* st) {
@@ -582,7 +697,7 @@ ncclResult_t ncclCommUserRank(const ncclComm_t c, int* out) {
 ncclResult_t ncclCommGetAsyncError(ncclComm_t c, ncclResult_t* out) {
     resolve_all();
     comm_rec_t* rec = find_rec(c);
-    if (rec && rec->destroyed) { if (out) *out = 0; return 0; }   /* report healthy */
+    if (rec && rec->destroyed) { if (out) *out = 0; return 0; }
     return real_CommGetAsyncError(rec ? rec->cur_handle : c, out);
 }
 ncclResult_t ncclCommRegister(const ncclComm_t c, void* buf, size_t n, void** h) {
@@ -592,7 +707,7 @@ ncclResult_t ncclCommRegister(const ncclComm_t c, void* buf, size_t n, void** h)
 ncclResult_t ncclCommDeregister(const ncclComm_t c, void* h) {
     resolve_all();
     comm_rec_t* rec = find_rec((ncclComm_t)c);
-    if (rec && rec->destroyed) return 0;   /* registration died with the comm */
+    if (rec && rec->destroyed) return 0;
     return real_CommDeregister(rec ? rec->cur_handle : (ncclComm_t)c, h);
 }
 
@@ -608,7 +723,7 @@ static void untrack(ncclComm_t app) {
 ncclResult_t ncclCommDestroy(ncclComm_t c) {
     resolve_all();
     comm_rec_t* rec = find_rec(c);
-    if (rec && rec->destroyed) { untrack(c); return 0; }   /* already gone */
+    if (rec && rec->destroyed) { untrack(c); return 0; }
     ncclComm_t live = xlate(c);
     untrack(c);
     return real_CommDestroy(live);
@@ -628,12 +743,7 @@ ncclResult_t ncclCommFinalize(ncclComm_t c) {
     return real_CommFinalize(rec ? rec->cur_handle : c);
 }
 
-/* ---- PyNCCL pass-through surface ------------------------------------------
- * vLLM's PyNCCL loads one .so via ctypes and dlsym's every NCCL function from
- * that handle — LD_PRELOAD interposition does not apply. Setting
- * VLLM_NCCL_SO_PATH to THIS shim routes PyNCCL through us instead, so its
- * comms are tracked/translated like everything else. These exports complete
- * the surface PyNCCL needs; they forward to the real NCCL. */
+/* ---- PyNCCL pass-through surface ----------------------------------------- */
 typedef ncclResult_t (*fnGetVersion)(int*);
 typedef const char*  (*fnGetErrorString)(int);
 typedef const char*  (*fnGetLastError)(ncclComm_t);
@@ -668,7 +778,7 @@ const char* ncclGetLastError(ncclComm_t c) {
 }
 ncclResult_t ncclGroupStart(void) {
     RESOLVE(real_GroupStart, fnGroupStart, "ncclGroupStart");
-    ensure_live();   /* recreate must not happen inside a group */
+    ensure_live();
     return real_GroupStart();
 }
 ncclResult_t ncclGroupEnd(void) {
@@ -707,6 +817,14 @@ static void init_cr_shim2(void) {
     sigaction(SIGRTMIN + 1, &sa, NULL);
     sa.sa_handler = recreate_arm_handler;
     sigaction(SIGRTMIN + 2, &sa, NULL);
-    fprintf(stderr, "[cr-shim2] PID %d: ready (destroy=sig%d, recreate-arm=sig%d, rendezvous=%s)\n",
+
+    /* Start background destroy thread */
+    if (!destroy_thread_started) {
+        pthread_create(&destroy_thread, NULL, destroy_thread_fn, NULL);
+        destroy_thread_started = 1;
+    }
+
+    mkdir(rdir(), 0777);
+    fprintf(stderr, "[cr-shim2] PID %d: ready (destroy=sig%d, recreate-arm=sig%d, rendezvous=%s, deferred-destroy=on)\n",
             getpid(), SIGRTMIN + 1, SIGRTMIN + 2, rdir());
 }
