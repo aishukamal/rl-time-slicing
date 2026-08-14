@@ -623,4 +623,21 @@ GPU interleaving works for both inference (app-aware) and training (shim + cuda-
 
 5. **Requires NCCL ≥ 2.30.** Earlier versions (e.g., 2.26) are missing `ncclDevCommDestroy`, causing silent comm recreate failures. Previously misdiagnosed as a "CommCheck race" requiring `NCCL_DEBUG=INFO` — debunked (wrong NCCL version was the root cause).
 
-6. **`--disable-custom-all-reduce` required on driver 580, NOT on 610+ (Option B).** Root cause proven with minimal reproducer: `cudaIpcOpenMemHandle` creates cross-process GPU memory mappings that driver 580's cuda-checkpoint cannot restore (thaw returns "invalid argument"). Both vLLM and SGLang's custom all-reduce calls `cudaIpcOpenMemHandle` to map peer GPU memory into each rank's address space. Driver 580's cuda-checkpoint README explicitly states it "does not support UVM memory or IPC memory." **Validated on driver 610.57.04 (installed on GKE Ubuntu 24.04):** SGLang TP=2 with custom all-reduce ON passes end-to-end C/R — freeze to 4 MiB, thaw, inference correct post-restore. Requires `cuda-checkpoint --launch-job` to register processes for IPC coordination. Driver 610 is not yet available via GKE's managed driver channels (DEFAULT and LATEST both give 580); installed via `.run` installer on Ubuntu node pool with `gpu-driver-version=disabled`. Performance impact of `--disable-custom-all-reduce` on 580: negligible (<1-2%).
+6. **Custom all-reduce and cuda-checkpoint: two IPC mechanisms, two driver requirements (Option B).**
+
+   Custom all-reduce in inference frameworks uses cross-process GPU memory sharing. Two distinct IPC mechanisms exist, each with different cuda-checkpoint support:
+
+   | IPC mechanism | CUDA API | Driver 580 | Driver 610 |
+   |---|---|---|---|
+   | Legacy IPC | `cudaIpcGetMemHandle` / `cudaIpcOpenMemHandle` | Not supported | Supported (requires `--launch-job`) |
+   | VMM IPC (symmetric memory) | `cuMemCreate` + `cuMemExportToShareableHandle` | Not supported | **Not supported** |
+
+   **SGLang v0.4.7** uses only legacy IPC for custom all-reduce → works on driver 610 with `--launch-job`. Validated: TP=2 custom AR ON, freeze to 4 MiB, thaw, inference correct.
+
+   **vLLM 0.27.1** uses legacy IPC **plus** VMM IPC (`torch.distributed._symmetric_memory`) in two components: `SymmMemCommunicator` (controlled by `VLLM_ALLREDUCE_USE_SYMM_MEM`, default True) and `CustomAllreduce._init_mnnvl_buffer()` (always called). The VMM IPC calls `cuMemExportToShareableHandle` which cuda-checkpoint does not support on any current driver. Validated: disabling both VMM paths (`VLLM_ALLREDUCE_USE_SYMM_MEM=0` + patching `_init_mnnvl_buffer` to skip) makes vLLM custom AR ON pass on 610 — but patching vLLM source is not a production solution.
+
+   **Driver 580:** `--disable-custom-all-reduce` required for both frameworks (no IPC support at all). Performance impact: negligible (<1-2%).
+
+   **Driver 610:** SGLang works with custom AR ON via `--launch-job`. vLLM requires `--disable-custom-all-reduce` until cuda-checkpoint adds `cuMemExportToShareableHandle` support. Driver 610 is not yet available via GKE managed channels; installed via `.run` on Ubuntu node pools.
+
+   **Root cause proven** with minimal reproducers: legacy IPC (`cudaIpcOpenMemHandle`) alone → PASS on 610; `torch._symmetric_memory.empty()` + `rendezvous()` → FAIL (rc=124 "OS call failed").
