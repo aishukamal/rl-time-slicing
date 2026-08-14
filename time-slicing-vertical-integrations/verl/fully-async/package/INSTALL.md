@@ -80,6 +80,34 @@ sync/disagg modes unchanged.
    source changes and no `VERL_USE_EXTERNAL_MODULES` needed (entry-point
    discovery reaches every Ray actor process because each one re-imports verl).
 
+## Platform setup
+
+Deploy the time-slicing platform (Accelerator Orchestrator + Snapshot Agent + DRA driver) on your GKE cluster following the [deployment guide](https://github.com/llm-d-incubation/llm-d-rl-time-slicing/tree/main/deploy). Label and taint GPU nodes per the [orchestrator guide](https://github.com/llm-d-incubation/llm-d-rl-time-slicing/tree/main/guides/accelerator-orchestrator).
+
+## CUDA_VISIBLE_DEVICES orientation
+
+The shared trainer GPU must be first in each job's CUDA device mask so that
+`torch.cuda.device(0)` maps to it:
+
+```yaml
+- {name: CUDA_VISIBLE_DEVICES, value: "2,0"}  # GPU 2 = shared trainer (logical 0), GPU 0 = dedicated rollout
+```
+
+Both time-sliced jobs must use the same physical GPU as their logical device 0.
+A watchdog in the manifest verifies placement at startup.
+
+## Swapping the workload
+
+To use a different model or dataset, change these verl config overrides in the
+job manifest:
+
+- `actor_rollout_ref.model.model_path` — HuggingFace model name or local path
+- `actor_rollout_ref.rollout.prompt_data` — dataset path
+- `actor_rollout_ref.rollout.reward_fn` — reward function
+
+The manifests in `manifests/` use DAPO-Math-17k (Job A) and Eurus-Code (Job B)
+with DeepSeek-R1-Distill-Qwen-1.5B.
+
 ## Required environment (trainer job container)
 
 ```yaml
