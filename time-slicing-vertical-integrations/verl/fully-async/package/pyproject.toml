@@ -1,0 +1,22 @@
+# Canonical pyproject for the PoC fully-async overlay package.
+# Backported 2026-07-26: the job manifests' install step previously heredoc-
+# generated an identical file (the ConfigMap ships only the module files);
+# this is now the source of truth — keep the manifests' generated copy in sync.
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "timeslice-verl"
+version = "0.3.0"
+description = "verl <-> llm-d-rl-time-slicing integration (PoC fully-async overlay)"
+requires-python = ">=3.9"
+
+# verl auto-loads every `verl.plugins` entry point at `import verl`
+# (verl/__init__.py:49-65) in every process; the hook itself is inert unless
+# TIMESLICE_FULLY_ASYNC=1.
+[project.entry-points."verl.plugins"]
+timeslice_verl = "timeslice_verl"
+
+[tool.setuptools]
+packages = ["timeslice_verl"]
