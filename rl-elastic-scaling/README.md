@@ -1,7 +1,9 @@
 # Elastic RL Scaling PoC — Trainer↔Rollout GPU Time-Slicing via Transparent C/R
 
 Proof-of-concept for elastic GPU reassignment between the trainer and rollout roles of an
-RL post-training job, using transparent checkpoint/restore (GPU-CR + snapshot agent) under a
+RL post-training job, using transparent checkpoint/restore — the snapshot-agent's cuda backend, with the
+[multi-gpu-cr-poc](../multi-gpu-cr-poc/) NCCL-suspend shim (`universal_cr_shim.c`) and
+TCP-transport NCCL configuration making NCCL-holding processes checkpointable — under a
 completely **unmodified verl** fully-async recipe (DeepSeek-R1-Distill-Qwen-1.5B, code-RLVR,
 Eurus-2-RL code prompts, s=8). When the run is generation-bound the rollout engine borrows the
 trainer's GPU (the trainer is suspended and evicted to host memory); when a training batch is
