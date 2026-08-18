@@ -9,10 +9,12 @@ Full end-to-end checkpoint/restore validated across vLLM, SGLang, and FSDP train
 | Workload | Mechanism | Driver 580 (GKE today) | Driver 610 (manual install) |
 |---|---|---|---|
 | **Training (FSDP DP/TP/PP/EP)** | shim + cuda-checkpoint | PASS — graphs n/a, `NCCL_NVLS_ENABLE=0` | PASS — **NVLS ON** |
-| **vLLM TP=2** | shim + cuda-checkpoint | PASS — `--enforce-eager`, `--disable-custom-all-reduce`, NVLS off | PASS — **graphs ON, NVLS ON**; still `--disable-custom-all-reduce` |
+| **vLLM TP=2** | shim + cuda-checkpoint | PASS — `--enforce-eager`, `--disable-custom-all-reduce`, NVLS off | PASS — **graphs ON, NVLS ON**¹; still `--disable-custom-all-reduce` |
 | **SGLang TP=2** | shim + cuda-checkpoint | PASS — `--disable-cuda-graph`, `--disable-custom-all-reduce`, `SGLANG_NCCL_SO_PATH=shim` | PASS — custom AR OK with `--launch-job` |
 | **vLLM / SGLang (all TP/PP/EP)** | app-aware sleep / release-resume | PASS — zero perf tax, graphs+NVLS survive, 81-97% freed | (same) |
 | **Multi-job interleaving** | both mechanisms | PASS (SGLang 3/3, trainer 2/2 rounds) | — |
+
+¹ Graphs-ON (vLLM) and NVLS-ON (FSDP) were each validated on 610 in **separate runs**; the combined graphs+NVLS single-run validation is in progress.
 
 NVLink P2P is ON at steady state in every current config — the TCP-transport recipe (`NCCL_P2P_DISABLE`/`NCCL_SHM_DISABLE`) is v1 legacy only.
 
