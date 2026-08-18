@@ -9,9 +9,11 @@ Two shim generations:
 - **Shim v1** (`universal_cr_shim.c`): ncclCommSuspend/Resume across the freeze. Requires NCCL on TCP transport — **no NVLink at steady state** (50-100x slower collectives).
 - **Shim v2** (`universal_cr_shim_v2.c`): destroys NCCL comms before freeze, recreates them (fresh uniqueId rendezvous + handle indirection) after restore. **NVLink P2P stays enabled at steady state — zero performance tax.** See the "Shim v2" section below.
 
-**v1 recipe:** NCCL TCP transport (3 env vars) + LD_PRELOAD shim (ncclCommSuspend/Resume) + framework-specific CUDA graph disable.
+**v1 recipe (legacy, superseded):** NCCL TCP transport (3 env vars) + LD_PRELOAD shim (ncclCommSuspend/Resume) + framework-specific CUDA graph disable. NVLink disabled — 50-100x slower collectives at steady state.
 
-**v2 recipe:** `NCCL_NVLS_ENABLE=0` + LD_PRELOAD shim v2 + framework-specific CUDA graph disable. NVLink P2P active.
+**v2 recipe (current):** `NCCL_NVLS_ENABLE=0` + LD_PRELOAD shim v2 + framework-specific CUDA graph disable + `--disable-custom-all-reduce`. **NVLink P2P active — do NOT set `NCCL_P2P_DISABLE` or `NCCL_SHM_DISABLE` with v2.** Only NVLS (in-switch multicast reduction) is disabled.
+
+> **Note on document structure:** the "Test Results", "Required Configuration", "C/R Orchestration Protocol", and "Performance Impact" sections immediately below document **shim v1 (legacy)** and are kept for historical reference. For the current solution, see "Shim v2: NVLink at Steady State" and everything after it.
 
 ## Environment
 
@@ -25,7 +27,7 @@ Two shim generations:
 | SGLang | 0.5.14 |
 | Model | facebook/opt-1.3b |
 
-## Test Results
+## Test Results (shim v1 — legacy, TCP transport)
 
 | # | Test | Topology | Shim | Freeze | Restore | Total |
 |---|------|----------|------|--------|---------|-------|
@@ -41,11 +43,13 @@ Two shim generations:
 
 **9/9 PASS. All with post-restore inference/training verification.**
 
-## Required Configuration
+## Required Configuration (shim v1 — legacy)
 
-### NCCL Transport (multi-GPU only)
+> **Superseded by shim v2.** With v2, do NOT disable P2P/SHM — only `NCCL_NVLS_ENABLE=0` is required and NVLink stays on. This section applies only to the v1 suspend/resume shim.
 
-Forces NCCL to use TCP loopback instead of NVLink P2P / SHM / NVLS:
+### NCCL Transport (v1 only)
+
+v1 forces NCCL to use TCP loopback instead of NVLink P2P / SHM / NVLS:
 
 ```bash
 export NCCL_P2P_DISABLE=1
@@ -53,7 +57,7 @@ export NCCL_SHM_DISABLE=1
 export NCCL_NVLS_ENABLE=0
 ```
 
-**Why:** NCCL's SHM and P2P transports create cross-process GPU shared memory that cuda-checkpoint cannot restore ([NVIDIA/cuda-checkpoint#27](https://github.com/NVIDIA/cuda-checkpoint/issues/27)). TCP transport uses no cross-process GPU state.
+**Why (v1 only):** `ncclCommSuspend` does not tear down P2P/SHM transport state, and cuda-checkpoint cannot restore that cross-process GPU shared memory ([NVIDIA/cuda-checkpoint#27](https://github.com/NVIDIA/cuda-checkpoint/issues/27)). v2 destroys the comms outright, so NCCL itself tears down P2P/SHM state and the TCP restriction disappears.
 
 ### LD_PRELOAD Shim (multi-GPU only)
 
@@ -77,7 +81,7 @@ Source: `universal_cr_shim.c` (~120 lines). Build: `gcc -shared -fPIC -o libcr-s
 
 No shim, no NCCL env vars, no framework flags needed. Just `cuda-checkpoint --toggle --pid <PID>`.
 
-## C/R Orchestration Protocol
+## C/R Orchestration Protocol (v1 signal semantics; same signals drive v2)
 
 ### Sequence
 
@@ -102,7 +106,7 @@ No shim, no NCCL env vars, no framework flags needed. Just `cuda-checkpoint --to
 
 Each node runs its C/R cycle independently. No cross-node coordination required for TP groups. For active DP training (gradient sync in-flight), suspend all nodes simultaneously to avoid NCCL timeouts.
 
-## Performance Impact
+## Performance Impact (v1's TCP tax — the reason v2 exists)
 
 | Metric | NVLink P2P | TCP Loopback | Impact |
 |--------|-----------|--------------|--------|
