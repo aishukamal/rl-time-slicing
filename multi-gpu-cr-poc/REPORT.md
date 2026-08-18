@@ -615,11 +615,36 @@ Validated that two independent workloads can alternate on the same GPUs via C/R 
 
 GPU interleaving works for both inference (app-aware) and training (shim + cuda-checkpoint). No state corruption, no memory leaks across alternation cycles. This validates the disaggregated time-slicing flow: trainer GPUs can be reclaimed for sampling and returned without restarting either workload.
 
+## Driver 610 Status (2026-08-14)
+
+Driver 610.57.04 (installed via `.run` on GKE Ubuntu node pools; not yet in GKE managed channels) lifts both major 580 restrictions on H100:
+
+| Constraint | Driver 580 | Driver 610 |
+|---|---|---|
+| CUDA graphs through C/R (vLLM decode graphs) | restore fails — `--enforce-eager` required | **works** — graphs stay ON |
+| NVLS through C/R | recreate fails in ncclNvlsSetup — `NCCL_NVLS_ENABLE=0` required | **works** — NVLS stays ON |
+| Legacy CUDA IPC (`cudaIpcGetMemHandle`) | unsupported | works (`--launch-job`) |
+| VMM IPC (`cuMemExportToShareableHandle`, PyTorch symmetric memory) | unsupported | still unsupported — vLLM needs `--disable-custom-all-reduce` |
+| NCCL comms across freeze | shim destroy/recreate required | **still required** (live comms still fail restore) |
+
+Net: on 610, the steady-state config is graphs ON + NVLS ON + NVLink ON; the only remaining flags are `--disable-custom-all-reduce` (vLLM) and the shim.
+
+## NVIDIA contrib/nccl_checkpoint Shim Evaluation (2026-08-14)
+
+NVIDIA ships an official checkpoint shim in NCCL ≥ 2.30.7 (`contrib/nccl_checkpoint`): LD_PRELOAD interposition, `ncclCheckpointPrepare()`/`ncclCheckpointRestore()` API, Redis-based rendezvous, synthetic-handle indirection. Evaluated on H100 driver 580:
+
+- **FSDP DP=2: PASS** (2 cycles). **vLLM TP=2: PASS** (2 cycles) — but requires worker-side plumbing: vLLM's PyNCCL loads NCCL via ctypes (bypasses LD_PRELOAD), so a `--worker-extension-cls` extension must destroy/recreate the pynccl comm around Prepare/Restore (reusable extension: `nccl-checkpoint-tests/nvidia-shim-eval/ckpt_ext.py`).
+- **Version-skew bug hit and patched:** torch built against older NCCL headers passes a shorter config struct; the shim over-reads it and stamps the current version → restore rejects (`Invalid config shrinkShare attribute value -2`). Patch: start from `NCCL_CONFIG_INITIALIZER`, overlay only caller-owned bytes (`shim-version-skew-patch.diff`). Hits any torch built against older NCCL — worth upstreaming.
+- **Their replay engine is more complete than shim v2:** CommSplit/shrink/grow, `ncclCommRegister` buffers, window registration, multi-host Redis rendezvous (survives IP changes), synthetic handles from creation.
+- **Gaps for our orchestration:** no external trigger (API-only — snapshot-agent needs a signal→API companion preload), no ctypes/dlopen coverage (can't be used as `VLLM_NCCL_SO_PATH`), no CUDA-graph handling, Redis lifecycle to provision.
+
+**Verdict: adopt with wrappers** — their replay engine + our signal-trigger companion, version-skew patch, and per-framework pynccl plumbing.
+
 ## Known Limitations
 
-1. **cuda-checkpoint cannot freeze multi-GPU processes with captured CUDA graphs.** Driver limitation, not a CLI bug — verified via in-process API. Affects Options B and C. Repro: `graph_cr_api_test.py`.
+1. **CUDA graphs + multi-GPU C/R: driver-580 restore limitation, FIXED in driver 610.** *(Corrected 2026-08-14 — the original finding was over-generalized.)* Compute-only CUDA graphs in multi-GPU processes checkpoint/restore fine even on driver 580 (with NCCL destroyed pre-freeze). What actually fails on 580 is **restoring graphs that captured NCCL collectives referencing NVLink P2P state** (vLLM's decode graphs) — a restore failure ("invalid argument"), not a freeze refusal. **On driver 610.57.04: vLLM TP=2 with graphs ON (no `--enforce-eager`) passes full C/R end-to-end** with shim v2 — graphs intact, inference correct. The `--enforce-eager` requirement applies to driver 580 only. Also corrected: the earlier "verified via in-process API rc=1" claim was a harness bug — `cuCheckpointProcessLock` takes `(pid, args*)` and the ctypes call passed no arguments; rc=1 was `CUDA_ERROR_INVALID_VALUE` from the malformed call on every platform. (Related context: an L4 never hits the 580 restriction at all — L4 has no NVLink P2P or multicast, so the driver objects that break H100 restore don't exist in its checkpoint image.)
 
-2. **cuda-checkpoint: `cuMulticastAddDevice` broken post-restore.** NVLS multicast objects cannot be created in a restored process. Driver limitation, process-wide (even fresh CUDA contexts fail). Affects Options B and C. Repro: `mc_test.c`.
+2. **`cuMulticastAddDevice` broken post-restore on driver 580, FIXED in driver 610.** On 580, NVLS multicast objects cannot be created in a restored process (error 101, process-wide, even fresh CUDA contexts — repro: `mc_test.c`). **On driver 610.57.04: `mc_test.c` passes (Create + AddDevice post-restore, including the SKIP_PRE variant), and FSDP DP=2 with `NCCL_NVLS_ENABLE=1` passes full C/R** — NVLS re-established after recreate (16 nvls channels), training resumed. The `NCCL_NVLS_ENABLE=0` requirement applies to driver 580 only.
 
 3. **vLLM sleep + shim destroy incompatible.** Graph lifecycle deadlock: graphs must be reset before comm destroy (PyTorch #115388), but external graph reset leaves vLLM's CUDAGraphRunner inconsistent. Requires vLLM-internal graph cleanup before comm teardown — a vLLM feature gap.
 
