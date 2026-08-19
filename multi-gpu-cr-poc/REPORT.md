@@ -9,12 +9,12 @@ Full end-to-end checkpoint/restore validated across vLLM, SGLang, and FSDP train
 | Workload | Mechanism | Driver 580 (GKE today) | Driver 610 (manual install) |
 |---|---|---|---|
 | **Training (FSDP DP/TP/PP/EP)** | shim + cuda-checkpoint | PASS — graphs n/a, `NCCL_NVLS_ENABLE=0` | PASS — **NVLS ON** |
-| **vLLM TP=2** | shim + cuda-checkpoint | PASS — `--enforce-eager`, `--disable-custom-all-reduce`, NVLS off | PASS — **graphs ON, NVLS ON**¹; still `--disable-custom-all-reduce` |
+| **vLLM TP=2** | shim + cuda-checkpoint | PASS — `--enforce-eager`, `--disable-custom-all-reduce`, NVLS off | PASS — **graphs ON (NVLS off) XOR NVLS ON (eager)**¹; still `--disable-custom-all-reduce` |
 | **SGLang TP=2** | shim + cuda-checkpoint | PASS — `--disable-cuda-graph`, `--disable-custom-all-reduce`, `SGLANG_NCCL_SO_PATH=shim` | PASS — custom AR OK with `--launch-job` |
 | **vLLM / SGLang (all TP/PP/EP)** | app-aware sleep / release-resume | PASS — zero perf tax, graphs+NVLS survive, 81-97% freed | (same) |
 | **Multi-job interleaving** | both mechanisms | PASS (SGLang 3/3, trainer 2/2 rounds) | — |
 
-¹ Graphs-ON (vLLM) and NVLS-ON (FSDP) were each validated on 610 in **separate runs**; the combined graphs+NVLS single-run validation is in progress.
+¹ **Graphs+NVLS combined is a requirements deadlock on 610 (validated 2026-08-14, both shims):** live NVLS multicast blocks freeze (rc=124), so comms must be destroyed first — but captured CUDA graphs wedge `ncclCommDestroy`, so they can't be. `CR_RESET_GRAPHS=1` breaks the deadlock but vLLM cannot recover (replays destroyed graph execs, engine dies — no auto-recapture). Additionally, the earlier "graphs ON" 610 pass works via **freeze-with-live-comms** (the destroy silently never completes; 610 + `--launch-job` tolerates live NVLS-off comms across the freeze), not via destroy-then-freeze. vLLM 0.27.1's graph modes wedge destroy even with NVLS off — use ≤0.10 graph mode or eager for destroy-based C/R.
 
 NVLink P2P is ON at steady state in every current config — the TCP-transport recipe (`NCCL_P2P_DISABLE`/`NCCL_SHM_DISABLE`) is v1 legacy only.
 
@@ -645,13 +645,14 @@ Driver 610.57.04 (installed via `.run` on GKE Ubuntu node pools; not yet in GKE 
 
 | Constraint | Driver 580 | Driver 610 |
 |---|---|---|
-| CUDA graphs through C/R (vLLM decode graphs) | restore fails — `--enforce-eager` required | **works** — graphs stay ON |
-| NVLS through C/R | recreate fails in ncclNvlsSetup — `NCCL_NVLS_ENABLE=0` required | **works** — NVLS stays ON |
+| CUDA graphs through C/R (vLLM decode graphs) | restore fails — `--enforce-eager` required | **works with NVLS off** — via freeze-with-live-comms (610+`--launch-job` tolerates live NVLS-off comms across the freeze; the shim's destroy silently never completes because graphs wedge `ncclCommDestroy`). vLLM ≤0.10 graph mode; 0.27.1 wedges. |
+| NVLS through C/R | recreate fails in ncclNvlsSetup — `NCCL_NVLS_ENABLE=0` required | **works with destroy-based C/R** — FSDP (both shims) and vLLM eager validated. Live NVLS blocks freeze (rc=124), so comms MUST be destroyed pre-freeze. |
+| **Graphs + NVLS combined** | n/a (both blocked) | **DEADLOCK** — NVLS requires destroy-pre-freeze; graphs wedge destroy; `CR_RESET_GRAPHS=1` unblocks destroy but vLLM can't recover (no graph re-capture). Pick one: graphs ON (NVLS off) or NVLS ON (eager). |
 | Legacy CUDA IPC (`cudaIpcGetMemHandle`) | unsupported | works (`--launch-job`) |
 | VMM IPC (`cuMemExportToShareableHandle`, PyTorch symmetric memory) | unsupported | still unsupported — vLLM needs `--disable-custom-all-reduce` |
-| NCCL comms across freeze | shim destroy/recreate required | **still required** (live comms still fail restore) |
+| NCCL comms across freeze | shim destroy/recreate required | shim still required in general; exception: NVLS-off live comms survive freeze under `--launch-job` (the graphs path above relies on this) |
 
-Net: on 610, the steady-state config is graphs ON + NVLS ON + NVLink ON; the only remaining flags are `--disable-custom-all-reduce` (vLLM) and the shim.
+Net: on 610, per-workload steady-state config — **training (no graphs): NVLS ON + NVLink ON**; **vLLM: graphs ON (NVLS off) or NVLS ON (eager), plus `--disable-custom-all-reduce`**. Which wins for inference depends on topology: at TP=2 graphs (30-50% at low batch) outweigh NVLS; at TP=8 on NVSwitch measure both.
 
 ## NVIDIA contrib/nccl_checkpoint Shim Evaluation (2026-08-14)
 
@@ -664,9 +665,11 @@ NVIDIA ships an official checkpoint shim in NCCL ≥ 2.30.7 (`contrib/nccl_check
 
 **Verdict: adopt with wrappers** — their replay engine + our signal-trigger companion, version-skew patch, and per-framework pynccl plumbing.
 
+**Driver 610 replication (2026-08-14):** exact behavioral parity with our shim — NVIDIA shim passes where ours passes (FSDP DP=2 NVLS ON: 2 cycles, NVLS re-established on both restores; vLLM TP=2 eager + NVLS ON: 2 cycles, correct inference) and wedges where ours wedges (vLLM graphs ON: `ckpt_prepare` never returns — pynccl `ncclCommDestroy` of a graph-captured comm; their README's "graphs unsupported" confirmed). SGLang skipped: no worker-extension/collective_rpc mechanism to call the in-process API — an integration gap for API-triggered shims generally. Run logs: `nccl-checkpoint-tests/610-combined-run/`.
+
 ## Known Limitations
 
-1. **CUDA graphs + multi-GPU C/R: driver-580 restore limitation, FIXED in driver 610.** *(Corrected 2026-08-14 — the original finding was over-generalized.)* Compute-only CUDA graphs in multi-GPU processes checkpoint/restore fine even on driver 580 (with NCCL destroyed pre-freeze). What actually fails on 580 is **restoring graphs that captured NCCL collectives referencing NVLink P2P state** (vLLM's decode graphs) — a restore failure ("invalid argument"), not a freeze refusal. **On driver 610.57.04: vLLM TP=2 with graphs ON (no `--enforce-eager`) passes full C/R end-to-end** with shim v2 — graphs intact, inference correct. The `--enforce-eager` requirement applies to driver 580 only. Also corrected: the earlier "verified via in-process API rc=1" claim was a harness bug — `cuCheckpointProcessLock` takes `(pid, args*)` and the ctypes call passed no arguments; rc=1 was `CUDA_ERROR_INVALID_VALUE` from the malformed call on every platform. (Related context: an L4 never hits the 580 restriction at all — L4 has no NVLink P2P or multicast, so the driver objects that break H100 restore don't exist in its checkpoint image.)
+1. **CUDA graphs + multi-GPU C/R: driver-580 restore limitation; on 610 graphs work via live-comm freeze (NVLS off only).** *(Corrected twice, 2026-08-14 — see history.)* Compute-only CUDA graphs in multi-GPU processes checkpoint/restore fine even on driver 580 (with NCCL destroyed pre-freeze). What fails on 580 is **restoring graphs that captured NCCL collectives referencing NVLink P2P state** (vLLM's decode graphs) — a restore failure, not a freeze refusal. **On driver 610: vLLM TP=2 with graphs ON passes full C/R — but the mechanism is freeze-with-live-comms** (610 + `--launch-job` tolerates live NVLS-off comms across the freeze; the destroy silently never completes because **captured graphs wedge `ncclCommDestroy`** — on every driver, both our shim and NVIDIA's). Consequences: graphs ON requires NVLS OFF (live NVLS blocks freeze rc=124 → needs the destroy graphs prevent → deadlock); `CR_RESET_GRAPHS=1` unblocks destroy but vLLM cannot re-capture and dies; vLLM 0.27.1 graph modes wedge destroy even NVLS-off. Also retired: the earlier "verified via in-process API rc=1" claim was a ctypes harness bug (missing pid argument — rc=1 on every platform). (Context: L4 never hits any of this — no NVLink P2P or multicast objects exist in its checkpoint image, which is why gVisor Pod Snapshot results on L4 don't transfer to H100.)
 
 2. **`cuMulticastAddDevice` broken post-restore on driver 580, FIXED in driver 610.** On 580, NVLS multicast objects cannot be created in a restored process (error 101, process-wide, even fresh CUDA contexts — repro: `mc_test.c`). **On driver 610.57.04: `mc_test.c` passes (Create + AddDevice post-restore, including the SKIP_PRE variant), and FSDP DP=2 with `NCCL_NVLS_ENABLE=1` passes full C/R** — NVLS re-established after recreate (16 nvls channels), training resumed. The `NCCL_NVLS_ENABLE=0` requirement applies to driver 580 only.
 
