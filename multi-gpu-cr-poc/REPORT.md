@@ -4,34 +4,52 @@
 
 Full end-to-end checkpoint/restore validated across vLLM, SGLang, and FSDP training on 2x H100 80GB — all parallelism dimensions (TP, PP, EP, DP, MoE), multi-job GPU interleaving, drivers 580 and 610, our shim v2 and NVIDIA's official contrib shim. All passing tests include post-restore inference/training verification.
 
-### What works
+### What works — driver 580 (GKE managed channels today)
 
-| Workload | Mechanism | Driver 580 (GKE today) | Driver 610 (manual install) |
-|---|---|---|---|
-| **Training (FSDP DP/TP/PP/EP)** | shim + cuda-checkpoint | PASS — graphs n/a, `NCCL_NVLS_ENABLE=0` | PASS — **NVLS ON** |
-| **vLLM TP=2** | shim + cuda-checkpoint | PASS — `--enforce-eager`, `--disable-custom-all-reduce`, NVLS off | PASS — **graphs ON (NVLS off) XOR NVLS ON (eager)**¹; still `--disable-custom-all-reduce` |
-| **SGLang TP=2** | shim + cuda-checkpoint | PASS — `--disable-cuda-graph`, `--disable-custom-all-reduce`, `SGLANG_NCCL_SO_PATH=shim` | PASS — custom AR OK with `--launch-job` |
-| **vLLM / SGLang (all TP/PP/EP)** | app-aware sleep / release-resume | PASS — zero perf tax, graphs+NVLS survive, 81-97% freed | (same) |
-| **Multi-job interleaving** | both mechanisms | PASS (SGLang 3/3, trainer 2/2 rounds) | — |
+| Workload | CUDA graphs | NVLS | Custom all-reduce | Result |
+|---|---|---|---|---|
+| FSDP training (DP/TP/PP/EP) | n/a | OFF (`NCCL_NVLS_ENABLE=0`) | n/a | **PASS** |
+| vLLM TP=2 | OFF (`--enforce-eager`) | OFF | OFF (`--disable-custom-all-reduce`) | **PASS** |
+| vLLM TP=2 | ON | any | any | **FAIL** — restore of graphs that captured P2P-referencing collectives |
+| SGLang TP=2 | OFF (`--disable-cuda-graph`) | OFF | OFF | **PASS** (needs `SGLANG_NCCL_SO_PATH=shim`) |
+| SGLang TP=2 | any | any | ON | **FAIL** — 580 has no CUDA IPC checkpoint support |
 
-¹ **Graphs+NVLS combined is a requirements deadlock on 610 (validated 2026-08-14, both shims):** live NVLS multicast blocks freeze (rc=124), so comms must be destroyed first — but captured CUDA graphs wedge `ncclCommDestroy`, so they can't be. `CR_RESET_GRAPHS=1` breaks the deadlock but vLLM cannot recover (replays destroyed graph execs, engine dies — no auto-recapture). Additionally, the earlier "graphs ON" 610 pass works via **freeze-with-live-comms** (the destroy silently never completes; 610 + `--launch-job` tolerates live NVLS-off comms across the freeze), not via destroy-then-freeze. vLLM 0.27.1's graph modes wedge destroy even with NVLS off — use ≤0.10 graph mode or eager for destroy-based C/R.
+### What works — driver 610 (manual `.run` install on Ubuntu pools; workload launched via `cuda-checkpoint --launch-job` wrapper)
 
-NVLink P2P is ON at steady state in every current config — the TCP-transport recipe (`NCCL_P2P_DISABLE`/`NCCL_SHM_DISABLE`) is v1 legacy only.
+| Workload | CUDA graphs | NVLS | Custom all-reduce | Result |
+|---|---|---|---|---|
+| FSDP training | n/a | **ON** | n/a | **PASS** — both our shim and NVIDIA's, 2 cycles each |
+| vLLM TP=2 | OFF (`--enforce-eager`) | **ON** | OFF | **PASS** — both shims, 2 cycles |
+| vLLM TP=2 (v0.10, piecewise graph mode) | **ON** | OFF | OFF | **PASS** — via freeze-with-live-comms: the destroy silently wedges (graphs block `ncclCommDestroy`), but 610 + `--launch-job` tolerates live NVLS-off comms across the freeze |
+| vLLM TP=2 | ON | ON | any | **FAIL** — requirements deadlock: live NVLS blocks freeze (rc=124), so comms must be destroyed first; captured graphs wedge the destroy. `CR_RESET_GRAPHS=1` unblocks destroy but vLLM cannot re-capture (engine dies) |
+| vLLM TP=2 (v0.27.1, FULL graph modes) | ON | OFF | OFF | **FAIL** on the destroy path (FULL modes capture collectives, wedging destroy even NVLS-off); live-comm-freeze path untested |
+| vLLM TP=2 | any | any | ON | **FAIL** — symmetric memory uses `cuMemExportToShareableHandle` (VMM IPC), unsupported by cuda-checkpoint on all drivers |
+| SGLang TP=2 | OFF | OFF | **ON** | **PASS** — legacy CUDA IPC works under `--launch-job` |
+| SGLang TP=2 | ON | — | — | Untested on 610 |
 
-**Shim options** (one is always required for cuda-checkpoint on multi-GPU — live NCCL comms across a freeze fail restore on every driver tested):
-- **Our shim v2** (`universal_cr_shim_v2.c`): signal-driven (external orchestration), deferred destroy, ncclCommSplit, graph tracking, PyNCCL/ctypes surface.
-- **NVIDIA `contrib/nccl_checkpoint`** (NCCL ≥ 2.30.7): validated PASS on FSDP + vLLM (H100/580). Richer replay engine (split/shrink/grow/register, multi-host Redis rendezvous) but API-only triggering, no ctypes coverage, no graph handling, and a version-skew bug we patched. **Verdict: adopt with wrappers** — see "NVIDIA contrib/nccl_checkpoint Shim Evaluation".
-
-### What doesn't work / open items
+### Always true (either driver)
 
 | Item | Status |
 |---|---|
-| vLLM custom all-reduce + cuda-checkpoint | Blocked on ALL drivers — vLLM's symmetric memory uses `cuMemExportToShareableHandle` (VMM IPC), unsupported by cuda-checkpoint. Workaround: `--disable-custom-all-reduce` (<1-2% cost). NVIDIA ask 1c. |
-| CUDA graphs through C/R on driver 580 | Restoring graphs that captured P2P-referencing NCCL collectives fails → `--enforce-eager` on 580. **Fixed in 610.** |
-| NVLS through C/R on driver 580 | `cuMulticastAddDevice` error 101 post-restore → `NCCL_NVLS_ENABLE=0` on 580. **Fixed in 610.** |
-| Driver 610 on GKE | Not in managed channels (DEFAULT and LATEST both give 580). Manual `.run` install on Ubuntu node pools works. |
-| Live NCCL comms across freeze | Fails restore on every driver/platform tested — a shim (ours or NVIDIA's) is always required. |
-| Multi-node | Not tested (shim rendezvous is same-host; NVIDIA shim's Redis rendezvous is multi-host-capable but untested by us). |
+| App-aware path (vLLM `/sleep`, SGLang `release_memory_occupation`) | **PASS** all TP/PP/EP — zero perf tax, graphs+NVLS survive untouched, 81-97% freed (not 100%) |
+| NVLink P2P at steady state | ON in every current config — the TCP-transport recipe (`NCCL_P2P_DISABLE`/`NCCL_SHM_DISABLE`) is shim-v1 legacy only |
+| Shim required for destroy-based cuda-checkpoint C/R | Yes, on every driver tested — live NCCL comms across a freeze fail restore (exception: the 610 NVLS-off live-comm-freeze path above). See "Shim options" below. |
+| Multi-job GPU interleaving | **PASS** on 580 (SGLang 3/3 rounds, trainer 2/2 rounds) |
+| Multi-node | Untested everywhere (our rendezvous is same-host; NVIDIA shim's Redis rendezvous is multi-host-capable but unvalidated by us) |
+| Driver 610 availability | Not in GKE managed channels (DEFAULT and LATEST both install 580); manual `.run` install on Ubuntu node pools is the only path today |
+
+### Shim options
+
+One shim is always required for destroy-based cuda-checkpoint C/R on multi-GPU. Both behave **identically** per config — they pass and wedge in exactly the same places (validated side-by-side on 610):
+
+- **Our shim v2** (`universal_cr_shim_v2.c`): **signal-driven** (SIGRTMIN+1 destroy / SIGRTMIN+2 recreate — externally orchestrable by the snapshot-agent with no app cooperation), deferred destroy (background thread drains pending collectives, avoiding the dual-signal-handler deadlock), `ncclCommSplit` tracking/replay, CUDA graph tracking with optional reset (`CR_RESET_GRAPHS=1`), full PyNCCL pass-through surface (usable as `VLLM_NCCL_SO_PATH`/`SGLANG_NCCL_SO_PATH` to capture ctypes-loaded comms), file-based same-host rendezvous (`/dev/shm/cr-rendezvous`).
+- **NVIDIA `contrib/nccl_checkpoint`** (NCCL ≥ 2.30.7): **API-driven** (`ncclCheckpointPrepare()`/`ncclCheckpointRestore()` called in-process). Richer replay engine — CommSplit/shrink/grow, `ncclCommRegister` buffers, window registration, synthetic-handle indirection from creation, multi-host Redis rendezvous (survives IP changes). Gaps: no external trigger (needs a signal→API companion for our snapshot-agent), no ctypes/dlopen coverage (cannot be used as `VLLM_NCCL_SO_PATH`; vLLM needs the pynccl worker-extension plumbing, SGLang has no hook mechanism at all), no CUDA-graph handling, and a config version-skew bug we patched (hits any torch built against older NCCL headers — patch at `nccl-checkpoint-tests/nvidia-shim-eval/shim-version-skew-patch.diff`). **Verdict: adopt with wrappers** — see "NVIDIA contrib/nccl_checkpoint Shim Evaluation" below.
+
+### Bottom line per workload
+
+- **Training:** on 610 the full package works — NVLink + NVLS ON, 100% VRAM freed, zero steady-state tax. On 580, same minus NVLS.
+- **vLLM under cuda-checkpoint:** must choose **graphs ON (NVLS off, vLLM ≤0.10 graph mode)** or **NVLS ON (eager)** — never both (deadlock above); custom all-reduce always off (~1-2%). At TP=2/low-batch, graphs are the bigger win (30-50% at decode); at TP=8 on NVSwitch, measure both.
+- **SGLang under cuda-checkpoint:** eager only, but keeps custom all-reduce on 610. Its app-aware release/resume path remains the recommended zero-tax option for samplers.
 
 ### Document structure
 
