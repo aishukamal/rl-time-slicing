@@ -1,0 +1,2 @@
+{"ts": "2026-09-03T09:51:50.737+00:00", "window": 1, "version": 1, "invariant_ok": true, "n_load_receipts": 16, "n_dump_receipts": 8, "phase": "post-switch-in", "total_seconds": 3.8346, "wcache_loaded_this_window": true}
+{"ts": "2026-09-03T10:00:38.807+00:00", "window": 2, "version": 2, "invariant_ok": true, "n_load_receipts": 16, "n_dump_receipts": 8, "phase": "post-switch-in", "total_seconds": 2.169, "wcache_loaded_this_window": true}

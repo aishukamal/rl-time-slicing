@@ -1,0 +1,380 @@
+# elastic-vd: 4-node Ray cluster for the verl-DAPO 32-GPU showcase.
+# Pattern: genbound elastic-gb-ray.yaml (hostNetwork, nodeName pins, hostPath
+# SSD staging, dshm) MINUS all C/R privileges (no shim / snapshot-agent /
+# hostPID: the yield lever is verl's own FSDP offload; NCCL runs STOCK
+# transports — NVLink stays on).
+#
+# Node pins are PER-RUN (spot pool, ephemeral names) — re-pin on replacement:
+#   head: hf1v 10.138.0.46   (driver + controller run here)
+#   w1:   bc29 10.138.0.7
+#   w2:   jqtb 10.138.0.56
+#   w3:   79fs 10.138.15.209
+# Trainer-vs-rollout node placement is decided by Ray at trainer init and
+# discovered empirically (driver logs "trainer nodes:"); spares/agents derive
+# placement dynamically — nothing here assumes roles.
+#
+# Staging initContainer pulls model+data from GCS into the node SSD hostPath
+# once per node (skips if present).
+apiVersion: v1
+kind: Pod
+metadata:
+  name: elastic-vd-head
+  namespace: default
+  labels: { app: elastic-vd, role: head }
+spec:
+  restartPolicy: Never
+  nodeName: gke-verl-research-cl-h200-8gpu-ubuntu-9db38118-hf1v
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  tolerations:
+    - operator: Exists
+  initContainers:
+    - name: stage
+      image: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+      command: ["bash", "-c"]
+      args:
+        - |
+          set -e
+          M=/inputs/models/Qwen3-30B-A3B-Base
+          if [ ! -f "$M/.staged" ]; then
+            mkdir -p "$M"
+            gcloud storage cp -r "gs://aishuk-test-elastic-stage/models/Qwen3-30B-A3B-Base/*" "$M/"
+            gcloud storage cp "gs://aishuk-test-elastic-stage/models/Qwen3-30B-A3B-Base.meta/model_sha256_manifest.txt" "$M/.manifest"
+            (cd "$M" && sha256sum -c .manifest --quiet) && touch "$M/.staged"
+          fi
+          M7=/inputs/models/Qwen2.5-Math-7B-mpe32k
+          if [ ! -f "$M7/.staged" ]; then
+            mkdir -p "$M7"
+            gcloud storage cp -r "gs://aishuk-test-elastic-stage/models/Qwen2.5-Math-7B-mpe32k/*" "$M7/"
+            gcloud storage cp "gs://aishuk-test-elastic-stage/models/Qwen2.5-Math-7B-mpe32k.meta/model_sha256_manifest.txt" "$M7/.manifest"
+            (cd "$M7" && sha256sum -c .manifest --quiet || true) && touch "$M7/.staged"
+          fi
+          MR=/inputs/models/DeepSeek-R1-Distill-Qwen-7B
+          if [ ! -f "$MR/.staged" ]; then
+            mkdir -p "$MR"
+            gcloud storage cp -r "gs://aishuk-test-elastic-stage/models/DeepSeek-R1-Distill-Qwen-7B/*" "$MR/" && touch "$MR/.staged"
+          fi
+          D=/inputs/data/dapo-math
+          if [ ! -f "$D/.staged" ]; then
+            mkdir -p "$D"
+            gcloud storage cp "gs://aishuk-test-elastic-stage/data/dapo-math/*" "$D/"
+            (cd "$D" && sha256sum -c data_sha256.txt --quiet) && touch "$D/.staged"
+          fi
+          echo STAGED; ls -la "$M" | head; ls -la "$D"
+      volumeMounts:
+        - { name: ssd-inputs, mountPath: /inputs }
+  containers:
+    - name: ray
+      image: us-central1-docker.pkg.dev/aishuk-test/rl-images/verl-vd:s0
+      securityContext:
+        privileged: true
+      command: ["bash", "-c"]
+      args:
+        - |
+          set -e
+          mkdir -p /results /wcache
+          ( echo "timestamp_ms,gpu_index,gpu_util_pct,mem_used_mib,power_w" > /results/gpu_util_$(hostname).csv
+            while true; do
+              ts=$(date +%s%3N)
+              nvidia-smi --query-gpu=index,utilization.gpu,memory.used,power.draw --format=csv,noheader,nounits 2>/dev/null | while IFS=', ' read -r i u m w; do echo "$ts,$i,$u,$m,$w"; done >> /results/gpu_util_$(hostname).csv
+              sleep 1
+            done ) &
+          ray start --head --port=6379 --disable-usage-stats --num-gpus=8 --dashboard-host=127.0.0.1
+          echo "RAY_HEAD_UP $(date -u +%FT%TZ)"
+          sleep infinity
+      env:
+        - { name: VLLM_USE_V1, value: "1" }
+        - { name: VLLM_ALLOW_INSECURE_SERIALIZATION, value: "1" }
+        - { name: HF_HUB_OFFLINE, value: "1" }
+        - { name: HF_HOME, value: "/results/hf_home" }
+        - { name: PYTHONPATH, value: "/vd-code" }
+        - { name: PYTHONUNBUFFERED, value: "1" }
+        - { name: RAY_ADDRESS, value: "10.138.0.46:6379" }
+      resources:
+        requests: { cpu: "64", memory: 800Gi }
+        limits: { nvidia.com/gpu: 8 }
+      volumeMounts:
+        - { name: ssd-inputs, mountPath: /inputs }
+        - { name: ssd-results, mountPath: /results }
+        - { name: ssd-wcache, mountPath: /wcache }
+        - { name: vd-code, mountPath: /vd-code }
+        - { name: dshm, mountPath: /dev/shm }
+  volumes:
+    - { name: ssd-inputs, hostPath: { path: /mnt/stateful_partition/kube-ephemeral-ssd/elastic-vd/inputs, type: DirectoryOrCreate } }
+    - { name: ssd-results, hostPath: { path: /mnt/stateful_partition/kube-ephemeral-ssd/elastic-vd/results, type: DirectoryOrCreate } }
+    - { name: ssd-wcache, hostPath: { path: /mnt/stateful_partition/kube-ephemeral-ssd/elastic-vd/wcache, type: DirectoryOrCreate } }
+    - { name: vd-code, configMap: { name: elastic-vd-code, defaultMode: 0755 } }
+    - { name: dshm, emptyDir: { medium: Memory, sizeLimit: 256Gi } }
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: elastic-vd-w1
+  namespace: default
+  labels: { app: elastic-vd, role: worker }
+spec:
+  restartPolicy: Never
+  nodeName: gke-verl-research-cl-h200-8gpu-ubuntu-9db38118-bc29
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  tolerations:
+    - operator: Exists
+  initContainers:
+    - name: stage
+      image: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+      command: ["bash", "-c"]
+      args:
+        - |
+          set -e
+          M=/inputs/models/Qwen3-30B-A3B-Base
+          if [ ! -f "$M/.staged" ]; then
+            mkdir -p "$M"
+            gcloud storage cp -r "gs://aishuk-test-elastic-stage/models/Qwen3-30B-A3B-Base/*" "$M/"
+            gcloud storage cp "gs://aishuk-test-elastic-stage/models/Qwen3-30B-A3B-Base.meta/model_sha256_manifest.txt" "$M/.manifest"
+            (cd "$M" && sha256sum -c .manifest --quiet) && touch "$M/.staged"
+          fi
+          M7=/inputs/models/Qwen2.5-Math-7B-mpe32k
+          if [ ! -f "$M7/.staged" ]; then
+            mkdir -p "$M7"
+            gcloud storage cp -r "gs://aishuk-test-elastic-stage/models/Qwen2.5-Math-7B-mpe32k/*" "$M7/"
+            gcloud storage cp "gs://aishuk-test-elastic-stage/models/Qwen2.5-Math-7B-mpe32k.meta/model_sha256_manifest.txt" "$M7/.manifest"
+            (cd "$M7" && sha256sum -c .manifest --quiet || true) && touch "$M7/.staged"
+          fi
+          MR=/inputs/models/DeepSeek-R1-Distill-Qwen-7B
+          if [ ! -f "$MR/.staged" ]; then
+            mkdir -p "$MR"
+            gcloud storage cp -r "gs://aishuk-test-elastic-stage/models/DeepSeek-R1-Distill-Qwen-7B/*" "$MR/" && touch "$MR/.staged"
+          fi
+          D=/inputs/data/dapo-math
+          if [ ! -f "$D/.staged" ]; then
+            mkdir -p "$D"
+            gcloud storage cp "gs://aishuk-test-elastic-stage/data/dapo-math/*" "$D/"
+            (cd "$D" && sha256sum -c data_sha256.txt --quiet) && touch "$D/.staged"
+          fi
+          echo STAGED
+      volumeMounts:
+        - { name: ssd-inputs, mountPath: /inputs }
+  containers:
+    - name: ray
+      image: us-central1-docker.pkg.dev/aishuk-test/rl-images/verl-vd:s0
+      securityContext:
+        privileged: true
+      command: ["bash", "-c"]
+      args:
+        - |
+          set -e
+          mkdir -p /results /wcache
+          ( echo "timestamp_ms,gpu_index,gpu_util_pct,mem_used_mib,power_w" > /results/gpu_util_$(hostname).csv
+            while true; do
+              ts=$(date +%s%3N)
+              nvidia-smi --query-gpu=index,utilization.gpu,memory.used,power.draw --format=csv,noheader,nounits 2>/dev/null | while IFS=', ' read -r i u m w; do echo "$ts,$i,$u,$m,$w"; done >> /results/gpu_util_$(hostname).csv
+              sleep 1
+            done ) &
+          until (echo > /dev/tcp/10.138.0.46/6379) 2>/dev/null; do echo "waiting for head"; sleep 5; done
+          ray start --address=10.138.0.46:6379 --disable-usage-stats --num-gpus=8
+          echo "RAY_WORKER_UP $(date -u +%FT%TZ)"
+          sleep infinity
+      env:
+        - { name: VLLM_USE_V1, value: "1" }
+        - { name: VLLM_ALLOW_INSECURE_SERIALIZATION, value: "1" }
+        - { name: HF_HUB_OFFLINE, value: "1" }
+        - { name: HF_HOME, value: "/results/hf_home" }
+        - { name: PYTHONPATH, value: "/vd-code" }
+        - { name: PYTHONUNBUFFERED, value: "1" }
+      resources:
+        requests: { cpu: "64", memory: 800Gi }
+        limits: { nvidia.com/gpu: 8 }
+      volumeMounts:
+        - { name: ssd-inputs, mountPath: /inputs }
+        - { name: ssd-results, mountPath: /results }
+        - { name: ssd-wcache, mountPath: /wcache }
+        - { name: vd-code, mountPath: /vd-code }
+        - { name: dshm, mountPath: /dev/shm }
+  volumes:
+    - { name: ssd-inputs, hostPath: { path: /mnt/stateful_partition/kube-ephemeral-ssd/elastic-vd/inputs, type: DirectoryOrCreate } }
+    - { name: ssd-results, hostPath: { path: /mnt/stateful_partition/kube-ephemeral-ssd/elastic-vd/results, type: DirectoryOrCreate } }
+    - { name: ssd-wcache, hostPath: { path: /mnt/stateful_partition/kube-ephemeral-ssd/elastic-vd/wcache, type: DirectoryOrCreate } }
+    - { name: vd-code, configMap: { name: elastic-vd-code, defaultMode: 0755 } }
+    - { name: dshm, emptyDir: { medium: Memory, sizeLimit: 256Gi } }
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: elastic-vd-w2
+  namespace: default
+  labels: { app: elastic-vd, role: worker }
+spec:
+  restartPolicy: Never
+  nodeName: gke-verl-research-cl-h200-8gpu-ubuntu-9db38118-jqtb
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  tolerations:
+    - operator: Exists
+  initContainers:
+    - name: stage
+      image: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+      command: ["bash", "-c"]
+      args:
+        - |
+          set -e
+          M=/inputs/models/Qwen3-30B-A3B-Base
+          if [ ! -f "$M/.staged" ]; then
+            mkdir -p "$M"
+            gcloud storage cp -r "gs://aishuk-test-elastic-stage/models/Qwen3-30B-A3B-Base/*" "$M/"
+            gcloud storage cp "gs://aishuk-test-elastic-stage/models/Qwen3-30B-A3B-Base.meta/model_sha256_manifest.txt" "$M/.manifest"
+            (cd "$M" && sha256sum -c .manifest --quiet) && touch "$M/.staged"
+          fi
+          M7=/inputs/models/Qwen2.5-Math-7B-mpe32k
+          if [ ! -f "$M7/.staged" ]; then
+            mkdir -p "$M7"
+            gcloud storage cp -r "gs://aishuk-test-elastic-stage/models/Qwen2.5-Math-7B-mpe32k/*" "$M7/"
+            gcloud storage cp "gs://aishuk-test-elastic-stage/models/Qwen2.5-Math-7B-mpe32k.meta/model_sha256_manifest.txt" "$M7/.manifest"
+            (cd "$M7" && sha256sum -c .manifest --quiet || true) && touch "$M7/.staged"
+          fi
+          MR=/inputs/models/DeepSeek-R1-Distill-Qwen-7B
+          if [ ! -f "$MR/.staged" ]; then
+            mkdir -p "$MR"
+            gcloud storage cp -r "gs://aishuk-test-elastic-stage/models/DeepSeek-R1-Distill-Qwen-7B/*" "$MR/" && touch "$MR/.staged"
+          fi
+          D=/inputs/data/dapo-math
+          if [ ! -f "$D/.staged" ]; then
+            mkdir -p "$D"
+            gcloud storage cp "gs://aishuk-test-elastic-stage/data/dapo-math/*" "$D/"
+            (cd "$D" && sha256sum -c data_sha256.txt --quiet) && touch "$D/.staged"
+          fi
+          echo STAGED
+      volumeMounts:
+        - { name: ssd-inputs, mountPath: /inputs }
+  containers:
+    - name: ray
+      image: us-central1-docker.pkg.dev/aishuk-test/rl-images/verl-vd:s0
+      securityContext:
+        privileged: true
+      command: ["bash", "-c"]
+      args:
+        - |
+          set -e
+          mkdir -p /results /wcache
+          ( echo "timestamp_ms,gpu_index,gpu_util_pct,mem_used_mib,power_w" > /results/gpu_util_$(hostname).csv
+            while true; do
+              ts=$(date +%s%3N)
+              nvidia-smi --query-gpu=index,utilization.gpu,memory.used,power.draw --format=csv,noheader,nounits 2>/dev/null | while IFS=', ' read -r i u m w; do echo "$ts,$i,$u,$m,$w"; done >> /results/gpu_util_$(hostname).csv
+              sleep 1
+            done ) &
+          until (echo > /dev/tcp/10.138.0.46/6379) 2>/dev/null; do echo "waiting for head"; sleep 5; done
+          ray start --address=10.138.0.46:6379 --disable-usage-stats --num-gpus=8
+          echo "RAY_WORKER_UP $(date -u +%FT%TZ)"
+          sleep infinity
+      env:
+        - { name: VLLM_USE_V1, value: "1" }
+        - { name: VLLM_ALLOW_INSECURE_SERIALIZATION, value: "1" }
+        - { name: HF_HUB_OFFLINE, value: "1" }
+        - { name: HF_HOME, value: "/results/hf_home" }
+        - { name: PYTHONPATH, value: "/vd-code" }
+        - { name: PYTHONUNBUFFERED, value: "1" }
+      resources:
+        requests: { cpu: "64", memory: 800Gi }
+        limits: { nvidia.com/gpu: 8 }
+      volumeMounts:
+        - { name: ssd-inputs, mountPath: /inputs }
+        - { name: ssd-results, mountPath: /results }
+        - { name: ssd-wcache, mountPath: /wcache }
+        - { name: vd-code, mountPath: /vd-code }
+        - { name: dshm, mountPath: /dev/shm }
+  volumes:
+    - { name: ssd-inputs, hostPath: { path: /mnt/stateful_partition/kube-ephemeral-ssd/elastic-vd/inputs, type: DirectoryOrCreate } }
+    - { name: ssd-results, hostPath: { path: /mnt/stateful_partition/kube-ephemeral-ssd/elastic-vd/results, type: DirectoryOrCreate } }
+    - { name: ssd-wcache, hostPath: { path: /mnt/stateful_partition/kube-ephemeral-ssd/elastic-vd/wcache, type: DirectoryOrCreate } }
+    - { name: vd-code, configMap: { name: elastic-vd-code, defaultMode: 0755 } }
+    - { name: dshm, emptyDir: { medium: Memory, sizeLimit: 256Gi } }
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: elastic-vd-w3
+  namespace: default
+  labels: { app: elastic-vd, role: worker }
+spec:
+  restartPolicy: Never
+  nodeName: gke-verl-research-cl-h200-8gpu-ubuntu-9db38118-79fs
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  tolerations:
+    - operator: Exists
+  initContainers:
+    - name: stage
+      image: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+      command: ["bash", "-c"]
+      args:
+        - |
+          set -e
+          M=/inputs/models/Qwen3-30B-A3B-Base
+          if [ ! -f "$M/.staged" ]; then
+            mkdir -p "$M"
+            gcloud storage cp -r "gs://aishuk-test-elastic-stage/models/Qwen3-30B-A3B-Base/*" "$M/"
+            gcloud storage cp "gs://aishuk-test-elastic-stage/models/Qwen3-30B-A3B-Base.meta/model_sha256_manifest.txt" "$M/.manifest"
+            (cd "$M" && sha256sum -c .manifest --quiet) && touch "$M/.staged"
+          fi
+          M7=/inputs/models/Qwen2.5-Math-7B-mpe32k
+          if [ ! -f "$M7/.staged" ]; then
+            mkdir -p "$M7"
+            gcloud storage cp -r "gs://aishuk-test-elastic-stage/models/Qwen2.5-Math-7B-mpe32k/*" "$M7/"
+            gcloud storage cp "gs://aishuk-test-elastic-stage/models/Qwen2.5-Math-7B-mpe32k.meta/model_sha256_manifest.txt" "$M7/.manifest"
+            (cd "$M7" && sha256sum -c .manifest --quiet || true) && touch "$M7/.staged"
+          fi
+          MR=/inputs/models/DeepSeek-R1-Distill-Qwen-7B
+          if [ ! -f "$MR/.staged" ]; then
+            mkdir -p "$MR"
+            gcloud storage cp -r "gs://aishuk-test-elastic-stage/models/DeepSeek-R1-Distill-Qwen-7B/*" "$MR/" && touch "$MR/.staged"
+          fi
+          D=/inputs/data/dapo-math
+          if [ ! -f "$D/.staged" ]; then
+            mkdir -p "$D"
+            gcloud storage cp "gs://aishuk-test-elastic-stage/data/dapo-math/*" "$D/"
+            (cd "$D" && sha256sum -c data_sha256.txt --quiet) && touch "$D/.staged"
+          fi
+          echo STAGED
+      volumeMounts:
+        - { name: ssd-inputs, mountPath: /inputs }
+  containers:
+    - name: ray
+      image: us-central1-docker.pkg.dev/aishuk-test/rl-images/verl-vd:s0
+      securityContext:
+        privileged: true
+      command: ["bash", "-c"]
+      args:
+        - |
+          set -e
+          mkdir -p /results /wcache
+          ( echo "timestamp_ms,gpu_index,gpu_util_pct,mem_used_mib,power_w" > /results/gpu_util_$(hostname).csv
+            while true; do
+              ts=$(date +%s%3N)
+              nvidia-smi --query-gpu=index,utilization.gpu,memory.used,power.draw --format=csv,noheader,nounits 2>/dev/null | while IFS=', ' read -r i u m w; do echo "$ts,$i,$u,$m,$w"; done >> /results/gpu_util_$(hostname).csv
+              sleep 1
+            done ) &
+          until (echo > /dev/tcp/10.138.0.46/6379) 2>/dev/null; do echo "waiting for head"; sleep 5; done
+          ray start --address=10.138.0.46:6379 --disable-usage-stats --num-gpus=8
+          echo "RAY_WORKER_UP $(date -u +%FT%TZ)"
+          sleep infinity
+      env:
+        - { name: VLLM_USE_V1, value: "1" }
+        - { name: VLLM_ALLOW_INSECURE_SERIALIZATION, value: "1" }
+        - { name: HF_HUB_OFFLINE, value: "1" }
+        - { name: HF_HOME, value: "/results/hf_home" }
+        - { name: PYTHONPATH, value: "/vd-code" }
+        - { name: PYTHONUNBUFFERED, value: "1" }
+      resources:
+        requests: { cpu: "64", memory: 800Gi }
+        limits: { nvidia.com/gpu: 8 }
+      volumeMounts:
+        - { name: ssd-inputs, mountPath: /inputs }
+        - { name: ssd-results, mountPath: /results }
+        - { name: ssd-wcache, mountPath: /wcache }
+        - { name: vd-code, mountPath: /vd-code }
+        - { name: dshm, mountPath: /dev/shm }
+  volumes:
+    - { name: ssd-inputs, hostPath: { path: /mnt/stateful_partition/kube-ephemeral-ssd/elastic-vd/inputs, type: DirectoryOrCreate } }
+    - { name: ssd-results, hostPath: { path: /mnt/stateful_partition/kube-ephemeral-ssd/elastic-vd/results, type: DirectoryOrCreate } }
+    - { name: ssd-wcache, hostPath: { path: /mnt/stateful_partition/kube-ephemeral-ssd/elastic-vd/wcache, type: DirectoryOrCreate } }
+    - { name: vd-code, configMap: { name: elastic-vd-code, defaultMode: 0755 } }
+    - { name: dshm, emptyDir: { medium: Memory, sizeLimit: 256Gi } }
