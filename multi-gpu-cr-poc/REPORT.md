@@ -1,6 +1,6 @@
 # Multi-GPU Checkpoint/Restore Test Report
 
-## Current State (updated 2026-08-14)
+## Current State (updated 2026-09-09; includes driver 615.71.09 results)
 
 Full end-to-end checkpoint/restore validated across vLLM, SGLang, and FSDP training on 2x H100 80GB — all parallelism dimensions (TP, PP, EP, DP, MoE), multi-job GPU interleaving, drivers 580 and 610, our shim v2 and NVIDIA's official contrib shim. All passing tests include post-restore inference/training verification.
 
@@ -23,7 +23,7 @@ Full end-to-end checkpoint/restore validated across vLLM, SGLang, and FSDP train
 | vLLM TP=2 (v0.10, piecewise graph mode) | **ON** | OFF | OFF | **PASS** — via freeze-with-live-comms: the destroy silently wedges (graphs block `ncclCommDestroy`), but 610 + `--launch-job` tolerates live NVLS-off comms across the freeze |
 | vLLM TP=2 | ON | ON | any | **FAIL** — requirements deadlock: live NVLS blocks freeze (rc=124), so comms must be destroyed first; captured graphs wedge the destroy. `CR_RESET_GRAPHS=1` unblocks destroy but vLLM cannot re-capture (engine dies) |
 | vLLM TP=2 (v0.27.1, FULL graph modes) | ON | OFF | OFF | **FAIL** on the destroy path (FULL modes capture collectives, wedging destroy even NVLS-off); live-comm-freeze path untested |
-| vLLM TP=2 | any | any | ON | **FAIL** — symmetric memory uses `cuMemExportToShareableHandle` (VMM IPC), unsupported by cuda-checkpoint on all drivers |
+| vLLM TP=2 | any | any | ON | **FAIL** — symmetric memory uses `cuMemExportToShareableHandle` (VMM IPC): unsupported ≤610; on 615 freeze passes but restore fails (blocker narrowed, not removed) |
 | SGLang TP=2 | OFF | OFF | **ON** | **PASS** — legacy CUDA IPC works under `--launch-job` |
 | SGLang TP=2 | ON | — | — | Untested on 610 |
 
@@ -140,7 +140,7 @@ No shim, no NCCL env vars, no framework flags needed. Just `cuda-checkpoint --to
 | Step | Ordering | Why |
 |------|----------|-----|
 | Suspend | All PIDs at once | Signal delivery is async, order doesn't matter |
-| Freeze | Sequential, one PID at a time | Parallel freeze can deadlock |
+| Freeze | Sequential, one PID at a time (drivers ≤610; **on 615 parallel freeze works**, ~1.6x faster) | Parallel freeze deadlocks on ≤610 |
 | Restore | Sequential, one PID at a time | Avoids restore ordering issues |
 | Resume | All PIDs at once | Signal delivery is async |
 
@@ -672,6 +672,22 @@ Driver 610.57.04 (installed via `.run` on GKE Ubuntu node pools; not yet in GKE 
 
 Net: on 610, per-workload steady-state config — **training (no graphs): NVLS ON + NVLink ON**; **vLLM: graphs ON (NVLS off) or NVLS ON (eager), plus `--disable-custom-all-reduce`**. Which wins for inference depends on topology: at TP=2 graphs (30-50% at low batch) outweigh NVLS; at TP=8 on NVSwitch measure both.
 
+## Driver 615 Status (2026-09-09, 615.71.09)
+
+Full matrix rerun on R615 (released 2026-09-09; manual `.run` install on Ubuntu pool, proprietary module; same 610-era cuda-checkpoint CLI — it is a thin wrapper, all logic is in the driver). Full detail: `multi-gpu-cr/h100-615-matrix/RESULTS.md` (local workspace).
+
+**What 615 improves:**
+
+| Change | 610 | 615 |
+|---|---|---|
+| Parallel multi-GPU freeze | deadlock — sequential mandatory | **works**: 1.1s parallel vs 1.75s sequential (~1.6x), 2/2 rounds |
+| Freeze/thaw data plane | ~0.8 GB/s | **~2.7 GB/s freeze, ~7.5 GB/s thaw (~3x)** |
+| VMM IPC (`cuMemExportToShareableHandle`, symm-mem) | freeze fails rc=124 | **freeze passes (0 MiB); RESTORE fails** ("invalid argument") — blocker narrowed to restore-only |
+
+**Unchanged on 615:** live-NVLS freeze still rc=124 (graphs+NVLS deadlock stands); `ncclCommDestroy` under graph refs still wedges (NCCL-side); vLLM custom AR still blocked (restore half of VMM IPC); shim still required. Full regression suite passed: FSDP+NVLS (2 cycles), vLLM 0.27.1 eager+NVLS, mc_test, compute-only graphs, legacy IPC, SGLang custom AR (`--launch-job`), NVIDIA contrib shim spot-check.
+
+**NEW RISK — vLLM 0.29.0 breaks destroy-based C/R even in eager mode** (thaw "operation not supported"; `allreduce_rms` fusion suspect; freeze order-sensitive between workers). 0.27.1 passes on the same driver. Trajectory across vLLM releases (0.10 piecewise OK → 0.27 FULL modes wedge destroy → 0.29 breaks eager) makes the framework version a first-class C/R compatibility variable. **Pin vLLM ≤0.27.1 for cuda-checkpoint paths.** Note: the 610-validated graphs-ON live-comm path (vLLM 0.10) was not re-run on 615; the 0.29 live-comm attempt failed at thaw, attributed to 0.29, not the driver.
+
 ## NVIDIA contrib/nccl_checkpoint Shim Evaluation (2026-08-14)
 
 NVIDIA ships an official checkpoint shim in NCCL ≥ 2.30.7 (`contrib/nccl_checkpoint`): LD_PRELOAD interposition, `ncclCheckpointPrepare()`/`ncclCheckpointRestore()` API, Redis-based rendezvous, synthetic-handle indirection. Evaluated on H100 driver 580:
@@ -712,6 +728,6 @@ NVIDIA ships an official checkpoint shim in NCCL ≥ 2.30.7 (`contrib/nccl_check
 
    **Driver 580:** `--disable-custom-all-reduce` required for both frameworks (no IPC support at all). Performance impact: negligible (<1-2%).
 
-   **Driver 610:** SGLang works with custom AR ON via `--launch-job`. vLLM requires `--disable-custom-all-reduce` until cuda-checkpoint adds `cuMemExportToShareableHandle` support. Driver 610 is not yet available via GKE managed channels; installed via `.run` on Ubuntu node pools.
+   **Driver 610:** SGLang works with custom AR ON via `--launch-job`. vLLM requires `--disable-custom-all-reduce` until cuda-checkpoint adds `cuMemExportToShareableHandle` support. **Driver 615 (2026-09-09): VMM IPC freeze now passes; restore still fails ("invalid argument") — vLLM custom AR remains blocked, but the fix is visibly in progress.** Neither 610 nor 615 is on GKE managed channels; installed via `.run` on Ubuntu node pools.
 
    **Root cause proven** with minimal reproducers: legacy IPC (`cudaIpcOpenMemHandle`) alone → PASS on 610; `torch._symmetric_memory.empty()` + `rendezvous()` → FAIL (rc=124 "OS call failed").
