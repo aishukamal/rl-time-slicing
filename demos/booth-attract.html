@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>llm-d RL time-slicing (booth attract loop)</title>
+<!--
+  BOOTH ATTRACT LOOP (~90 s, auto-repeats). Sight-legible from 3 meters:
+  huge type, minimal text, one stat tile + one use-case line per chapter.
+  Self-contained: no network, no fonts, no deps. Values artifact-parsed by
+  build_booth.py; animation clocks compressed for display (disclosed in
+  footer). Palette: validated light-surface set + batch purple #7627BB
+  (see booth_data.json palette_note). Deep links: #ch=1|2|3[,p=0.7] pauses
+  at that chapter/frame for screenshots. EVIDENCE: the on-screen data tables
+  were retired in revision X — every number's value/notes/source lives in
+  BOOTH-NOTES.md "Presenter reference — full data provenance".
+-->
+<style>
+  :root{
+    --blue:#4285F4; --green:#188038; --red:#EA4335; --yellow:#F29900;
+    --gray:#80868B; --purple:#7627BB;
+    --surface:#FFFFFF; --panel:#F8F9FA; --ink:#202124; --ink2:#5F6368;
+    --ink3:#80868B; --hair:#DADCE0;
+  }
+  html,body{margin:0;padding:0;background:var(--surface);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  #wrap{display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+  #hdr{flex:0 0 auto;text-align:center;padding:26px 0 6px;}
+  #hdr .h1{font-size:clamp(34px,3.4vw,54px);font-weight:800;letter-spacing:-.01em;}
+  #hdr .h2{font-size:clamp(17px,1.6vw,26px);color:var(--ink2);margin-top:6px;}
+  #stagebox{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;}
+  svg{display:block;width:100%;height:100%;}
+  /* static repo banner (revision X — replaces the rotating receipts ticker;
+     scheme-less URL text so the offline guard stays strict, no hyperlink;
+     URL alone per user edit — no second line) */
+  #bannerbar{flex:0 0 auto;border-top:1px solid var(--hair);background:var(--panel);
+    display:flex;align-items:center;justify-content:center;padding:12px 0 14px;}
+  #bannerbar .repo{font-size:26px;font-weight:700;color:var(--ink);
+    letter-spacing:.01em;font-variant-ligatures:none;}
+  .svgtxt{user-select:none;}
+  /* review-pause badge (2026-09-16 revision S): visible ONLY on user pause
+     (SPACE / arrow-step / #pause) — deep-link screenshot states stay clean */
+  #pausebadge{display:none;position:fixed;top:10px;right:14px;z-index:50;
+    background:rgba(32,33,36,.85);color:#fff;font-size:13px;padding:6px 12px;
+    border-radius:8px;letter-spacing:.02em;font-variant-numeric:tabular-nums;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="hdr">
+    <div class="h1">llm-d RL time-slicing</div>
+    <div class="h2">three applications, one stack</div>
+  </div>
+  <div id="stagebox">
+    <svg id="stage" viewBox="0 0 1600 760" preserveAspectRatio="xMidYMid meet" role="img"
+         aria-label="Attract loop: concurrent sweeps, RL + batch interleave, elastic idle reclaim"></svg>
+  </div>
+  <div id="bannerbar">
+    <div class="repo">github.com/llm-d-incubation/llm-d-rl-time-slicing</div>
+  </div>
+</div>
+
+<script>
+"use strict";
+window.addEventListener("error", e => document.documentElement.setAttribute("data-jserr",
+  (document.documentElement.getAttribute("data-jserr")||"") + "|" + e.message));
+const D = {"generated":"2026-09-16T21:05:15+00:00","palette_note":"light-surface series set #4285F4/#F29900/#188038/#80868B + batch #7627BB validated with the dataviz validator (all-pairs, white surface): CVD worst pair 11.5 protan, normal-vision worst 16.8, batch purple 3:1+ contrast. Red #EA4335 status-only; waiting = light red wash + outline.","sources":{"sweep":"elastic-rl-poc/demo-early-kill/data/replay (kill_decision.json, traj TSVs, park/phase events)","elastic":"elastic-rl-poc/mlperf-replica/genbound2/results/{s3,s4b} (trajectory.tsv, s4b_decisions/switch_timings/window_invariants.jsonl)","evals_flavor":"elastic-rl-poc/mlperf-replica/elastic/ELASTIC-REPORT-V2-FINAL.md","batch":"elastic-rl-poc/rl-batch-interleave/INTERLEAVE-REPORT.md","selfyield":"elastic-rl-poc/selfyield-sweep/SELFYIELD-REPORT.md + results/{g1,g2}"},"headlines":{"decision":"2.2\u00d7","throughput":"+11%","idle":"30\u201374%"},"specs":{"kill":["DeepSeek-R1-Distill-Qwen-7B","DAPO-Math-17k","32\u00d7 H200","verl fully-async DAPO","4 arms \u00b7 8 blocks \u00d7 ~4.1K resp","LR 1e-8 | 1e-6 | 3e-6 | 1e-5"],"kill_caveat":"detects non-learners, not rankings","elastic":["DeepSeek-R1-Distill-Qwen-7B","DAPO-Math-17k","32\u00d7 H200","verl fully-async DAPO","12 blocks \u00d7 8,192 responses"],"elastic_caveat":"research PoC \u00b7 same primitives (sleep / offload / drain)","elastic_f1":["DeepSeek-R1-Distill-Qwen-7B","DAPO-Math-17k \u00b7 AIME-2024","verl","fully-async DAPO \u00b7 staleness_threshold=0.1","32\u00d7 H200","16 train (FSDP2) : 16 gen (4\u00d7 vLLM TP4)","12 steps \u00d7 8,192 responses"],"elastic_f1_fw":2,"elastic_f2":["Qwen3-30B-A3B-Thinking-2507","SWE agentic \u00b7 R2E-Gym / OpenHands","NeMo-RL","async GRPO \u00b7 max_trajectory_age_steps=1","32\u00d7 H200","16 train (Megatron TP4\u00d7CP4) : 16 gen (8\u00d7 vLLM TP2)","18 steps \u00b7 batch: 256 rollouts/step","5 evals \u00d7 1,024 episodes"],"elastic_f2_fw":2,"evals_flavor":["Qwen3-30B-A3B-Thinking-2507","SWE agentic \u00b7 R2E-Gym / OpenHands","32\u00d7 H200","NeMo-RL GRPO async","18 steps + 5 evals"],"batch":["DeepSeek-R1-Distill-Qwen-7B","DAPO-Math-17k backlog + AIME evals","verl + stock vLLM serve tenants","fully-async DAPO \u00b7 trigger_parameter_sync_step=1","32\u00d7 H200","16 train : 16 gen \u00b7 4\u00d7 vLLM TP4 tenants on trainer GPUs","scored v2-12 \u00b7 11 versions"],"batch_caveat":null,"codewall":["DeepSeek-R1-Distill-Qwen-7B","32\u00d7 H200","verl fully-async DAPO","2 arms \u00b7 self-yield","12 rotations \u00b7 parity 1.002\u00d7"],"attract":["DeepSeek-R1-Distill-Qwen-7B \u00b7 DAPO-Math-17k \u00b7 32\u00d7 H200 \u00b7 verl fully-async \u00b7 LR sweep 1e-8 | 1e-6 | 3e-6 | 1e-5","DeepSeek-R1-Distill-Qwen-7B \u00b7 DAPO-Math-17k \u00b7 32\u00d7 H200 \u00b7 verl fully-async \u00b7 12 blocks \u00d7 8,192 responses\nevals flavor: Qwen3-30B-A3B-Thinking-2507 \u00b7 SWE agentic \u00b7 R2E-Gym / OpenHands \u00b7 NeMo-RL GRPO async \u00b7 18 steps + 5 evals","DeepSeek-R1-Distill-Qwen-7B \u00b7 DAPO-Math-17k \u00b7 verl fully-async \u00b7 32\u00d7 H200 \u00b7 16 train (FSDP2) : 16 gen (4\u00d7 vLLM TP4)\nDeepSeek-R1-Distill-Qwen-7B (static teacher) \u00b7 DAPO-Math-17k prompts + AIME-2024 \u00b7 vLLM \u00b7 4\u00d7 TP4 tenants on the 16 trainer H200s"],"note":"every chip asserted against its campaign report by build_specs(); station C chips are report-verified since the rl-batch-interleave activation (revision I; component names only if the swap file is removed)"},"kill":{"arms":[{"id":"arm-lr1e5","label":"LR 1e-5","color":"blue","role":"winner","killed":false,"rewards":{"1":0.027,"2":-0.188,"3":0.001,"4":0.233,"5":0.338,"6":0.353,"7":0.41,"8":0.297},"gpuh_block":4.36,"block_wall_s":490},{"id":"arm-lr3e6","label":"LR 3e-6","color":"green","role":"runner-up","killed":false,"rewards":{"1":0.001,"2":-0.187,"3":-0.101,"4":0.041,"5":0.098,"6":0.294,"7":0.347,"8":0.25},"gpuh_block":4.31,"block_wall_s":484.5},{"id":"arm-lr1e6","label":"LR 1e-6","color":"yellow","role":"stock","killed":false,"rewards":{"1":0.008,"2":-0.202,"3":-0.125,"4":-0.064,"5":-0.09},"gpuh_block":4.35,"block_wall_s":489},{"id":"arm-lr1e8","label":"LR 1e-8","color":"gray","role":"dud","killed":true,"rewards":{"1":0.033,"2":-0.185,"3":-0.134,"4":-0.062,"5":-0.144},"gpuh_block":4.49,"block_wall_s":505.5}],"n_blocks_shared":5,"n_blocks_full":8,"decision_block":5,"victim":"arm-lr1e8","criterion":{"v1":{"decision_block":3,"slope_min":0.015,"verdict":"no_kill","table":{"arm-lr1e6":{"reward":-0.125,"slope":0.07700000000000001},"arm-lr3e6":{"reward":-0.101,"slope":0.086},"arm-lr1e5":{"reward":0.001,"slope":0.189},"arm-lr1e8":{"reward":-0.134,"slope":0.05099999999999999}}},"v2":{"decision_block":5,"rel_slope_max":-0.015,"verdict":"kill","victim":"arm-lr1e8","table":{"arm-lr1e6":{"reward":-0.09,"rel_slope":-0.083},"arm-lr3e6":{"reward":0.098,"rel_slope":0.083},"arm-lr1e5":{"reward":0.338,"rel_slope":0.131},"arm-lr1e8":{"reward":-0.144,"rel_slope":-0.139}}}},"evals":{"arm-lr1e5":{"step":6,"acc":0.542},"arm-lr3e6":{"step":6,"acc":0.52}},"sweep_line":"7B model \u00b7 32\u00d7 H200 per arm turn \u00b7 ~4.1K responses/block \u00b7 kill decided after ~20K responses/arm (block 5)","caveat":"Horizon caveat: the block-5 rule identifies non-learners early \u2014 it is not a final ranking of the survivors.","gpuh_criterion_saved":13.5,"provenance_2_2x":"Projection at the recipe-stock sweep length (N=12 blocks, block-3 decision) from this run's measured block walls; the measured ratio at this demo's shortened N=8 / block-5 decision is 1.13x. Interleaving does not change total block-hours; it makes the fair early decision continuous and cheap."},"elastic":{"duty_strip":{"baseline_pct":69.0,"elastic_pct":89.3},"results":{"wall_pct":-9.9,"sph_pct":10.9,"wa_step_round":-11,"wa_sph_round":12},"swap_tax":{"big":"1.46 s in / 2.98 s back","label":"swap tax \u2014 p50, 26/26 verified windows","method":"measured switch walls across all 26 verified lending windows: switch-to-spares p50 1.46 s / p90 2.50 s / max 3.17 s; switch-to-trainer p50 2.98 s / p90 11.03 s (tail = engine-side wake). The toll is this small because the spares stay CO-RESIDENT asleep (sleep-L1: weights \u2192 CPU, KV freed) \u2014 no restore path to walk","source":"genbound2/VERL-DAPO-REPORT.md (measured switch walls) + s4b_switch_timings.jsonl"},"baseline":[{"busy":420.5,"wait":314.2},{"busy":569.1,"wait":286.9},{"busy":583.2,"wait":212.0},{"busy":557.0,"wait":248.8},{"busy":526.4,"wait":242.0},{"busy":509.7,"wait":224.6},{"busy":523.2,"wait":232.9},{"busy":510.1,"wait":208.8},{"busy":493.3,"wait":211.9},{"busy":505.3,"wait":224.7},{"busy":476.9,"wait":177.1},{"busy":131.6,"wait":30.2}],"elastic":[{"busy":414.6,"wait":304.8,"wins":[],"unfilled":304.8},{"busy":567.0,"wait":182.2,"wins":[{"n":1,"len":83.4,"real_len":83.4,"in":3.17,"back":5.96},{"n":2,"len":3.4,"real_len":3.4,"in":1.36,"back":1.5},{"n":3,"len":3.3,"real_len":3.3,"in":1.3,"back":0.97}],"unfilled":92.1},{"busy":581.3,"wait":141.9,"wins":[{"n":4,"len":96.7,"real_len":96.7,"in":2.38,"back":11.03},{"n":5,"len":3.5,"real_len":3.5,"in":1.51,"back":0.93}],"unfilled":41.7},{"busy":569.7,"wait":148.9,"wins":[{"n":6,"len":91.0,"real_len":91.0,"in":2.57,"back":18.65}],"unfilled":57.9},{"busy":531.3,"wait":151.9,"wins":[{"n":7,"len":64.4,"real_len":64.4,"in":2.24,"back":5.86},{"n":8,"len":25.5,"real_len":25.5,"in":1.38,"back":1.12}],"unfilled":62.0},{"busy":524.5,"wait":154.0,"wins":[{"n":9,"len":70.4,"real_len":70.4,"in":2.23,"back":5.06},{"n":10,"len":13.4,"real_len":13.4,"in":1.39,"back":3.37},{"n":11,"len":3.2,"real_len":3.2,"in":1.18,"back":1.0}],"unfilled":67.0},{"busy":533.2,"wait":137.8,"wins":[{"n":12,"len":86.6,"real_len":86.6,"in":2.26,"back":3.52},{"n":13,"len":15.6,"real_len":15.6,"in":1.43,"back":2.85}],"unfilled":35.6},{"busy":531.4,"wait":118.6,"wins":[{"n":14,"len":70.6,"real_len":70.6,"in":2.37,"back":11.2},{"n":15,"len":13.4,"real_len":13.4,"in":1.39,"back":4.13},{"n":16,"len":23.4,"real_len":23.4,"in":1.36,"back":0.98}],"unfilled":11.2},{"busy":492.9,"wait":140.2,"wins":[{"n":17,"len":56.6,"real_len":56.6,"in":2.5,"back":5.18},{"n":18,"len":3.3,"real_len":3.3,"in":1.32,"back":0.97},{"n":19,"len":11.3,"real_len":11.3,"in":1.27,"back":2.98},{"n":20,"len":3.5,"real_len":3.5,"in":1.46,"back":1.04}],"unfilled":65.5},{"busy":502.9,"wait":117.1,"wins":[{"n":21,"len":76.6,"real_len":76.6,"in":2.38,"back":2.24},{"n":22,"len":3.4,"real_len":3.4,"in":1.36,"back":0.97}],"unfilled":37.1},{"busy":479.8,"wait":116.2,"wins":[{"n":23,"len":66.5,"real_len":66.5,"in":2.36,"back":4.12},{"n":24,"len":3.4,"real_len":3.4,"in":1.39,"back":1.39},{"n":25,"len":11.4,"real_len":11.4,"in":1.4,"back":0.99}],"unfilled":34.9},{"busy":135.7,"wait":11.7,"wins":[{"n":26,"len":11.7,"real_len":78.7,"in":2.4,"back":6.46}],"unfilled":0.0}],"totals":{"base_s":8420.4,"elastic_s":7589.6,"lend_s":915.5,"unfilled_s":809.8,"clamped_s":67.0},"reward_baseline":[-0.152,-0.101,-0.066,0.093,0.227,0.292,0.272,0.341,0.38,0.31,0.403,0.346],"reward_elastic":[-0.117,-0.115,-0.04,0.094,0.227,0.301,0.289,0.327,0.381,0.324,0.399,0.323],"sph_baseline":1313.4,"sph_elastic":1457.2,"delta_pct":10.9,"verified":"26/26","switch_in_p50":1.46,"switch_back_p50":2.98,"duty_measured":{"baseline":56,"elastic":72},"duty_method":"strip-derived: cumulative (work + lending) share of the trainer bank's elapsed wall, from the same per-block walls and window receipts drawn above; the 56%/72% measured GPU-util means remain in the data table","strip_notes":"windows drawn to scale inside each block's recorded wait wall; wait drawn at block end (position within block approximate); lending seconds exceeding a block's recorded wait wall are truncated (termination-flush block)","wait_pool":{"pool_s":1725.3,"claimed_s":915.5,"residual_s":809.8,"claimed_pct":53.1,"toll_s":"5-20","residual_split":[{"key":"bootstrap","s":304.8,"label":"bootstrap (block 1)","how":"measured trainer-side: block 1's whole wait wall; zero windows fired (controller dry-run + fill-EMA warm-up)"},{"key":"late_early","s":250.1,"label":"late fires + early closes","how":"controller ticks: weight-cache not fresh + fill-EMA warm-up + burst hysteresis + one-window-per-block cap. GROUPED: the receipts say why a window was not open, but late-fire vs early-close cannot be separated tick-by-tick"},{"key":"sub_toll","s":116.4,"label":"sub-toll fragments","how":"controller ticks refusing to lend: predicted remaining wait below the adaptive switch-cost break-even toll (5-20 s at the measured switch rates)"},{"key":"unattributed","s":74.3,"label":"clock skew (unattributed)","how":"gap between trainer-side wait walls and the controller's 2 s poll attribution, incl. switch-in tolls inside waits"},{"key":"telemetry","s":64.2,"label":"telemetry dropouts","how":"controller ticks blind on MessageQueue signal errors (block 11); could not decide, so did not lend"}],"appetite_note":"appetite exhaustion: 0 s observed \u2014 no window closed for lack of borrower demand (26 closes: 18 predictive-eta, 7 hard-collect-failsafe, 1 batch-completed-late)","block12_note":"block 12 (termination flush) excluded from the cause split: trajectory records 0 s residual wait there and lending was clamped (67.0 s)","source":"s4b_decisions.jsonl (controller tick receipts) + trajectory.tsv walls + 26 window receipts"},"noharm":{"window_active":{"step_pct":-10.7,"sph_pct":11.9,"method":"window-active block walls (v2-11): the blocks where lending actually ran, scored wall-for-wall against the identical baseline blocks","source":"genbound2/ELASTIC-32GPU-ONEPAGER.md (v2-11 subrange)"},"reward_band":{"baseline":"-0.15 \u2192 +0.40","elastic":"-0.12 \u2192 +0.40","method":"per-block training reward, both arms, byte-identical configs except the mechanism; same band all 12 blocks, zero aborts","source":"genbound2/VERL-DAPO-REPORT.md \u00a71 + trajectory.tsv"},"lending_tax":{"job_a_pct":-0.4,"job_a_method":"length-normalized step wall (step_s / response_len): 0.0698 vs 0.0701 against length-matched solo blocks = -0.4%","job_b_pct":1.6,"job_b_method":"turn-level epoch bracket 462.0 vs 454.7 s solo (per-block timers are park-contaminated)","caveat":"measured in the separate cross-job campaign (an active job lending to a co-tenant), both inside solo bands","source":"cross-job-elastic/XJOB-REPORT.md \u00a74.4"}}},"elastic_flavor2":{"campaign":"nemo-mlperf-replica-eval-windows","measured":true,"source_label":"MEASURED \u00b7 NeMo Megatron MLPerf llm_post_training replica (exp_041 vs tb-a2, Aug 2026)","source_path":"elastic-rl-poc/mlperf-replica/elastic/ELASTIC-REPORT-V2-FINAL.md","run":{"total_wall_s":29487.0,"n_steps":18,"step_wall_s":894.6,"warmup_s":1490.9,"note":"strip reconstructed to scale from the measured race wall, the measured mean non-eval step wall, and the five measured per-eval trainer-blocked walls; totals match the receipts"},"windows":[{"id":1,"after_step":10,"idle_wall_s":2362.5,"filled_wall_s":1959.9,"delta_pct":-17.0,"incident_note":null,"batch":{"kind":"eval-suite","label":"Eval suite 1","items":1024,"unit":"episodes","detail":"256 tasks x 4 generations, served on the idle trainer bank"}},{"id":2,"after_step":12,"idle_wall_s":2324.3,"filled_wall_s":2027.6,"delta_pct":-12.8,"incident_note":null,"batch":{"kind":"eval-suite","label":"Eval suite 2","items":1024,"unit":"episodes","detail":"256 tasks x 4 generations, served on the idle trainer bank"}},{"id":3,"after_step":14,"idle_wall_s":2403.2,"filled_wall_s":2066.9,"delta_pct":-14.0,"incident_note":null,"batch":{"kind":"eval-suite","label":"Eval suite 3","items":1024,"unit":"episodes","detail":"256 tasks x 4 generations, served on the idle trainer bank"}},{"id":4,"after_step":16,"idle_wall_s":2424.0,"filled_wall_s":2257.8,"delta_pct":-6.9,"incident_note":"includes a 972 s self-healed switch timeout","batch":{"kind":"eval-suite","label":"Eval suite 4","items":1024,"unit":"episodes","detail":"256 tasks x 4 generations, served on the idle trainer bank"}},{"id":5,"after_step":18,"idle_wall_s":2379.3,"filled_wall_s":2410.4,"delta_pct":1.3,"incident_note":null,"batch":{"kind":"eval-suite","label":"Eval suite 5","items":1024,"unit":"episodes","detail":"256 tasks x 4 generations, served on the idle trainer bank"}}],"totals":{"idle_s":11893.3,"filled_s":10722.6,"saved_s":1170.7,"saved_pct":9.8},"race":{"baseline_s":29487.0,"elastic_s":28964.0,"delta_s":522.0,"delta_pct":1.77,"note":"whole-run wall; ~85% of the run is training steps the mechanism does not touch. Without the one self-healed window-4 timeout the finish would have been ~-5.1%."},"duty":{"evals_baseline":"0.0-0.1%","evals_elastic":"30.0-36.3%","whole_run_baseline":51.1,"whole_run_elastic":53.8},"queue_extra":[{"kind":"dataset-generation","label":"Dataset-generation batch","enabled":false,"note":"receipts pending: the RL+batch interleave campaign is in flight; its receipts swap in here via the same JSON shape (see BOOTH-NOTES.md). No fabricated numbers."}],"headline":{"stat":"-9.8%","sub":"eval-window walls, trainer-blocked (measured)","duty_line":"trainer-node duty during evals: 0.0-0.1% -> 30.0-36.3%"},"strips":{"scale_s":29487.0,"baseline":{"total_s":29487.0,"warmup_s":933.6,"segs":[{"k":"warmup","a":0.0,"b":933.6,"tip":"warmup (driver launch \u2192 step-1 start): 934 s \u2014 untouched by the mechanism, both arms"},{"k":"train","a":933.6,"b":1770.5,"tip":"step 1: 837 s training"},{"k":"train","a":1787.9,"b":2726.5,"tip":"step 2: 939 s training"},{"k":"train","a":2744.5,"b":3677.3,"tip":"step 3: 933 s training"},{"k":"train","a":3692.8,"b":4584.9,"tip":"step 4: 892 s training"},{"k":"train","a":4602.9,"b":5560.3,"tip":"step 5: 957 s training"},{"k":"train","a":5576.2,"b":6406.0,"tip":"step 6: 830 s training"},{"k":"train","a":6423.0,"b":7411.8,"tip":"step 7: 989 s training"},{"k":"train","a":7428.8,"b":8364.6,"tip":"step 8: 936 s training"},{"k":"train","a":8379.5,"b":9230.7,"tip":"step 9: 851 s training"},{"k":"train","a":9244.0,"b":10156.2,"tip":"step 10: 912 s training"},{"k":"evalidle","a":10156.2,"b":12518.7,"lab":"eval 1","tip":"eval 1 (step 10): 2,362 s trainer-blocked \u2014 16 H200s dark (synchronous: val wall == blocked wall, verified via TB wall_time gaps)"},{"k":"train","a":12534.5,"b":13430.2,"tip":"step 11: 896 s training"},{"k":"train","a":13444.2,"b":14457.5,"tip":"step 12: 1,013 s training"},{"k":"evalidle","a":14457.5,"b":16781.8,"lab":"eval 2","tip":"eval 2 (step 12): 2,324 s trainer-blocked \u2014 16 H200s dark (synchronous: val wall == blocked wall, verified via TB wall_time gaps)"},{"k":"train","a":16795.9,"b":17542.9,"tip":"step 13: 747 s training"},{"k":"train","a":17555.9,"b":18390.2,"tip":"step 14: 834 s training"},{"k":"evalidle","a":18390.2,"b":20793.4,"lab":"eval 3","tip":"eval 3 (step 14): 2,403 s trainer-blocked \u2014 16 H200s dark (synchronous: val wall == blocked wall, verified via TB wall_time gaps)"},{"k":"train","a":20808.6,"b":21621.3,"tip":"step 15: 813 s training"},{"k":"train","a":21635.1,"b":22619.3,"tip":"step 16: 984 s training"},{"k":"evalidle","a":22619.3,"b":25043.2,"lab":"eval 4","tip":"eval 4 (step 16): 2,424 s trainer-blocked \u2014 16 H200s dark (synchronous: val wall == blocked wall, verified via TB wall_time gaps)"},{"k":"train","a":25057.7,"b":26068.1,"tip":"step 17: 1,010 s training"},{"k":"train","a":26081.3,"b":27121.8,"tip":"step 18: 1,040 s training"},{"k":"evalidle","a":27121.8,"b":29487.0,"lab":"eval 5","tip":"eval 5 (step 18): 2,379 s trainer-blocked \u2014 16 H200s dark (synchronous: val wall == blocked wall, verified via TB wall_time gaps)"}]},"elastic":{"total_s":28964.0,"warmup_s":1177.6,"segs":[{"k":"warmup","a":0.0,"b":1177.6,"tip":"warmup (driver launch \u2192 step-1 start): 1,178 s \u2014 untouched by the mechanism, both arms"},{"k":"train","a":1177.6,"b":10482.9,"tip":"training (async GRPO steps; window boundaries from the controller receipts)"},{"k":"train","a":12442.8,"b":14071.0,"tip":"training (async GRPO steps; window boundaries from the controller receipts)"},{"k":"train","a":16098.6,"b":17638.5,"tip":"training (async GRPO steps; window boundaries from the controller receipts)"},{"k":"train","a":19705.4,"b":21713.1,"tip":"training (async GRPO steps; window boundaries from the controller receipts)"},{"k":"train","a":23970.9,"b":26358.7,"tip":"training (async GRPO steps; window boundaries from the controller receipts)"},{"k":"tail","a":28769.1,"b":28964.0,"tip":"post-eval-5 tail: final val scalars logged + teardown (training resumable at the last switch-in)"}],"windows":[{"ev":1,"a":10482.9,"serve0":10768.9,"serve1":12429.3,"b":12442.8,"out_s":285.94,"in_s":11.54,"wake_s":1.41,"load_s":116.23,"serve_s":1660.4,"post_s":13.5,"incident":null},{"ev":2,"a":14071.0,"serve0":14274.3,"serve1":16088.9,"b":16098.6,"out_s":203.29,"in_s":7.67,"wake_s":1.41,"load_s":33.69,"serve_s":1814.7,"post_s":9.7,"incident":null},{"ev":3,"a":17638.5,"serve0":17843.1,"serve1":19669.8,"b":19705.4,"out_s":204.56,"in_s":7.48,"wake_s":1.13,"load_s":31.66,"serve_s":1826.8,"post_s":35.6,"incident":null},{"ev":4,"a":21713.1,"serve0":22845.3,"serve1":23962.4,"b":23970.9,"out_s":162.93,"in_s":6.51,"wake_s":1.23,"load_s":30.63,"serve_s":1117.1,"post_s":8.5,"incident":{"a":21713.1,"b":22682.4}},{"ev":5,"a":26358.7,"serve0":26576.9,"serve1":28760.9,"b":28769.1,"out_s":218.17,"in_s":6.2,"wake_s":4.05,"load_s":83.98,"serve_s":2184.0,"post_s":8.2,"incident":null}]},"note":"both strips on the runs' own clocks: step walls + completion timestamps from TensorBoard scalars; the five blocked windows from val walls (baseline, synchronous) and from the switch receipts (elastic: switch-out start \u2192 training resumable). Inter-step overheads (~14-17 s) render as hairline gaps; blue marks the training PHASE (utilization is the duty gauges' job). Baseline step-18 TB timestamp trails the race endpoint by ~15 s (logging) \u2014 clipped at the measured race wall."},"wait_pool":{"pool_s":11893.3,"given_back_s":1170.7,"served_s":8603.0,"residual_s":2119.6,"given_back_pct":9.8,"served_pct":72.3,"residual_pct":17.8,"split":[{"key":"switch_out","s":1074.9,"label":"switch-out walls (5 fired)","how":"trainer yield offload + wcache dump 70.7-92.1 s / fetch 44.7-81.5 s + spare wake 1.1-4.0 s + spare load 30.6-116.2 s, per receipt; mean 215.0 s (162.9-285.9)"},{"key":"incident","s":969.2,"label":"window-4 incident (self-healed)","how":"failed switch-out: yield_and_wcache gather hit its 900 s timeout; emergency trainer restore; re-fired 65 s later as window 5 (warm offloads 3-4 s). Receipt interval 969.2 s; the report rounds to ~972 s. Zero manual action; the eval still beat its baseline counterpart"},{"key":"reclaim","s":75.5,"label":"drain \u2192 resume reclaim","how":"router drain settle + spare park L2 (1.2-1.4 s) + trainer onload + switch-in bookkeeping (mean 7.9 s, 6.2-11.5)"}],"unattributed_s":-0.03,"closure_note":"unattributed: 0.0 s \u2014 the receipt intervals (switch-out start \u2192 serve \u2192 drain \u2192 training resumable) partition each blocked window exactly; per flavor 1's clock-skew precedent any gap would be its own labeled bar, and none is needed here","eval5_note":"eval 5 drained late (longest generations of the run, mean 15.2k tokens): the one window that LOST to baseline (+31 s) \u2014 served time, not idle; kept in every total","source":"scored-final/switch_timings.jsonl + controller.log vs ELASTIC-REPORT-V2-FINAL.md \u00a72-4"},"noharm":{"work":{"big":"18 + 5\u00d71,024","label":"steps + eval episodes \u2014 identical, both arms","method":"both arms did identical work (18 GRPO steps + 5 \u00d7 1,024-episode evals, 256 tasks \u00d7 4 gens) and stopped by the same pre-registered plateau rule at step 18","source":"ELASTIC-REPORT-V2-FINAL.md (header + \u00a7Claim 2)"},"steptax":{"big":"878.7 vs 911.9 s","pct":-3.6,"label":"training step time, all-train (-3.6%) \u2014 no training tax; within variance","method":"apples-to-apples all-train step time (total_step_time minus val on eval steps). The delta is in ELASTIC's favor \u2014 labeled within-variance: a maximally skeptical read attributes the whole-run \u2212522 s margin to env/step-time variance, while the per-eval blocked-wall wins (\u22129.8%) remain attributable to the mechanism alone","source":"ELASTIC-REPORT-V2-FINAL.md \u00a72 (comparability)"},"band":{"big":"0.3203\u20130.3359","gap":"0.95 pt < 1\u03c3","label":"pass@4 plateau band (baseline 0.3203\u20130.3438) \u00b7 gap 0.95 pt < 1\u03c3","method":"plateau bands overlap: baseline evals 2-5 span 0.3203-0.3438 (mean 0.3360), elastic 0.3203-0.3359 (mean 0.3265); mean gap 0.95 pt < 1\u03c3 (\u03c3 \u2248 3.0 pt at n=256). CAVEAT kept: the baseline touched 0.3672 exactly once, at its first eval (a ~+1\u03c3 event); elastic's best was 0.3359 \u2014 neither arm reached it again","source":"ELASTIC-REPORT-V2-FINAL.md \u00a7Claim 1"},"swaptax":{"big":"215.0 s out / 7.9 s back","label":"swap tax \u2014 full restore path, 5 windows (receipts)","method":"means recomputed from the 5 scored windows' receipts and asserted equal to the report \u00a73: switch-out 215.0 s (162.9-285.9) = trainer yield offload + wcache dump 70.7-92.1 s / fetch 44.7-81.5 s + spare wake 1.1-4.0 s + spare load 30.6-116.2 s; switch-in 7.9 s (6.2-11.5) = spare park L2 + trainer onload","source":"scored-final/switch_timings.jsonl vs ELASTIC-REPORT-V2-FINAL.md \u00a73"}},"duty_strip":{"baseline_pct":55.7,"elastic_pct":87.9,"method":"work+serve share of elapsed wall from the strip interval data: baseline = training-phase seconds (TB step walls minus val walls) / race wall; elastic = (training-phase seconds + spare-serve receipt intervals) / race wall \u2014 the same time-accounting definition the flavor-1 gauges use"},"pass4":{"baseline":[0.3672,0.3359,0.3438,0.3203,0.3438],"elastic":[0.3242,0.3359,0.3242,0.3281,0.3203],"source":"ELASTIC-REPORT-V2-FINAL.md pass@4 trajectory table"},"reliability":{"windows_served":5,"cycles":6,"clean_outs":5,"line":"5/5 windows served \u00b7 5/6 switch-outs clean (window-4 retry self-healed)","basis":"receipts: 5 eval windows, every one served on the trainer bank (5/5); 6 switch cycles fired (windows 1-6 in switch_timings.jsonl), 5 completed switch-out receipts \u2014 window 4's failed attempt has no switch_out_total receipt, self-healed via emergency restore and re-fired as window 5 (969 s incident, its own bank bar + D row); counts asserted at build"},"gauges_basis":"report-sourced trainer-node GPU-util means (ray/node.*.gpu.*.util TB scalars, nodes 2,3, both arms archived; trainer nodes identified by eval-window signature) \u2014 NOT re-derived from raw TB here; the gauges print the report's \u00a7Claim 3 table verbatim","receipts_note":"strips, waterfall and switch ticks parsed from the scored run's own receipts (switch_timings.jsonl, controller.log, exp_041 + tb-a2 TB scalars) and cross-asserted against ELASTIC-REPORT-V2-FINAL.md at build time"},"batch":{"campaign":"rl-batch-interleave-v1","measured":true,"source_label":"MEASURED \u00b7 rl-batch-interleave IB2 (A2 interleaved vs A1' solo, 32\u00d7 H200 spot, us-west1-c, Sep 2026)","source_path":"elastic-rl-poc/rl-batch-interleave/INTERLEAVE-REPORT.md","run":{"total_wall_s":8419.0,"n_steps":26,"step_wall_s":135.3,"warmup_s":48.2,"note":"strip drawn 1:1 from the receipts, not reconstructed: 26 trainer lock-held bursts (interleave events, acquire\u2192yield) + 26 tenant serve windows (supervisor events, serving_start\u2192yield) on the scored A2 wall; prologue/seams/tail are the uncovered remainder and partition exactly (asserted <0.5 s)"},"windows":[{"id":1,"after_step":0,"a":98.1,"b":337.2,"idle_wall_s":239.1,"filled_wall_s":239.1,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 1","items":720,"unit":"requests","tokens":5694867,"detail":"720 DAPO-Math-17k data-generation requests \u00b7 5.7M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":2,"after_step":0,"a":348.2,"b":576.2,"idle_wall_s":228.1,"filled_wall_s":228.1,"delta_pct":0.0,"incident_note":"closed by supervisor stop (IB2-I1 restart race; detected in seconds, engines woken, zero errors; fixes shipped)","batch":{"kind":"dataset-generation","label":"Window 2","items":0,"unit":"requests","tokens":0,"detail":"served 228 s, 0 requests COMPLETED in-window (incident era): long-CoT partials were stream-cancelled at the drain and banked as continuations \u2014 completed in later windows, none lost"}},{"id":3,"after_step":0,"a":614.4,"b":740.4,"idle_wall_s":126.0,"filled_wall_s":126.0,"delta_pct":0.0,"incident_note":"4/4 engine sleeps fail-open direct (F8: agent jobs stale after the IB2-I1 recovery woke engines around the agent; resynced SAVED->RUNNING on the next agent Restore)","batch":{"kind":"dataset-generation","label":"Window 3","items":0,"unit":"requests","tokens":0,"detail":"served 126 s, 0 requests COMPLETED in-window (incident era): long-CoT partials were stream-cancelled at the drain and banked as continuations \u2014 completed in later windows, none lost"}},{"id":4,"after_step":1,"a":873.4,"b":1078.2,"idle_wall_s":204.8,"filled_wall_s":204.8,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"mixed","label":"Window 4","items":716,"unit":"requests","tokens":5719962,"detail":"716 requests incl. all 120 AIME evals (30 problems \u00d7 k=4) at the teacher's weights \u2014 acc 0.333 \u00b7 5.7M tokens, completion-timestamp attribution"}},{"id":5,"after_step":2,"a":1238.2,"b":1432.5,"idle_wall_s":194.3,"filled_wall_s":194.3,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 5","items":777,"unit":"requests","tokens":6105237,"detail":"777 DAPO-Math-17k data-generation requests \u00b7 6.1M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":6,"after_step":3,"a":1576.5,"b":1766.0,"idle_wall_s":189.5,"filled_wall_s":189.5,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 6","items":751,"unit":"requests","tokens":5961909,"detail":"751 DAPO-Math-17k data-generation requests \u00b7 6.0M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":7,"after_step":4,"a":1904.1,"b":2103.6,"idle_wall_s":199.5,"filled_wall_s":199.5,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 7","items":813,"unit":"requests","tokens":6149220,"detail":"813 DAPO-Math-17k data-generation requests \u00b7 6.1M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":8,"after_step":5,"a":2252.6,"b":2455.4,"idle_wall_s":202.8,"filled_wall_s":202.8,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 8","items":832,"unit":"requests","tokens":6441928,"detail":"832 DAPO-Math-17k data-generation requests \u00b7 6.4M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":9,"after_step":6,"a":2605.4,"b":2788.4,"idle_wall_s":183.0,"filled_wall_s":183.0,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 9","items":740,"unit":"requests","tokens":5721550,"detail":"740 DAPO-Math-17k data-generation requests \u00b7 5.7M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":10,"after_step":7,"a":2923.4,"b":3111.9,"idle_wall_s":188.5,"filled_wall_s":188.5,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 10","items":783,"unit":"requests","tokens":5894224,"detail":"783 DAPO-Math-17k data-generation requests \u00b7 5.9M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":11,"after_step":8,"a":3255.0,"b":3466.3,"idle_wall_s":211.3,"filled_wall_s":211.3,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 11","items":844,"unit":"requests","tokens":6609280,"detail":"844 DAPO-Math-17k data-generation requests \u00b7 6.6M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":12,"after_step":9,"a":3624.3,"b":3819.5,"idle_wall_s":195.3,"filled_wall_s":195.3,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 12","items":983,"unit":"requests","tokens":6245861,"detail":"983 DAPO-Math-17k data-generation requests \u00b7 6.2M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":13,"after_step":10,"a":3969.6,"b":4147.5,"idle_wall_s":177.9,"filled_wall_s":177.9,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 13","items":620,"unit":"requests","tokens":5468624,"detail":"620 DAPO-Math-17k data-generation requests \u00b7 5.5M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":14,"after_step":11,"a":4283.5,"b":4465.7,"idle_wall_s":182.2,"filled_wall_s":182.2,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 14","items":716,"unit":"requests","tokens":5601009,"detail":"716 DAPO-Math-17k data-generation requests \u00b7 5.6M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":15,"after_step":12,"a":4602.7,"b":4800.4,"idle_wall_s":197.7,"filled_wall_s":197.7,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 15","items":1224,"unit":"requests","tokens":6477298,"detail":"1224 DAPO-Math-17k data-generation requests \u00b7 6.5M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":16,"after_step":13,"a":4949.4,"b":5142.9,"idle_wall_s":193.5,"filled_wall_s":193.5,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 16","items":1167,"unit":"requests","tokens":6180610,"detail":"1167 DAPO-Math-17k data-generation requests \u00b7 6.2M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":17,"after_step":14,"a":5288.9,"b":5463.9,"idle_wall_s":175.0,"filled_wall_s":175.0,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 17","items":840,"unit":"requests","tokens":5466168,"detail":"840 DAPO-Math-17k data-generation requests \u00b7 5.5M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":18,"after_step":15,"a":5600.9,"b":5775.3,"idle_wall_s":174.4,"filled_wall_s":174.4,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 18","items":759,"unit":"requests","tokens":5530141,"detail":"759 DAPO-Math-17k data-generation requests \u00b7 5.5M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":19,"after_step":16,"a":5907.3,"b":6073.7,"idle_wall_s":166.4,"filled_wall_s":166.4,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 19","items":740,"unit":"requests","tokens":5175694,"detail":"740 DAPO-Math-17k data-generation requests \u00b7 5.2M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":20,"after_step":17,"a":6204.7,"b":6369.1,"idle_wall_s":164.4,"filled_wall_s":164.4,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 20","items":655,"unit":"requests","tokens":5113888,"detail":"655 DAPO-Math-17k data-generation requests \u00b7 5.1M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":21,"after_step":18,"a":6496.1,"b":6678.2,"idle_wall_s":182.2,"filled_wall_s":182.2,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 21","items":748,"unit":"requests","tokens":5732264,"detail":"748 DAPO-Math-17k data-generation requests \u00b7 5.7M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":22,"after_step":19,"a":6819.2,"b":6998.7,"idle_wall_s":179.4,"filled_wall_s":179.4,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 22","items":994,"unit":"requests","tokens":5831473,"detail":"994 DAPO-Math-17k data-generation requests \u00b7 5.8M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":23,"after_step":20,"a":7139.7,"b":7294.2,"idle_wall_s":154.5,"filled_wall_s":154.5,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 23","items":760,"unit":"requests","tokens":4915066,"detail":"760 DAPO-Math-17k data-generation requests \u00b7 4.9M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":24,"after_step":21,"a":7416.2,"b":7584.4,"idle_wall_s":168.2,"filled_wall_s":168.2,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 24","items":932,"unit":"requests","tokens":5332716,"detail":"932 DAPO-Math-17k data-generation requests \u00b7 5.3M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":25,"after_step":22,"a":7716.4,"b":7887.8,"idle_wall_s":171.4,"filled_wall_s":171.4,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 25","items":688,"unit":"requests","tokens":5277303,"detail":"688 DAPO-Math-17k data-generation requests \u00b7 5.3M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}},{"id":26,"after_step":23,"a":8018.8,"b":8192.4,"idle_wall_s":173.6,"filled_wall_s":173.6,"delta_pct":0.0,"incident_note":null,"batch":{"kind":"dataset-generation","label":"Window 26","items":711,"unit":"requests","tokens":5380084,"detail":"711 DAPO-Math-17k data-generation requests \u00b7 5.4M tokens completed in-window (completion-timestamp attribution; partials carry across windows as continuations)"}}],"totals":{"idle_s":4823.0,"filled_s":4823.0,"saved_s":0.0,"saved_pct":0.0,"items":19513,"tokens":138026376,"windows_converted":"26/26","note":"saved_s = 0 truthfully: converting a window does not shrink any wall in this campaign \u2014 the RL run's walls are unchanged (the no-harm gate). The win is the free batch work + the duty collapse."},"race":{"baseline_s":3675.0,"elastic_s":3728.9,"delta_s":53.9,"delta_pct":1.5,"note":"the no-harm race, not a speedup claim: A2 interleaved vs A1' solo (identical config), v2-12 step-wall sums = 1.0147 (+1.5%) \u2014 STRICT PASS (gate <=1.025), guide gate (<=1.10) PASS, per-version max +4.6% (v4), dropped_stale_samples = 0 both arms"},"duty":{"evals_baseline":"33.1\u201333.3%","evals_elastic":"88.6\u201389.0%","whole_run_baseline":33.2,"whole_run_elastic":88.8,"per_node_solo":[33.1,33.3],"per_node_interleaved":[88.6,89.0],"rollout_solo":56.8,"rollout_interleaved":59.6,"basis":"1 Hz nvidia-smi GPU-util means over each arm's full run, the two trainer nodes (ib2-t1 33.1\u219288.6, ib2-t2 33.3\u219289.0; gauges print the two-node means); rollout node basis identical","residual_note":"residual trainer-bank idle collapsed 67% \u2192 11%"},"queue_extra":[],"headline":{"stat":"19,513","sub":"requests \u00b7 138.0M tokens completed free","duty_line":"trainer GPU duty 40% \u2192 97% (strip-derived)"},"strip":{"total_wall_s":8419.0,"prologue_s":48.2,"tail_s":96.5,"bursts":[[48.2,95.3],[337.9,345.4],[741.2,871.9],[1078.8,1236.4],[1433.1,1574.6],[1766.6,1902.8],[2103.6,2251.1],[2455.8,2604.4],[2788.5,2922.2],[3112.5,3253.1],[3466.8,3622.5],[3820.5,3968.5],[4148.1,4281.8],[4465.7,4601.4],[4800.8,4947.5],[5143.3,5287.4],[5464.9,5599.8],[5776.3,5905.5],[6073.8,6203.0],[6369.1,6494.6],[6678.4,6817.3],[6999.3,7137.7],[7295.1,7413.9],[7584.4,7714.7],[7888.4,8017.7],[8193.0,8322.5]],"burst_versions":[[0,0],[0,0],[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,11],[11,12],[12,13],[13,14],[14,15],[15,16],[16,17],[17,18],[18,19],[19,20],[20,21],[21,22],[22,23],[23,24]],"seams_n":51,"seams_s":92.4,"note":"blue = trainer lock-held bursts (update + sync; p50 136 s), red outline \u2192 purple = the 26 gen-wait windows, gray = prologue/tail; handoff seams render as the natural gaps between receipts"},"bank":{"pool_s":5060.0,"served_s":4823.0,"residual_s":237.0,"served_pct":95.3,"residual_pct":4.7,"split":[{"key":"prologue","s":48.2,"label":"prologue (launch \u2192 first handoff)","how":"A2 driver launch, ray bring-up and rollouter init before the trainer's first lock acquire \u2014 no window exists to fill yet"},{"key":"seams","s":92.4,"label":"handoff seams (51 seams)","how":"the gaps between consecutive receipts: client drain (p50 0.31 s) + 4\u00d7 engine sleep (p50 1.0 s, parallel) + wake (~1.0 s) + 0.25 s supervisor poll + lock grants; p50 1.1 s per seam, max 38.2 s"},{"key":"tail","s":96.5,"label":"tail (final version \u2192 stop stamp)","how":"post-last-window trainer work and the stop stamp at the registered A2 window end \u2014 after the tenant's last yield"}],"basis":"pool = scored run wall \u2212 trainer lock-held bursts (receipts); served = supervisor serve intervals; the receipts partition the wall exactly (closure asserted <0.5 s). A TIME-accounting bank, the same basis the duty gauges print since booth revision T (strip-derived 39.9\u219297.2%); the nvidia-smi GPU-util pair (33.2\u219288.8%) is the hardware-counter basis, in D"},"results":{"tiles":[{"big":"19,513 \u00b7 138.0M tok","label":"requests completed, in-window","tip":"19,513 individual prompt\u2192response completions \u2014 19,393 DAPO-Math-17k data-generation requests + 120 AIME evals \u2014 inside the RL run's 26 windows (completion-timestamp attribution vs supervisor serve receipts); 2,202 stream cancellations, every partial banked as a continuation (peak 533K tokens), 0 requests lost, 0 HTTP errors"},{"big":"40% \u2192 97%","label":"trainer GPU duty (strip-derived)","tip":"exact: 39.9% \u2192 97.2% \u2014 time accounting from the run's own receipts (trainer training-burst share of the 8,419 s wall \u2192 bursts + tenant serve intervals share). Hardware-counter basis (1 Hz nvidia-smi GPU-util means, in D): 33.2% \u2192 88.8% (ib2-t1 33.1\u219288.6, ib2-t2 33.3\u219289.0); residual idle collapsed 67% \u2192 11%; rollout nodes untouched (56.8% \u2192 59.6%) \u2014 the platform never touches the rollout fleet"},{"big":"+1.5%","label":"RL run unchanged (within gate)","tip":"no-harm ratio 1.0147 vs pre-registered strict gate 1.025 \u2014 PASS (guide-contract gate 1.10 also PASS): A2 interleaved vs A1' solo, identical config, v2-12 sums 3,728.9 vs 3,675.0 s; largest per-version delta +4.6% (v4); dropped_stale_samples = 0 both arms; reward curves same-band point-for-point"},{"big":"2.14 s \u00b7 0.31 s","label":"handoff tax \u2014 acquire p50 \u00b7 drain p50","tip":"RL side: acquire wait p50 2.14 s / p90 3.14 s, total 54.9 s over 24 handoffs = 0.65% of the run; cache-park (per-rank empty_cache) p50 0.005 s \u2014 the trainer is NEVER checkpointed or offloaded. Tenant side: drain p50 0.31 s (client stream-cancel), engine sleep p50 1.0 s \u00d74 parallel, wake ~1.0 s"}],"reliability":{"line":"26/26 windows \u00b7 96/100 agent suspends (4 fail-open, documented)","basis":"26 gen-wait windows opened, 26 converted, 0 left on the table (supervisor receipts); 96 of 100 engine suspends drove through the snapshot agent's APP_VLLM backend \u2014 the 4 fail-open direct sleeps are window 3's receipt (F8: agent state staled by the IB2-I1 recovery; resynced on the next agent Restore)"}},"free_work":{"calib_tokens_per_s_16gpu":24240.0,"window_tokens":138026376,"equivalent_dedicated_16gpu_seconds":5694.3,"free_gpu_hours":25.31,"free_dollars_at_price":55.68,"price_per_gpu_hour":2.2,"low_gpu_hours":21.4,"range_label":"$47\u201356","mid_label":"\u2248 $50","method":"138.0M in-window tokens = 5,694 s of a dedicated 16-GPU pod at the measured calibration rate (24,240 tok/s, ramp-inclusive, 424 s dedicated pre-RL run, registered) = 21.4\u201325.3 GPU-h \u2248 $47\u201356 @ $2.20/H200-h. Window-wall accounting gives the low bound, calibration-rate the high (windows ran 18% above the conservative calibration); the on-screen \u2248$50 is that range's midpoint framing"},"handoff":{"acquire_p50":2.14,"acquire_p90":3.14,"acquire_sum":54.9,"n":24,"park_p50":0.005,"drain_p50":0.31,"sleep_p50":1.0,"wake_p50":1.0,"burst_p50":135.3,"sup_acquire_p50":136.0},"occupancy":{"baseline_pct":39.9,"interleaved_pct":97.2,"basis":"time accounting from the run's own receipts: baseline = trainer lock-held training-burst share of elapsed wall; time-sliced = (bursts + tenant serve intervals) share. A1' (solo) has no lock receipts (hooks inert) \u2014 the baseline track uses the interleaved run's burst intervals; the arms' training walls are gate-equal (no-harm 1.0147), so the burst share stands for the solo shape too"},"convergence":{"label":"weight version (v2\u201312 scored)","versions":[2,3,4,5,6,7,8,9,10,11,12],"a2":[-0.0234,-0.217,-0.1963,-0.1055,-0.1369,-0.143,0.022,0.0477,-0.127,0.0361,0.1406],"a1":[-0.0312,-0.2465,-0.1387,-0.1182,-0.1301,-0.1305,0.0049,0.0475,-0.1265,0.0264,0.1162]},"noharm":{"ratio":1.0147,"gate_strict":1.025,"gate_guide":1.1,"pct_str":"+1.5%","a2_sum":3728.9,"a1_sum":3675.0,"max_delta":"+4.6% (v4)","dropped_stale":0,"tail":"informational tail v13-23: A2 mean 311.1 s vs A1' v2-12 mean 334.1 s \u2014 the interleaved run's later versions ran FASTER than the baseline's mean (response-length regime, not harm)","rewards":"same band point-for-point: v3 \u22120.217 vs \u22120.247 \u00b7 v12 +0.141 vs +0.116; v2 \u22120.02 \u2192 v23 +0.39 (A2)"},"honesty":{"f2":"IB2-F2 (the finding that matters): the shipped guide's job contract trigger_parameter_sync_step=1 \u2014 the thing that makes every gen-wait an unlocked batch window with zero bespoke triggering \u2014 idles this recipe's ROLLOUT fleet ~35% at 16:16 geometry (rollouter idle mean 0.347 A2 / 0.280 A1' vs 0.06\u20130.10 at stock trigger-4); micro-steps ~330 s vs ~188 s equivalent at the stock trigger-4 shape. The no-harm gate is apples-to-apples (BOTH arms pay it), but adopting the contract costs the RL run ~1.8\u00d7 wall vs its stock shape. Fix shapes registered, not run: age-equivalent staleness raise (trigger-1 + threshold ~3.4 = stock's 563-sample ahead-window; the guide's own troubleshooting row), or the intra-step ETA-window variant measured in \u00a76","i2":"v24 val anchor lost (IB2-I2, ops defect): the stopper pattern matched the ROLLOUTER's step-24 line, killing the trainer before its v24 metrics line + val; scored window (v2-12) unaffected; cost = 2 versions + the mid-run val anchor. Fleet-side v0 val acc 0.361 (A2) / 0.377 (A1'). A2's stop at v24 era was itself a registered budget amendment (by design)","f8":"fail-open events (F8 receipt, live): during the IB2-I1 recovery (supervisor restart race \u2014 a supervisor blocked in acquire() ignores its stop flag; the successor cold-started gate-open onto sleeping engines, vllm#15483 class; detected in seconds, zero errors) engines were woken directly, bypassing agent Restore; agent jobs stayed SAVED and the next agent Snapshot got FAILED_PRECONDITION \u00d74 \u2192 supervisor fail-open direct /sleep (window 3's receipt), next agent Restore resynced SAVED\u2192RUNNING; remaining 96/100 operations agent-driven. Fixes shipped: cold-start wake-if-sleeping; ops rule = kill supervisors by pid","dollars":"$ framing method: window-wall accounting gives $47 (4,823 s \u00d7 16 GPUs), the measured calibration rate gives $56 (138.0M tok \u00f7 24,240 tok/s \u00d7 16 GPUs), both @ $2.20/H200-h spot \u2014 the on-screen \u2248$50 is the midpoint of a measured range, not a point measurement; extrapolated to the full 48-version recipe shape, roughly double","zero_item_windows":"windows 2\u20133 completed 0 requests in-window (IB2-I1 incident era): requests attribute by COMPLETION timestamp; their long-CoT partials were banked as continuations and completed in later windows \u2014 0 requests lost, 0 HTTP errors"},"manifest_line":{"eyebrow":"ALL SHIPPED COMPONENTS","lines":["TimeSlice Orchestrator (group lock) \u00b7 Snapshot Agent + APP_VLLM \u00b7 Helm chart \u00b7 Python clients \u2014 shipped in repo","stock vLLM serve tenant \u00b7 verl fork hooks (pre-existing, zero new commits) \u00b7 timeslice_verl package","campaign deltas: TimesliceInterleaveMixin (the one package delta) + batch supervisor (F1 routes around)"],"tip":"the station's differentiator: the scored arm ran the SHIPPED platform architecture end-to-end \u2014 orchestrator lock service, snapshot-agent APP_VLLM app_endpoint backend, Helm chart deploy, stock vLLM with sleep mode, pre-existing verl fork (zero new verl commits). Campaign deltas: TimesliceInterleaveMixin (cache-park yield; commit 8859685, local branch) + the batch supervisor (exists because of F1: the orchestrator cannot attach a backend_config, so APP-backend tenants self-drive the agent RPCs)"},"cost_line":"~230 GPU-h total, cap 250 \u2014 no unattended idle (deadman watchdog)","delta_variant":"\u00a76 delta variant (measured, pre-realignment build): at the recipe's STOCK trigger-4 shape, intra-step windows via ETA controller \u2014 13 windows, switch-in 0.86\u20131.30 s, ~38K tok/s harvest, in-window AIME eval of the run's own v2 weights 0.465, zero disturbance. The measured path WITHOUT the IB2-F2 fleet tax, at the price of the controller machinery the shipped architecture avoids","swapped_in":"/Users/aishuk/workspaces/GPU-CR/elastic-rl-poc/rl-batch-interleave/booth_receipts.json"},"codewall":{"gates":{"g1":{"stat":"10/10","line":"G1 mechanics gate: 10/10 clean rotations (pre-registered bar: >= 6). Every rotation: provenance PASS, dropped_stale_delta = 0, generated_delta = 0 across the seam; zero hits for the old failure classes in either log."},"g2_parity":{"stat":"1.0020","line":"G2 scored gate: wall-clock parity 1.0020x vs serial (makespan 12,067 s vs sum-of-active 12,043 s; registered gate <= 1.15)."},"g2_seam":{"stat":"seam dips < natural fluctuations","line":"Reward continuity across park seams: both arms parked at v9; the v10 dips (arm-a -0.112, arm-b -0.151) are smaller than the largest NON-seam step fluctuation in the same runs (-0.174 / -0.243 at v3); both series recover from v11 and end at +0.293 / +0.256."},"source":"selfyield-sweep/SELFYIELD-REPORT.md \u00a72-3 + results/{g1,g2}"},"rot_park_min":1.8,"rot_park_max":20.5,"rot_unpark_min":1.46,"rot_unpark_max":4.19,"rotations":12,"parity":"1.002","fingerprint":"8c56a42c098f76ece8e52f0b","loc_removed":"1,635","ledger":[{"component":"sweep_arbiter.py (external arbiter daemon, T2 policy loop)","loc":"278"},{"component":"sweep_main.py (custom driver wrapper, handle registry, callbacks)","loc":"301"},{"component":"sweep_park.py (external park/unpark RPC choreography, safe-point wait, busy triage)","loc":"230"},{"component":"sweep_trainer.py (trainer subclass: resident guard, phase tracking, hold/release)","loc":"142"},{"component":"sweep_rollouter.py (rollouter subclass: elastic pause/hold + fleet handles)","loc":"101"},{"component":"sweep_ctl.py / sweep_watch.py / park_arm.py / s0_gate.py / arbiter configs","loc":"233"}],"package":[{"component":"timeslice_verl/sweep.py (TimesliceSweepMixin + shims + receipts)","loc":520},{"component":"timeslice_verl/lease.py (shared FIFO lease + bootstrap CLI)","loc":314},{"component":"timeslice_verl/fleet.py (engine-level fleet server, entry-point install)","loc":171}],"fork":{"commits":[{"sha":"71e29f4","what":"fully-async lifecycle hooks + trainer registry","why":"fires on_update_weights_end(synced=True) after NCCL param sync; lets a config string select a trainer subclass"},{"sha":"976b5f5","what":"per-pool placement-group resources","why":"trainer and rollout pools pin to their own GPU pools"}],"base":"upstream verl 983cb0f + exactly these two commits; zero new commits across every campaign shown here"},"excerpt_provenance":"timeslice_verl/sweep.py @ selfyield-sweep branch, commit 749017b (verbatim, read-only capture)","excerpts":{"hook":"async def on_update_weights_end(self, synced: bool) -> None:\n    if not sweep_enabled():\n        return await super().on_update_weights_end(synced)\n    if not synced:\n        # unreachable: the trigger_parameter_sync_step==1 guard makes\n        # every _fit_update_weights a synced one.\n        raise SweepConfigError(\"on_update_weights_end(synced=False) under TIMESLICE_SWEEP\")\n    self._sy_syncs_since_grant += 1\n    quantum = int(os.environ.get(ENV_QUANTUM, \"10\"))\n    if self._sy_syncs_since_grant < quantum:\n        return\n    locks = await asyncio.to_thread(self._get_locks)\n    waiters = await asyncio.to_thread(locks.waiters_pending)\n    if waiters == 0:\n        _log(\n            f\"self-yield: quantum reached ({self._sy_syncs_since_grant} syncs) \"\n            \"but no arm is waiting \u2014 continuing (recheck next sync)\"\n        )\n        return\n    _log(\n        f\"self-yield: rotation {self._sy_rotation + 1} at sync boundary \"\n        f\"v{self._sy_version()} after {self._sy_syncs_since_grant} syncs \"\n        f\"(waiters={waiters})\"\n    )\n    await self._sy_park(point=\"sync_boundary\")\n    await self._yield_lock(point=\"sync_boundary\")\n    # BLOCK for the re-grant (hour-scale timeout via\n    # TIMESLICE_ACQUIRE_TIMEOUT_SEC); event loop stays live.\n    await self._ensure_lock(point=\"sync_boundary_regrant\")\n    await self._sy_unpark(point=\"sync_boundary\")\n    self._sy_syncs_since_grant = 0\n    self._sy_rotation += 1\n","park":"async def _sy_park(self, point: str) -> None:\n    if self._sy_parked:\n        return\n    walls: dict = {}\n    t_all = time.time()\n    version = self._sy_version()\n\n    # 1. quiesce admissions (reset_staleness just un-paused them)\n    t0 = time.time()\n    q = await self._r(self.rollouter.__ray_call__.remote(_rollouter_quiesce))\n    stats_before = await self._r(self.rollouter.get_statistics.remote())\n    walls[\"quiesce\"] = round(time.time() - t0, 2)\n\n    # 2. pause(save_tokens=True): immediate, token-retaining abort\n    t0 = time.time()\n    handles = await self._sy_fleet()\n    pauses = await asyncio.gather(*[self._r(h.pause.remote(save_tokens=True)) for _, h in handles])\n    aborted = sum(int(p.get(\"aborted_count\", 0)) for p in pauses)\n    walls[\"pause_abort\"] = round(time.time() - t0, 2)\n\n    # 3. engine-level drain + bounded rollouter grace\n    t0 = time.time()\n    await asyncio.gather(*[self._r(h.wait_for_requests_to_drain.remote()) for _, h in handles])\n    grace = float(os.environ.get(ENV_DRAIN_GRACE, \"10\"))\n    residual = None\n    g0 = time.time()\n    while time.time() - g0 < grace:\n        s = await self._r(self.rollouter.get_statistics.remote())\n        residual = int(s.get(\"monitor/active_tasks_size\", -1))\n        if residual == 0:\n            break\n        await asyncio.sleep(0.5)\n    walls[\"drain\"] = round(time.time() - t0, 2)\n    walls[\"residual_tasks\"] = residual  # parked client retries/reward tasks; non-fatal\n\n    # 4. provenance probe BEFORE sleep (weights on GPU). Guard against a\n    #    silently-trivial pass: every server must return non-empty,\n    #    plausible fingerprints (a future vllm could drop collective_rpc\n    #    results; equality of empty lists must not count as provenance).\n    t0 = time.time()\n    probes = await asyncio.gather(*[self._r(h.fleet_probe.remote()) for _, h in handles])\n    self._sy_fingerprints = [p[\"fingerprints\"] for p in probes]\n    for (rank, _h), fps in zip(handles, self._sy_fingerprints, strict=True):\n        if not fps or any(not isinstance(f, str) or len(f) < 8 for f in fps):\n            raise ProvenanceError(f\"park probe returned trivial fingerprints on replica {rank}: {fps!r}\")\n    walls[\"probe\"] = round(time.time() - t0, 2)\n\n    # 5. engines sleep L1 (weights persist host-side; version frozen while\n    #    parked => wake needs no freshness machinery)\n    t0 = time.time()\n    sleeps = await asyncio.gather(*[self._r(h.fleet_sleep.remote(1)) for _, h in handles])\n    walls[\"fleet_sleep\"] = round(time.time() - t0, 2)\n\n    # 6. trainer offload (blocking worker-group dispatch -> worker thread)\n    t0 = time.time()\n    await asyncio.to_thread(self.actor_wg.to, \"cpu\", model=True, optimizer=True, grad=True)\n    used = await asyncio.gather(\n        *[self._r(w.__ray_call__.remote(_rank_empty_cache)) for w in self.actor_wg.workers]\n    )\n    walls[\"trainer_offload\"] = round(time.time() - t0, 2)\n\n    self._sy_parked = True\n    self._sy_park_version = version\n    self._sy_stats_at_park = stats_before\n    self._sy_receipt({\n        \"action\": \"park\", \"point\": point, \"walls\": walls,\n        \"total_s\": round(time.time() - t_all, 2), \"param_version\": version,\n        \"aborted_count\": aborted, \"active_at_quiesce\": q.get(\"active_tasks\"),\n        \"stats\": self._sy_stat_slice(stats_before),\n        \"sleep_walls\": [s.get(\"seconds\") for s in sleeps],\n        \"trainer_used_gb_max\": max(used) if used else None,\n    })\n","unpark":"async def _sy_unpark(self, point: str) -> None:\n    if not self._sy_parked:\n        return\n    walls: dict = {}\n    t_all = time.time()\n    handles = await self._sy_fleet()\n\n    # 0. free-VRAM precheck on ALL engines BEFORE waking ANY (D15a/F9),\n    #    with bounded retries (co-tenant teardown residuals).\n    min_free_gb = float(os.environ.get(\"TIMESLICE_SWEEP_WAKE_MIN_FREE_GB\", \"102.5\"))\n    retries = int(os.environ.get(ENV_PRECHECK_RETRIES, \"30\"))\n    t0 = time.time()\n    worst = None\n    for attempt in range(retries):\n        frees = await asyncio.gather(*[self._r(h.fleet_free_probe.remote()) for _, h in handles])\n        worst = min(min(f) for f in frees) / (1 << 30)\n        if worst >= min_free_gb:\n            break\n        _log(\n            f\"unpark precheck attempt {attempt + 1}/{retries}: \"\n            f\"{worst:.1f} GiB free < {min_free_gb} \u2014 co-tenant residuals; retrying in 5s\"\n        )\n        await asyncio.sleep(5)\n    else:\n        self._sy_receipt({\"action\": \"unpark_PRECHECK_REFUSED\", \"point\": point,\n                          \"min_free_gb\": round(worst, 1), \"threshold\": min_free_gb})\n        raise RuntimeError(f\"unpark precheck: {worst:.1f} GiB free < {min_free_gb} after {retries} tries\")\n    walls[\"fleet_precheck\"] = round(time.time() - t0, 2)\n\n    # 1. wake (per-engine belt precheck + is_sleeping skip inside)\n    t0 = time.time()\n    wakes = await asyncio.gather(*[self._r(h.fleet_wake.remote()) for _, h in handles])\n    walls[\"fleet_wake\"] = round(time.time() - t0, 2)\n\n    # 2. provenance (HARD): per-rank fingerprints must equal park values\n    t0 = time.time()\n    probes = await asyncio.gather(*[self._r(h.fleet_probe.remote()) for _, h in handles])\n    now_fp = [p[\"fingerprints\"] for p in probes]\n    if now_fp != self._sy_fingerprints:\n        self._sy_receipt({\"action\": \"unpark_PROVENANCE_FAIL\", \"point\": point,\n                          \"expected\": self._sy_fingerprints, \"got\": now_fp})\n        raise ProvenanceError(\"weight provenance mismatch after wake\")\n    walls[\"probe\"] = round(time.time() - t0, 2)\n\n    # 3. resume: un-quiesce admissions + resume_generation (aborted\n    #    partials auto-resubmit via the client retry path)\n    t0 = time.time()\n    await self._r(self.rollouter.__ray_call__.remote(_rollouter_unquiesce))\n    await asyncio.gather(*[self._r(h.resume_generation.remote()) for _, h in handles])\n    walls[\"resume\"] = round(time.time() - t0, 2)\n"}},"beat1":{"blocks":[{"busy_s":413.6,"wait_s":321.1},{"busy_s":561.5,"wait_s":294.5},{"busy_s":575.7,"wait_s":219.5},{"busy_s":549.6,"wait_s":256.2},{"busy_s":518.7,"wait_s":249.7},{"busy_s":502.3,"wait_s":232.0},{"busy_s":515.7,"wait_s":240.4},{"busy_s":501.8,"wait_s":217.1},{"busy_s":485.9,"wait_s":219.3},{"busy_s":497.9,"wait_s":232.1},{"busy_s":468.3,"wait_s":185.7},{"busy_s":129.8,"wait_s":32.0}],"mean_wait_frac":0.312,"stat_big":"30\u201374%","stat_sub":"of trainer GPU time sits idle in production RL runs (SemiAnalysis)"},"provenance":{"decision_2_2x":"Projection at the recipe-stock sweep length (N=12 blocks, block-3 decision) from this run's measured block walls; the measured ratio at this demo's shortened N=8 / block-5 decision is 1.13x. Interleaving does not change total block-hours; it makes the fair early decision continuous and cheap.","survivor_speedup_min":27.366666666666667,"throughput_11pct":"Computed from measured block walls: baseline 1313 vs elastic 1457 samples/GPU-hr over 12 sync blocks on 32 H200s.","handoffs_verified":"26/26 elastic windows passed the weight-provenance check; all drains lossless.","idle_30_74":"SemiAnalysis: reported trainer idle across production RL frameworks."}};
+
+const PAL = {blue:"#4285F4", green:"#188038", red:"#EA4335", yellow:"#F29900",
+             gray:"#80868B", purple:"#7627BB", ink:"#202124", ink2:"#5F6368",
+             ink3:"#80868B", hair:"#DADCE0", surface:"#FFFFFF", panel:"#F8F9FA"};
+const NS = "http://www.w3.org/2000/svg";
+const stage = document.getElementById("stage");
+function el(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in (attrs||{})) e.setAttribute(k, attrs[k]);
+  (parent||stage).appendChild(e);
+  return e;
+}
+function txt(parent, x, y, str, size, fill, opts){
+  opts = opts || {};
+  const e = el("text", {x, y, "font-size":size, fill, class:"svgtxt",
+    "text-anchor": opts.anchor||"start", "font-weight": opts.weight||400,
+    opacity: opts.opacity==null?1:opts.opacity}, parent);
+  e.textContent = str;
+  return e;
+}
+function rrect(parent, x,y,w,h, r, fill, opts){
+  opts=opts||{};
+  const e = el("rect",{x,y,width:Math.max(0,w),height:Math.max(0,h),rx:r,ry:r,fill,
+    opacity:opts.opacity==null?1:opts.opacity},parent);
+  if (opts.stroke){ e.setAttribute("stroke",opts.stroke); e.setAttribute("stroke-width",opts.sw||2); }
+  return e;
+}
+const clamp01 = v => v<0?0:v>1?1:v;
+const lerp = (a,b,t) => a+(b-a)*t;
+const fade = (n,o) => n.setAttribute("opacity", clamp01(o));
+
+// ---------------------------------------------------------------- chapters --
+// 2026-09-16 user reorder: Ch1 = sweep (RL+RL) · Ch2 = RL+batch (the
+// interleave campaign) · Ch3 = elastic (both flavors). Station letters and
+// screens are unchanged (attract order is independent of station naming);
+// D.specs.attract stays [sweep, elastic, batch] — remapped here.
+const CH = [
+  {name:"Run experiments concurrently",  dur:30, color:PAL.blue,   spec:D.specs.attract[0]},
+  {name:"Interleave RL + batch inference", dur:30, color:PAL.purple, spec:D.specs.attract[2]},
+  // rev U: elastic is dual-flavor (gen | eval columns) — stretched a few
+  // seconds and it draws its spec lines per column (specCols)
+  {name:"Reclaim idle inside the run",   dur:34, color:PAL.green,  spec:D.specs.attract[1],
+   specCols:true},
+];
+const TOTAL = CH.reduce((s,c)=>s+c.dur,0);
+CH.forEach(c => { c.g = el("g",{opacity:0}); c.built = false; });
+const STAT_AT = 0.62;   // chapter fraction where the stat frame takes over
+
+function chapterChrome(g, c){
+  txt(g, 800, 58, c.name, 46, PAL.ink, {anchor:"middle", weight:800});
+  el("rect",{x:660,y:76,width:280,height:6,rx:3,fill:c.color},g);
+  // chapter RUN-SPEC line(s) (chips verified by build_specs against the
+  // reports); the batch chapter carries a second spec line. Dual-column
+  // chapters (rev U: elastic) draw their spec lines per column instead.
+  if (c.specCols) return;
+  c.spec.split("\n").forEach((line,i)=>
+    txt(g, 800, 104+i*24, line, 19, PAL.ink3, {anchor:"middle", weight:600}));
+}
+function statFrame(g, big, sub, useCase, color, sub2){
+  const f = el("g",{opacity:0},g);
+  rrect(f, 0, 112, 1600, 648, 0, PAL.surface, {opacity:0.94});   // spec line stays visible
+  txt(f, 800, 400, big, 185, PAL.ink, {anchor:"middle", weight:800});
+  txt(f, 800, 470, sub, 36, PAL.ink2, {anchor:"middle"});
+  if (sub2) txt(f, 800, 512, sub2, 25, PAL.ink3, {anchor:"middle"});
+  txt(f, 800, 600, useCase, 46, color, {anchor:"middle", weight:800});
+  return f;
+}
+
+// ---- synced companions (2026-09-16 revision N): duty pair + convergence ----
+// Both the RL+batch and the elastic chapters pair their placement strip with
+// TWO live companions that animate ON THE SAME RUN CLOCK as the strip replay
+// (no independent timelines): a trainer-GPU duty gauge pair and a
+// convergence mini (reward vs step, both arms, same band). Real data only;
+// bases + clock compression in the presenter-reference companion rows.
+function dutyMini(g, cfg){
+  const W = 320, H = 15;
+  txt(g, cfg.x, cfg.y-16, cfg.title || "TRAINER-GPU DUTY", 15, PAL.ink3, {weight:700});
+  txt(g, cfg.x, cfg.y+8, cfg.labelB || "baseline", 15, PAL.ink3);
+  rrect(g, cfg.x, cfg.y+16, W, H, 7, PAL.hair);
+  const fb = rrect(g, cfg.x, cfg.y+16, 0, H, 7, PAL.gray);
+  const tb = txt(g, cfg.x, cfg.y+29, "", 16, PAL.ink3, {weight:600});
+  txt(g, cfg.x, cfg.y+62, cfg.labelT || "time-sliced", 15, PAL.ink2);
+  rrect(g, cfg.x, cfg.y+70, W, H, 7, PAL.hair);
+  const fe = rrect(g, cfg.x, cfg.y+70, 0, H, 7, cfg.color);
+  const te = txt(g, cfg.x, cfg.y+83, "", 16, PAL.ink, {weight:700});
+  return {set(vB, vE, print){
+    fb.setAttribute("width", W*clamp01(vB/100));
+    fe.setAttribute("width", W*clamp01(vE/100));
+    if (print){
+      tb.textContent = vB.toFixed(1)+"%"; tb.setAttribute("x", cfg.x+W*clamp01(vB/100)+9);
+      te.textContent = vE.toFixed(1)+"%"; te.setAttribute("x", cfg.x+W*clamp01(vE/100)+9);
+    } else { tb.textContent = ""; te.textContent = ""; }
+  }};
+}
+// active seconds of [a,b) interval list before clock position t
+function actIn(segs, t){
+  let a = 0;
+  for (const q of segs){ const q0 = q[0], q1 = q[1];
+    if (t <= q0) break; a += Math.min(t, q1) - q0; }
+  return a;
+}
+function convMini(g, cfg){
+  const x0 = cfg.xs[0], x1 = cfg.xs[cfg.xs.length-1];
+  const X = v => cfg.x + (v-x0)/(x1-x0)*cfg.w;
+  const Y = r => cfg.y + (1-(r-cfg.ylo)/(cfg.yhi-cfg.ylo))*cfg.h;
+  const ydp = cfg.ydp==null ? 1 : cfg.ydp;   // y-tick decimals (rev U: pass@4 needs 2)
+  txt(g, cfg.x, cfg.y-16, cfg.title || "CONVERGENCE — SAME REWARD BAND", 15, PAL.ink3, {weight:700});
+  txt(g, cfg.x+8, cfg.y+16, cfg.ylab || "reward", 13, PAL.ink3);
+  el("line",{x1:cfg.x,y1:cfg.y,x2:cfg.x,y2:cfg.y+cfg.h,stroke:PAL.hair,"stroke-width":1.5},g);
+  el("line",{x1:cfg.x,y1:cfg.y+cfg.h,x2:cfg.x+cfg.w,y2:cfg.y+cfg.h,stroke:PAL.hair,"stroke-width":1.5},g);
+  if (cfg.ylo<0 && cfg.yhi>0){
+    el("line",{x1:cfg.x,y1:Y(0),x2:cfg.x+cfg.w,y2:Y(0),stroke:PAL.hair,"stroke-width":1},g);
+    txt(g, cfg.x-8, Y(0)+5, "0", 13, PAL.ink3, {anchor:"end"});
+  }
+  txt(g, cfg.x-8, Y(cfg.yhi)+5, cfg.yhi.toFixed(ydp), 13, PAL.ink3, {anchor:"end"});
+  txt(g, cfg.x-8, Y(cfg.ylo)+5, cfg.ylo.toFixed(ydp), 13, PAL.ink3, {anchor:"end"});
+  txt(g, cfg.x+cfg.w, cfg.y+cfg.h+38, cfg.xlabel, 14, PAL.ink3, {anchor:"end"});
+  [x0, cfg.xs[Math.floor(cfg.xs.length/2)], x1].forEach(v=>{
+    el("line",{x1:X(v),y1:cfg.y+cfg.h,x2:X(v),y2:cfg.y+cfg.h+5,stroke:PAL.ink3},g);
+    txt(g, X(v), cfg.y+cfg.h+20, String(v), 13, PAL.ink3, {anchor:"middle"});
+  });
+  const S = cfg.series.map(sr=>({sr,
+    line: el("polyline",{fill:"none",stroke:sr.color,"stroke-width":sr.width||4,
+      "stroke-linejoin":"round","stroke-linecap":"round"},g),
+    lbl: txt(g, 0, 0, sr.label, 14, sr.color, {weight:700, opacity:0})}));
+  return {set(ns){                    // ns[i] = points revealed (float) per series
+    S.forEach((o,si)=>{
+      const n = ns[si], vals = o.sr.vals, pts = [];
+      const full = Math.min(vals.length, Math.floor(n));
+      for (let i=0;i<full;i++) pts.push([X(cfg.xs[i]), Y(vals[i])]);
+      const f = n - Math.floor(n);
+      if (full>=1 && full<vals.length && f>0)
+        pts.push([lerp(X(cfg.xs[full-1]),X(cfg.xs[full]),f),
+                  lerp(Y(vals[full-1]),Y(vals[full]),f)]);
+      o.line.setAttribute("points", pts.map(q=>q.join(",")).join(" "));
+      if (pts.length){ const last = pts[pts.length-1];
+        o.lbl.setAttribute("x", last[0]+10);
+        o.lbl.setAttribute("y", last[1]+5+(o.sr.dy||0)); fade(o.lbl,1);
+      } else fade(o.lbl,0);
+    });
+  }};
+}
+
+// Chapter 1: the sweep race + kill --------------------------------------------
+function buildSweep(){
+  const g = CH[0].g, K = D.kill;
+  chapterChrome(g, CH[0]);
+  const P = {x:250, y:130, w:1100, h:420, ymin:-0.28, ymax:0.48};
+  const xb = b => P.x + (b-0.6)/(8.8-0.6)*P.w;
+  const yr = r => P.y + (1-(r-P.ymin)/(P.ymax-P.ymin))*P.h;
+  // real axes (2026-09-16 revision U, user edit): Station A's convention on
+  // the attract too — numeric y reward ticks with gridlines + x step ticks,
+  // minimal but 3 m legible. (The prose "training blocks →" annotation
+  // stays gone — revision L/M; these are numbers, not prose.)
+  el("line",{x1:P.x,y1:P.y,x2:P.x,y2:P.y+P.h,stroke:PAL.hair,"stroke-width":2},g);
+  el("line",{x1:P.x,y1:P.y+P.h,x2:P.x+P.w,y2:P.y+P.h,stroke:PAL.hair,"stroke-width":2},g);
+  [-0.2, 0, 0.2, 0.4].forEach(v=>{
+    el("line",{x1:P.x,y1:yr(v),x2:P.x+P.w,y2:yr(v),stroke:PAL.hair,
+       "stroke-width":v===0?2.5:1.2},g);
+    txt(g, P.x-16, yr(v)+8, (v>0?"+":"")+v.toFixed(1), 23, PAL.ink3, {anchor:"end"});
+  });
+  for (let b=1;b<=8;b++){
+    el("line",{x1:xb(b),y1:P.y+P.h,x2:xb(b),y2:P.y+P.h+9,stroke:PAL.ink3,"stroke-width":2},g);
+    txt(g, xb(b), P.y+P.h+36, String(b), 23, PAL.ink3, {anchor:"middle"});
+  }
+  txt(g, P.x+P.w+22, P.y+P.h+36, "step", 23, PAL.ink3);
+  txt(g, P.x+12, P.y+18, "reward", 22, PAL.ink3);
+  const c1 = {curves:{}, xb, yr, P};
+  K.arms.forEach(a=>{
+    const cg = el("g",{},g);
+    const line = el("polyline",{fill:"none",stroke:PAL[a.color],"stroke-width":6,
+      "stroke-linejoin":"round","stroke-linecap":"round"},cg);
+    const dot = el("circle",{r:10,fill:PAL[a.color],stroke:PAL.surface,"stroke-width":3,opacity:0},cg);
+    const lbl = txt(cg, 0, 0, a.label, 27, PAL.ink, {weight:700, opacity:0});
+    c1.curves[a.id] = {a, cg, line, dot, lbl};
+  });
+  const dud = K.arms.find(a=>a.killed);
+  const X = el("g",{opacity:0,
+    transform:`translate(${xb(K.decision_block)},${yr(dud.rewards["5"])})`},g);
+  el("line",{x1:-24,y1:-24,x2:24,y2:24,stroke:PAL.red,"stroke-width":10,"stroke-linecap":"round"},X);
+  el("line",{x1:-24,y1:24,x2:24,y2:-24,stroke:PAL.red,"stroke-width":10,"stroke-linecap":"round"},X);
+  c1.X = X;
+  c1.note = txt(g, 800, 620, "4 experiments, 1 fleet — kill the low reward experiments at step 5",
+      30, PAL.ink2, {anchor:"middle", opacity:0});
+  // 2026-09-16 user edits: use-case line is the user's sentence VERBATIM; the
+  // tile caption is "decision speed" so 2.2x isn't printed twice. The "*"
+  // marker + on-screen footnote ("framing: fair early call, continuous and
+  // cheap · measured 1.13× at N=8") came OFF the stat frame (revision R) —
+  // both disclosures live in the attract D rows (the 2.2× row + the
+  // chapter-clocks row).
+  c1.stat = statFrame(g, D.headlines.decision, "decision speed", "4 experiments in parallel. Decisions 2.2x sooner.", PAL.blue);
+  CH[0].st = c1;
+}
+CH[0].draw = p => {
+  const c1 = CH[0].st, K = D.kill;
+  const bNow = 1 + clamp01(p/STAT_AT)*7.6;    // blocks revealed 1..8.6
+  for (const id in c1.curves){
+    const c = c1.curves[id], a = c.a;
+    const pts = [];
+    for (let b=1;b<=8;b++){
+      const r = a.rewards[String(b)];
+      if (r==null || b>bNow) break;
+      pts.push([c1.xb(b), c1.yr(r)]);
+    }
+    // partial segment toward the next block
+    const nb = Math.floor(bNow)+1, f = bNow-Math.floor(bNow);
+    const r0 = a.rewards[String(Math.floor(bNow))], r1 = a.rewards[String(nb)];
+    if (pts.length && r1!=null && f>0 && nb<=8)
+      pts.push([lerp(c1.xb(nb-1),c1.xb(nb),f), lerp(c1.yr(r0),c1.yr(r1),f)]);
+    c.line.setAttribute("points", pts.map(q=>q.join(",")).join(" "));
+    if (pts.length){
+      const last = pts[pts.length-1];
+      c.dot.setAttribute("cx",last[0]); c.dot.setAttribute("cy",last[1]); fade(c.dot,1);
+      c.lbl.setAttribute("x", last[0]+18); c.lbl.setAttribute("y", last[1]+9);
+      fade(c.lbl,1);
+    }
+    const killed = a.killed && bNow>=K.decision_block;
+    c.cg.setAttribute("opacity", killed?0.32:1);
+  }
+  fade(c1.X, bNow>=K.decision_block ? 1 : 0);
+  fade(c1.note, bNow>=K.decision_block ? 1 : 0);
+  fade(c1.stat, clamp01((p-STAT_AT)/0.05));
+};
+
+// Chapter 3 (since the 2026-09-16 reorder): elastic, DUAL-FLAVOR ------------
+// (2026-09-16 revision U, user edit): LEFT column = GEN flavor (genbound2 —
+// the pre-U visuals compacted to half width), RIGHT column = EVAL flavor
+// (the NeMo campaign, Station B flavor-2's receipt data), each with the
+// same three visuals: occupancy strip pair · trainer-GPU duty companion ·
+// convergence mini. ONE stage clock drives both columns (each column
+// replays its own wall at its own px/s; companions integrate exactly the
+// intervals their strips draw). Legibility: secondary annotations are
+// dropped here rather than shrinking primary marks — the eval column's
+// switch ticks + window-4 incident label live on Station B (D row); the
+// "every green mark" note line is REMOVED (user, this revision). The eval
+// convergence mini uses the report's own per-eval pass@4 anchors (5 sparse
+// points per arm — the most honest per-arm quality series this campaign
+// has; no both-arms per-step reward series exists in the receipts).
+function buildElastic(){
+  const g = CH[2].g, E = D.elastic, EV = D.elastic_flavor2;
+  chapterChrome(g, CH[2]);
+  const COLX = [70, 830], CW = 700, SX = 78, SW = 610;
+  el("line",{x1:800,y1:118,x2:800,y2:556,stroke:PAL.hair,"stroke-width":1.5},g);
+  // per-column eyebrow + the chapter's two spec lines, chip-wrapped per column
+  const specL = CH[2].spec.split("\n")[0];
+  const specR = CH[2].spec.split("\n")[1].replace(/^evals flavor: /,"");
+  function colHead(parent, cx, eyebrow, chips, y0){
+    txt(parent, cx+CW/2, y0, eyebrow, 17, PAL.ink, {anchor:"middle", weight:800});
+    const l1=[], l2=[];
+    chips.split(" · ").forEach(pt =>
+      (l1.join(" · ").length < chips.length/2 ? l1 : l2).push(pt));
+    [l1, l2].forEach((ln,i)=>{ if (ln.length)
+      txt(parent, cx+CW/2, y0+22+i*19, ln.join(" · "), 15, PAL.ink3,
+          {anchor:"middle", weight:600}); });
+  }
+  colHead(g, COLX[0], "GEN FLAVOR — lend idle to sampling · verl", specL, 132);
+  colHead(g, COLX[1], "EVAL FLAVOR — lend idle to evals · NeMo-RL", specR, 132);
+  const SY = {y1:200, y2:250, h:36};
+  const c2 = {SW, LX: COLX[0]+SX, RX: COLX[1]+SX};
+  COLX.forEach(cx=>{
+    txt(g, cx+SX-14, SY.y1+SY.h/2+7, "without", 19, PAL.ink3, {anchor:"end"});
+    txt(g, cx+SX-14, SY.y2+SY.h/2+7, "with", 19, PAL.ink, {anchor:"end", weight:700});
+  });
+  function seg(x,w,y,kind){
+    if (w<=0.4) return;
+    if (kind==="work") rrect(g,x,y,Math.max(1.2,w-1),SY.h,3,PAL.blue);
+    else if (kind==="lend") rrect(g,x,y,Math.max(2,w-0.6),SY.h,2.5,PAL.green);
+    else if (kind==="warm") rrect(g,x,y,Math.max(1,w-1),SY.h,3,PAL.hair);
+    else rrect(g,x,y,Math.max(1.2,w-1),SY.h,3,"rgba(234,67,53,0.12)",{stroke:PAL.red,sw:2});
+  }
+  // LEFT strips: genbound2 blocks (receipts 1:1, exactly the pre-U marks)
+  c2.xsL = SW / E.totals.base_s;
+  let cx = c2.LX;
+  E.baseline.forEach(b=>{ seg(cx,b.busy*c2.xsL,SY.y1,"work"); cx+=b.busy*c2.xsL;
+                          seg(cx,b.wait*c2.xsL,SY.y1,"wait"); cx+=b.wait*c2.xsL; });
+  cx = c2.LX;
+  E.elastic.forEach(b=>{
+    seg(cx,b.busy*c2.xsL,SY.y2,"work"); cx+=b.busy*c2.xsL;
+    if (b.unfilled>0){ seg(cx,b.unfilled*c2.xsL,SY.y2,"wait"); cx+=b.unfilled*c2.xsL; }
+    b.wins.forEach(w=>{ seg(cx,w.len*c2.xsL,SY.y2,"lend"); cx+=w.len*c2.xsL; });
+  });
+  // RIGHT strips: the NeMo flavor-2 receipts (Station B's strips, compacted):
+  // baseline = warmup + 18 train walls + the 5 RED eval walls (trainer
+  // blocked); elastic = warmup/train/tail + the 5 GREEN spare-serve windows
+  // (switch-out/-in spans render as the natural gaps)
+  c2.xsR = SW / EV.strips.baseline.total_s;
+  EV.strips.baseline.segs.forEach(s=>
+    seg(c2.RX+s.a*c2.xsR, (s.b-s.a)*c2.xsR, SY.y1,
+        s.k==="train"?"work":s.k==="evalidle"?"wait":"warm"));
+  EV.strips.elastic.segs.forEach(s=>
+    seg(c2.RX+s.a*c2.xsR, (s.b-s.a)*c2.xsR, SY.y2, s.k==="train"?"work":"warm"));
+  EV.strips.elastic.windows.forEach(w=>
+    seg(c2.RX+w.serve0*c2.xsR, (w.serve1-w.serve0)*c2.xsR, SY.y2, "lend"));
+  // progressive covers, one per lane per column (the Ch3 technique)
+  const cover = (x,y) => el("rect",{x, y:y-6, width:SW+26, height:SY.h+12,
+                                    fill:PAL.surface},g);
+  c2.covLA = cover(c2.LX, SY.y1); c2.covLB = cover(c2.LX, SY.y2);
+  c2.covRA = cover(c2.RX, SY.y1); c2.covRB = cover(c2.RX, SY.y2);
+  c2.doneL = txt(g, c2.LX+E.totals.elastic_s*c2.xsL+10, SY.y2+SY.h/2+7, "done ✓",
+      19, PAL.ink, {weight:800, opacity:0});
+  c2.doneR = txt(g, c2.RX+EV.strips.elastic.total_s*c2.xsR+10, SY.y2+SY.h/2+7, "done ✓",
+      19, PAL.ink, {weight:800, opacity:0});
+  // shared legend (one row for both columns)
+  const lY = 322;
+  let lx = 570;
+  [["training",PAL.blue,"chip"],["waiting",null,"hollow"],["lent",PAL.green,"chip"]]
+  .forEach(([lab,col,kind])=>{
+    if (kind==="hollow") rrect(g,lx,lY-18,22,22,5,"rgba(234,67,53,0.12)",{stroke:PAL.red,sw:3});
+    else rrect(g,lx,lY-18,22,22,5,col);
+    txt(g,lx+30,lY,lab,21,PAL.ink2);
+    lx += 30 + lab.length*10.5 + 52;
+  });
+  // ---- synced companions, one pair per column (same clock as the covers) --
+  // duty: live strip-derived time accounting; each column lands on ITS
+  // build-asserted endpoints (gen 69.0 -> 89.3, eval 55.7 -> 87.9 — Station
+  // B's flavor-2 pair, same definition and labels).
+  c2.workB = []; c2.workE = []; c2.cumB = []; c2.cumE = [];
+  let tb = 0;
+  E.baseline.forEach(b=>{ c2.workB.push([tb, tb+b.busy]); tb += b.busy + b.wait;
+                          c2.cumB.push(tb); });
+  let te = 0;
+  E.elastic.forEach(b=>{
+    c2.workE.push([te, te+b.busy]); te += b.busy;
+    if (b.unfilled>0) te += b.unfilled;
+    b.wins.forEach(w=>{ c2.workE.push([te, te+w.len]); te += w.len; });
+    c2.cumE.push(te);
+  });
+  c2.f2wB = EV.strips.baseline.segs.filter(s=>s.k==="train").map(s=>[s.a,s.b]);
+  c2.f2wE = EV.strips.elastic.segs.filter(s=>s.k==="train").map(s=>[s.a,s.b])
+    .concat(EV.strips.elastic.windows.map(w=>[w.serve0,w.serve1]))
+    .sort((a,b)=>a[0]-b[0]);
+  c2.f2cumB = EV.strips.baseline.segs.filter(s=>s.k==="evalidle").map(s=>s.b);
+  c2.f2cumE = EV.strips.elastic.windows.map(w=>w.serve1);
+  c2.dutyL = dutyMini(g, {x:COLX[0]+20, y:402, color:PAL.green});
+  c2.dutyR = dutyMini(g, {x:COLX[1]+20, y:402, color:PAL.green});
+  // convergence minis: gen = both arms' measured per-block rewards (each
+  // curve revealed as ITS OWN strip completes the block — the race); eval =
+  // per-eval pass@4 anchors, both arms (5 sparse points, revealed as each
+  // arm's eval completes on its strip; partial segments interpolate toward
+  // the next measured point, the chapter-1 rule).
+  c2.convL = convMini(g, {x:COLX[0]+420, y:388, w:210, h:132,
+    xs:[1,2,3,4,5,6,7,8,9,10,11,12], ylo:-0.2, yhi:0.5, xlabel:"step",
+    series:[{vals:E.reward_baseline, color:PAL.gray, label:"baseline", dy:18},
+            {vals:E.reward_elastic, color:PAL.green, label:"time-sliced", dy:-6}]});
+  c2.convR = convMini(g, {x:COLX[1]+420, y:388, w:210, h:132,
+    xs:[1,2,3,4,5], ylo:0.3, yhi:0.38, ydp:2, xlabel:"eval",
+    title:"CONVERGENCE — SAME pass@4 BAND", ylab:"pass@4",
+    series:[{vals:EV.pass4.baseline, color:PAL.gray, label:"baseline", dy:18},
+            {vals:EV.pass4.elastic, color:PAL.green, label:"time-sliced", dy:-6}]});
+  // stat frame (2026-09-16 revision W, user edit): dual-column mirror with
+  // THREE equal-weight tiles per column and the SPLIT per-column configs
+  // carried forward from the fill frame (same chip-wrapped colHead; the
+  // revision-V centered spec redraw is gone). Values 48 px (six tiles across
+  // two 700-px columns), weight 800 + captions, all receipts-derived and
+  // rounding-asserted at build (exacts in the revision-W D row):
+  //   left  = full-run step time −9.9 → −10 · samples/GPU·h headline +11 ·
+  //           duty 69.0/89.3 → 69→89
+  //   right = eval throughput idle/filled − 1 = +10.9 → +11 (identical
+  //           1,024-episode evals completed in −9.8% wall — throughput
+  //           during eval windows, episodes did NOT increase; label + D
+  //           row say so) · eval time −9.8 → −10 · duty 55.7/87.9 → 56→88
+  const f = el("g",{opacity:0},g);
+  rrect(f, 0, 112, 1600, 648, 0, PAL.surface, {opacity:0.94});
+  colHead(f, COLX[0], "GEN FLAVOR — lend idle to sampling · verl", specL, 252);
+  colHead(f, COLX[1], "EVAL FLAVOR — lend idle to evals · NeMo-RL", specR, 252);
+  const evThr = Math.round((EV.totals.idle_s/EV.totals.filled_s - 1)*100);
+  [[COLX[0], [
+     [Math.round(E.results.wall_pct)+"%", "step time"],
+     [D.headlines.throughput, "samples / GPU hour"],
+     [Math.round(E.duty_strip.baseline_pct)+"% → "+Math.round(E.duty_strip.elastic_pct)+"%",
+      "trainer GPU duty"]]],
+   [COLX[1], [
+     ["+"+evThr+"%", "eval samples / hour"],
+     [Math.round(-EV.totals.saved_pct)+"%", "eval time"],
+     [Math.round(EV.duty_strip.baseline_pct)+"% → "+Math.round(EV.duty_strip.elastic_pct)+"%",
+      "trainer GPU duty"]]]].forEach(([cx0, tiles])=>{
+    tiles.forEach(([big,cap],i)=>{
+      const cx = cx0 + 135 + i*212;
+      txt(f, cx, 412, big, 48, PAL.ink, {anchor:"middle", weight:800});
+      txt(f, cx, 448, cap, 20, PAL.ink2, {anchor:"middle"});
+    });
+  });
+  // completes-faster use-case line (revision X, user edit — supersedes the
+  // revision-W 2–10% range): single number, gen flavor full-run −9.9% → 10.
+  // Attribution: the eval flavor's mechanism-attributable counterpart is its
+  // −9.8% eval-window reduction (whole-run −1.77%, within variance per the
+  // report); defense: ~10% where the mechanism applies, in both flavors.
+  txt(f, 800, 600, "Your training run completes " +
+      Math.round(-E.results.wall_pct) + "% faster.",
+      46, PAL.green, {anchor:"middle", weight:800});
+  c2.stat = f;
+  CH[2].st = c2;
+}
+CH[2].draw = p => {
+  const c2 = CH[2].st, E = D.elastic, EV = D.elastic_flavor2;
+  const frac = clamp01(p/STAT_AT);
+  // ONE stage clock; each column replays its own wall at its own px/s
+  const tauL = frac * E.totals.base_s;
+  const tauR = frac * EV.strips.baseline.total_s;
+  const setCov = (cv, x0, xs, t) => {
+    const wx = t*xs;
+    cv.setAttribute("x", x0+wx);
+    cv.setAttribute("width", Math.max(0, c2.SW+26-wx));
+  };
+  const LB = E.totals.base_s, LE = E.totals.elastic_s;
+  const RB = EV.strips.baseline.total_s, RE = EV.strips.elastic.total_s;
+  setCov(c2.covLA, c2.LX, c2.xsL, Math.min(tauL, LB));
+  setCov(c2.covLB, c2.LX, c2.xsL, Math.min(tauL, LE));
+  setCov(c2.covRA, c2.RX, c2.xsR, Math.min(tauR, RB));
+  setCov(c2.covRB, c2.RX, c2.xsR, Math.min(tauR, RE));
+  fade(c2.doneL, tauL>=LE?1:0);
+  fade(c2.doneR, tauR>=RE?1:0);
+  // ---- companions on the SAME clock ---------------------------------------
+  const tBL = Math.min(tauL, LB), tEL = Math.min(tauL, LE);
+  const dBL = tauL>=LB ? E.duty_strip.baseline_pct
+            : (tBL>60 ? actIn(c2.workB,tBL)/tBL*100 : 0);
+  const dEL = tauL>=LE ? E.duty_strip.elastic_pct
+            : (tEL>60 ? actIn(c2.workE,tEL)/tEL*100 : 0);
+  c2.dutyL.set(dBL, dEL, tauL>60);
+  const tBR = Math.min(tauR, RB), tER = Math.min(tauR, RE);
+  const dBR = tauR>=RB ? EV.duty_strip.baseline_pct
+            : (tBR>600 ? actIn(c2.f2wB,tBR)/tBR*100 : 0);
+  const dER = tauR>=RE ? EV.duty_strip.elastic_pct
+            : (tER>600 ? actIn(c2.f2wE,tER)/tER*100 : 0);
+  c2.dutyR.set(dBR, dER, tauR>600);
+  const reveal = (cum, t) => { let i=0;
+    while (i<cum.length && cum[i]<=t) i++;
+    if (i>=cum.length) return cum.length;
+    const lo = i>0 ? cum[i-1] : 0;
+    return i + clamp01((t-lo)/(cum[i]-lo)); };
+  c2.convL.set([reveal(c2.cumB, tBL), reveal(c2.cumE, tEL)]);
+  c2.convR.set([reveal(c2.f2cumB, tBR), reveal(c2.f2cumE, tER)]);
+  fade(c2.stat, clamp01((p-STAT_AT)/0.05));
+};
+
+// Chapter 2 (since the 2026-09-16 reorder): RL + batch interleave ------------
+// (2026-09-16 user reframe, revision K: a STANDALONE application — two
+// workloads share one fleet, the batch tenant riding the training run's
+// natural gaps; the old leftover-filler chapter framing is gone)
+// MEASURED MODE (since the 2026-09-15 activation, revision I): the
+// rl-batch-interleave receipts — the real 26-window strip at poster scale
+// (trainer bursts + gen-wait windows, receipts 1:1), windows converting
+// purple with the real cumulative items/tokens on the counter, and the
+// measured stat frame (19.5K items · ~$50 free · duty pair). Windows do NOT
+// shrink when filled: the RL run's walls are unchanged (the no-harm gate).
+// PENDING MODE (swap file removed): the original number-free interim.
+function buildBatch(){
+  const g = CH[1].g, B = D.batch;
+  chapterChrome(g, CH[1]);
+  if (B.pending){
+    const S = {x:150, w:1300, y:210, h:96};
+    const SCH = {warm:60, nsteps:12, step:90, winlen:150, after:[3,6,9,12]};
+    const total = SCH.warm + SCH.nsteps*SCH.step + SCH.after.length*SCH.winlen;
+    const xs = S.w/total;
+    const c3 = {S, xs, wins:[], pending:true};
+    let t = 0, wi = 0;
+    const put = (dur, kind) => {
+      const x = S.x + t*xs, ww = dur*xs;
+      if (kind==="warm") rrect(g,x,S.y,ww-1.4,S.h,4,PAL.hair);
+      else if (kind==="work") rrect(g,x,S.y,Math.max(1.2,ww-1.4),S.h,4,PAL.blue);
+      else {
+        rrect(g,x,S.y,ww-1.4,S.h,4,"rgba(234,67,53,0.12)",{stroke:PAL.red,sw:2.5});
+        const fill = rrect(g,x,S.y,0,S.h,4,PAL.purple);
+        const lbl = txt(g, x+ww/2, S.y-14, "batch ✓", 22, PAL.purple,
+            {anchor:"middle", weight:700, opacity:0});
+        c3.wins.push({fill, lbl, x, ww});
+      }
+      t += dur;
+    };
+    put(SCH.warm, "warm");
+    for (let s=1;s<=SCH.nsteps;s++){
+      put(SCH.step, "work");
+      if (wi<SCH.after.length && SCH.after[wi]===s){ put(SCH.winlen, "idle"); wi++; }
+    }
+    txt(g, S.x, S.y+S.h+40, "blue = training · red outline = idle windows · purple = batch tenant serving",
+        24, PAL.ink3);
+    txt(g, S.x+S.w, S.y+S.h+40, "SCHEMATIC — no measured data yet", 22, PAL.ink3,
+        {anchor:"end", weight:700});
+    c3.counter = txt(g, 800, 470, "your backlogs, free — measuring now", 38, PAL.ink2,
+        {anchor:"middle", weight:700});
+    c3.note = txt(g, 800, 560,
+        "stock vLLM server · snapshot-agent APP_VLLM · timeslice-verl hooks · guides/rl-batch-interleaving",
+        24, PAL.ink3, {anchor:"middle"});
+    const f = el("g",{opacity:0},g);
+    rrect(f, 0, 112, 1600, 648, 0, PAL.surface, {opacity:0.94});
+    txt(f, 800, 370, "your backlogs, free", 96, PAL.ink, {anchor:"middle", weight:800});
+    txt(f, 800, 434, "measuring now — receipts land here", 34, PAL.ink2, {anchor:"middle"});
+    txt(f, 800, 490,
+        "stock vLLM server · snapshot-agent APP_VLLM · timeslice-verl hooks · guides/rl-batch-interleaving",
+        24, PAL.ink3, {anchor:"middle"});
+    txt(f, 800, 600, "Your independent batch tenant, on the trainer's idle.", 46,
+        PAL.purple, {anchor:"middle", weight:800});
+    c3.stat = f;
+    CH[1].st = c3;
+    return;
+  }
+  // measured strips (2026-09-16 revision S, user edit): the Ch3 baseline-vs-
+  // time-sliced PAIR. TOP "without" = the solo shape: blue trainer bursts +
+  // red-outline gen-wait idle, never filled. BOTTOM "with" = the same
+  // receipts with the 26 windows converting purple. Constant scale —
+  // converting a window does not shrink any wall. Both lanes draw
+  // progressively on the shared run clock via the revision-Q covers.
+  // BASELINE BASIS (disclosed in the D row "attract ch2 · baseline strip"):
+  // A1' has no per-interval lock receipts (hooks inert) and stops at v12 by
+  // registered design while A2 runs to v24, so the "without" lane renders
+  // the interleaved run's own receipt intervals with every window left idle
+  // — training walls gate-equal (no-harm 1.0147); A1's own train-log step
+  // receipts corroborate the share (42.6% burst share over v2-12, parsed +
+  // asserted at build).
+  const S = {x:250, w:1100, y1:150, y2:246, h:62};
+  const ST = B.strip;
+  const xs = S.w / ST.total_wall_s;
+  const c3 = {S, xs, wins:[]};
+  txt(g, S.x-18, S.y1+S.h/2+9, "without", 26, PAL.ink3, {anchor:"end"});
+  txt(g, S.x-18, S.y2+S.h/2+9, "with", 26, PAL.ink, {anchor:"end", weight:700});
+  [S.y1, S.y2].forEach(sy=>{
+    rrect(g, S.x, sy, ST.prologue_s*xs-1, S.h, 4, PAL.hair);
+    rrect(g, S.x+(ST.total_wall_s-ST.tail_s)*xs, sy, ST.tail_s*xs-1, S.h, 4, PAL.hair);
+    ST.bursts.forEach(bx=>
+      rrect(g, S.x+bx[0]*xs, sy, Math.max(1.2,(bx[1]-bx[0])*xs-1), S.h, 4, PAL.blue));
+  });
+  B.windows.forEach(w=>{
+    const x = S.x + w.a*xs, ww = Math.max(2,(w.b-w.a)*xs-1);
+    rrect(g, x, S.y1, ww, S.h, 4, "rgba(234,67,53,0.12)", {stroke:PAL.red, sw:2});
+    rrect(g, x, S.y2, ww, S.h, 4, "rgba(234,67,53,0.12)", {stroke:PAL.red, sw:2});
+    const fill = rrect(g, x, S.y2, 0, S.h, 4, PAL.purple);   // "with" lane only
+    c3.wins.push({w, fill, x, ww});
+  });
+  // progressive covers (revision Q; one per lane since revision S): the
+  // cover edge IS the clock position tW; the in-progress window's purple
+  // fill tracks the same edge, so RL and batch visibly progress together.
+  c3.coverA = el("rect",{x:S.x, y:S.y1-8, width:S.w+40, height:S.h+16, fill:PAL.surface},g);
+  c3.coverB = el("rect",{x:S.x, y:S.y2-8, width:S.w+40, height:S.h+16, fill:PAL.surface},g);
+  // legend, Ch3 convention (chips, not a prose line)
+  const lY = S.y2+S.h+42;
+  let lx = 420;
+  [["training",PAL.blue,"chip"],["waiting",null,"hollow"],["lent to batch inference",PAL.purple,"chip"]]
+  .forEach(([lab,col,kind])=>{
+    if (kind==="hollow") rrect(g,lx,lY-20,24,24,5,"rgba(234,67,53,0.12)",{stroke:PAL.red,sw:3});
+    else rrect(g,lx,lY-20,24,24,5,col);
+    txt(g,lx+34,lY,lab,24,PAL.ink2);
+    lx += 34 + lab.length*11.5 + 56;
+  });
+  // ---- synced companions ----------------------------------------------------
+  // duty companion (revision P live-print; revision T rename, coordinator
+  // decision): visually and structurally IDENTICAL to the elastic chapter's
+  // — default title "TRAINER-GPU DUTY", default labels baseline/time-sliced,
+  // live values at every movement. Computed by strip-derived TIME ACCOUNTING
+  // over the same receipt intervals the strips draw (baseline = training-
+  // burst share of elapsed wall; time-sliced = bursts + converted tenant-
+  // serve share); endpoints 39.9% -> 97.2% (B.occupancy, build-asserted).
+  // "duty" now means the strip-derived basis EVERYWHERE on this campaign
+  // (stat tile + Station C gauges too — the Station B convention); the
+  // nvidia-smi 33.2 -> 88.8 GPU-util pair is the hardware-counter basis and
+  // lives in the presenter-reference rows only (supersedes the revision-P on-screen
+  // OCCUPANCY/duty split).
+  c3.duty = dutyMini(g, {x:280, y:452, color:PAL.purple});
+  c3.bSegs = ST.bursts;
+  c3.wSegs = c3.wins.map(W=>[W.w.a, W.w.b]);
+  // convergence: A2 vs A1' per-version rewards over the scored no-harm range
+  // (v2-12), revealed as the windows convert (weight version at window open).
+  const CV = B.convergence;
+  c3.conv = convMini(g, {x:960, y:436, w:400, h:170,
+    xs:CV.versions, ylo:-0.3, yhi:0.2, xlabel:CV.label,
+    series:[{vals:CV.a1, color:PAL.gray, label:"solo baseline", dy:20},
+            {vals:CV.a2, color:PAL.purple, label:"interleaved", dy:-8}]});
+  c3.counter = txt(g, 800, 664, "", 38, PAL.ink, {anchor:"middle", weight:700, opacity:0});
+  // (fill-frame note line removed 2026-09-16 revision V, user edit — the
+  // stat frame's use-case line now carries the walls-unchanged message)
+  // stat frame (2026-09-16 user edit, revision O): the THREE results carry
+  // EQUAL visual weight — one row of three tiles, same type size/style, no
+  // single hero number. Values render from the receipts fields directly.
+  // Tile 3 (revision T, coordinator vocabulary decision): the SAME strip-
+  // derived duty basis as the live companion — rounded 40% → 97% (exact
+  // 39.9/97.2 in D; rounding build-asserted); the nvidia-smi 33.2 → 88.8
+  // pair moved entirely to D as the hardware-counter basis note.
+  const f = el("g",{opacity:0},g);
+  rrect(f, 0, 112, 1600, 648, 0, PAL.surface, {opacity:0.94});
+  [[B.totals.items.toLocaleString("en-US"), "requests completed free"],
+   [(B.totals.tokens/1e6).toFixed(1)+"M", "tokens generated free"],
+   [Math.round(B.occupancy.baseline_pct)+"% → "+Math.round(B.occupancy.interleaved_pct)+"%",
+    "trainer GPU duty"]].forEach(([big,cap],i)=>{
+    const cx = 320 + i*480;
+    txt(f, cx, 420, big, 88, PAL.ink, {anchor:"middle", weight:800});
+    txt(f, cx, 466, cap, 26, PAL.ink2, {anchor:"middle"});
+  });
+  // use-case line (2026-09-16 revision V, user's sentence VERBATIM; 40 px so
+  // the longer line keeps side margins at 1600 wide)
+  txt(f, 800, 600, "An independent batch inference tenant runs free and RL remains unchanged",
+      40, PAL.purple, {anchor:"middle", weight:800});
+  c3.stat = f;
+  // redraw the second spec line above the stat-frame cover (two-line spec)
+  const spec2c = CH[1].spec.split("\n")[1];
+  if (spec2c) txt(c3.stat, 800, 128, spec2c, 19, PAL.ink3, {anchor:"middle", weight:600});
+  CH[1].st = c3;
+}
+CH[1].draw = p => {
+  const c3 = CH[1].st, B = D.batch;
+  const k = clamp01(p/(STAT_AT-0.04)) * c3.wins.length;   // windows filled in turn
+  if (c3.pending){
+    c3.wins.forEach((W,i)=>{
+      const f = clamp01(k-i);
+      W.fill.setAttribute("width", Math.max(0, (W.ww-1.4)*f));
+      fade(W.lbl, f>=1?1:0);
+    });
+    fade(c3.stat, clamp01((p-STAT_AT)/0.05));
+    return;
+  }
+  // run-clock position (shared by the cover, the purple fills AND the
+  // companions — one clock): windows convert in run order; k maps onto the
+  // wall by sweeping through the burst before each window, then the window
+  // itself. Slot 0 starts at wall 0 (revision Q) so the prologue + first
+  // burst draw in instead of pre-rendering; slots 1+ are unchanged (the
+  // asserted mid/end companion values are untouched).
+  const done = k >= c3.wins.length;
+  const kj = Math.floor(k), kg = k - kj;
+  const p0 = kj>=1 ? c3.wins[kj-1].w.b : 0;
+  const p1 = kj < c3.wins.length ? c3.wins[kj].w.b : B.strip.total_wall_s;
+  const tW = done ? B.strip.total_wall_s : lerp(p0, p1, kg);
+  // progressive covers: drawn extent == clock position (Ch3 technique);
+  // both lanes share the one clock (revision S)
+  const wx = Math.min(tW, B.strip.total_wall_s)*c3.xs;
+  [c3.coverA, c3.coverB].forEach(cv=>{
+    cv.setAttribute("x", c3.S.x+wx);
+    cv.setAttribute("width", Math.max(0, c3.S.w+40-wx));
+  });
+  let items = 0, toks = 0;
+  c3.wins.forEach((W,i)=>{
+    // purple fill tracks the cover edge: the window converts exactly as the
+    // clock crosses it (receipts 1:1 — walls never shrink)
+    const rev = clamp01((tW - W.w.a)/(W.w.b - W.w.a));
+    W.fill.setAttribute("width", W.ww*rev);
+    if (k-i>=1){ items += W.w.batch.items; toks += W.w.batch.tokens; }
+  });
+  // ---- companions on the SAME clock (window conversions) -------------------
+  const oB = done ? B.occupancy.baseline_pct
+           : (tW>120 ? actIn(c3.bSegs, tW)/tW*100 : 0);
+  const oT = done ? B.occupancy.interleaved_pct
+           : (tW>120 ? (actIn(c3.bSegs, tW)+actIn(c3.wSegs, tW))/tW*100 : 0);
+  c3.duty.set(oB, oT, tW>120);
+  const AS = c3.wins.map(W=>W.w.after_step);
+  const vPrev = kj>=1 ? AS[kj-1] : 0;
+  const vNext = kj < AS.length ? AS[kj] : AS[AS.length-1];
+  const vlim = done ? 99 : lerp(vPrev, vNext, kg);
+  const n = Math.max(0, Math.min(B.convergence.versions.length, vlim - 1));
+  c3.conv.set([n, n]);
+  if (items>0){
+    c3.counter.textContent =
+      `${items.toLocaleString("en-US")} requests completed free · ${(toks/1e6).toFixed(1)}M tokens`;
+    fade(c3.counter,1);
+  } else fade(c3.counter,0);
+  fade(c3.stat, clamp01((p-STAT_AT)/0.05));
+};
+
+// ------------------------------------------------------------------ player --
+const builders=[buildSweep,buildBatch,buildElastic];   // = chapter order
+let t=0, playing=true, last=null;
+function render(){
+  let acc=0, i=0, p=0;
+  for (let j=0;j<CH.length;j++){
+    if (t<acc+CH[j].dur || j===CH.length-1){ i=j; p=clamp01((t-acc)/CH[j].dur); break; }
+    acc+=CH[j].dur;
+  }
+  CH.forEach((c,j)=>{
+    if (j===i && !c.built){ builders[j](); c.built=true; }
+    c.g.setAttribute("opacity", j===i?1:0);
+  });
+  CH[i].draw(p);
+}
+function frame(now){
+  if (last==null) last=now;
+  const dt=(now-last)/1000; last=now;
+  if (playing){ t += dt; if (t>=TOTAL) t=0; }
+  render();
+  requestAnimationFrame(frame);
+}
+(function(){
+  const m = location.hash.match(/ch=(\d)(?:,p=([\d.]+))?/);
+  if (m){
+    const i = Math.min(2, Math.max(0, parseInt(m[1],10)-1));
+    let acc=0; for (let j=0;j<i;j++) acc+=CH[j].dur;
+    t = acc + (m[2]!=null?parseFloat(m[2]):0.5)*CH[i].dur;
+    playing=false;
+  }
+})();
+requestAnimationFrame(frame);
+
+// (the rotating receipts ticker was retired in revision X — the bottom bar is
+// now the static repo banner in the markup above; the ticker's receipt items
+// live verbatim in BOOTH-NOTES.md "Presenter reference".)
+
+// ---- review controls (2026-09-16 revision S, user request) -----------------
+// SPACE toggles pause/resume of the loop clock (everything is a pure function
+// of t, so strips, companions, counters and chapter transitions all freeze in
+// place; the bottom banner is static — nothing to pause there). LEFT/RIGHT step
+// the existing frame grid while paused — the 9 shoot-state boundaries
+// (p = 0.25 / 0.4 / 0.8 per chapter). Keyboard-only, no on-screen buttons;
+// the corner badge renders ONLY on user pause (deep-link screenshot states
+// stay clean; #pause simulates a user pause for the verification shot).
+(function(){
+  const FR = [];
+  CH.forEach((c,i)=>[0.25,0.4,0.8].forEach(p=>FR.push({i,p})));
+  const frT = f => { let a=0; for (let j=0;j<f.i;j++) a+=CH[j].dur;
+                     return a + f.p*CH[f.i].dur; };
+  const badge = document.createElement("div");
+  badge.id = "pausebadge";
+  document.body.appendChild(badge);
+  let showBadge = false;
+  function sync(){
+    if (playing || !showBadge){ badge.style.display = "none"; return; }
+    let acc=0, i=0, p=0;
+    for (let j=0;j<CH.length;j++){
+      if (t<acc+CH[j].dur || j===CH.length-1){ i=j; p=(t-acc)/CH[j].dur; break; }
+      acc+=CH[j].dur;
+    }
+    const near = FR.findIndex(f=>f.i===i && Math.abs(f.p-p)<0.005);
+    badge.textContent = "⏸ paused — ch"+(i+1)+" · p="+p.toFixed(2)
+      + (near>=0 ? " · frame "+(near+1)+"/"+FR.length : "")
+      + "   (space: play · ←/→: step)";
+    badge.style.display = "block";
+  }
+  document.addEventListener("keydown", e=>{
+    if (e.key===" "){
+      e.preventDefault();
+      playing = !playing; showBadge = !playing; sync();
+    } else if ((e.key==="ArrowRight" || e.key==="ArrowLeft") && !playing){
+      e.preventDefault();
+      const ts = FR.map(frT), eps = 0.05;
+      if (e.key==="ArrowRight"){
+        const nt = ts.find(v=>v>t+eps);
+        t = nt==null ? ts[0] : nt;
+      } else {
+        const prev = ts.filter(v=>v<t-eps);
+        t = prev.length ? prev[prev.length-1] : ts[ts.length-1];
+      }
+      showBadge = true; sync();
+    }
+  });
+  if (/pause/.test(location.hash)){ playing = false; showBadge = true; }
+  sync();
+})();
+
+// (the press-D data table was retired in revision X — full provenance lives
+// in BOOTH-NOTES.md "Presenter reference — full data provenance")
+</script>
+</body>
+</html>
